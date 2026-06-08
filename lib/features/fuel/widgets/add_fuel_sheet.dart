@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/fuel_repository.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:quantane/features/fuel/fuel_providers.dart';
+import 'package:quantane/features/home/home_providers.dart';
+import 'package:quantane/features/home/insight_providers.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -37,7 +40,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
     final vehicleId = ref.read(activeVehicleProvider);
     if (vehicleId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add and select a vehicle first in Settings.')),
+        const SnackBar(
+          content: Text('Please add and select a vehicle first in Settings.'),
+        ),
       );
       return;
     }
@@ -50,16 +55,22 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
         fuelCost: double.parse(_costController.text),
         fuelLiters: double.parse(_litersController.text),
         odometer: double.parse(_odoController.text),
-        station: _stationController.text.isNotEmpty ? _stationController.text : null,
+        station: _stationController.text.isNotEmpty
+            ? _stationController.text
+            : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
       await ref.read(fuelRepositoryProvider).insert(entry);
+      ref.invalidate(fuelHistoryProvider);
+      ref.invalidate(homeSummaryProvider);
+      ref.invalidate(quickStatsProvider);
+      ref.invalidate(insightsProvider);
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving fuel fill: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving fuel fill: $e')));
     }
   }
 
@@ -102,7 +113,8 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
                     controller: _costController,
                     decoration: const InputDecoration(labelText: 'Cost (₹)'),
                     keyboardType: TextInputType.number,
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -111,8 +123,11 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
                   child: TextFormField(
                     controller: _litersController,
                     decoration: const InputDecoration(labelText: 'Liters'),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                 ),
               ],
@@ -127,7 +142,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _stationController,
-              decoration: const InputDecoration(labelText: 'Station (Optional)'),
+              decoration: const InputDecoration(
+                labelText: 'Station (Optional)',
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -143,7 +160,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text('Save Fill'),
               ),

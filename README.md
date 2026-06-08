@@ -87,3 +87,9 @@ This repository currently contains the Flutter app scaffold and supporting Andro
 - [Design specification](Docs/design%20(1).md)
 - [Implementation plan](Docs/implementation_plan.md)
 - [Task tracker](Docs/task.md)
+
+
+```bash
+flutter emulators --launch Medium_Phone_API_35
+flutter run
+```

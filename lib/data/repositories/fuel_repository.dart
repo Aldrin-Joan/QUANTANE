@@ -17,26 +17,29 @@ class FuelRepository {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch()
         .asyncMap((rows) async {
-      final entries = <FuelEntry>[];
-      for (var i = 0; i < rows.length; i++) {
-        final current = rows[i];
-        double? prevOdo;
-        if (i + 1 < rows.length) {
-          prevOdo = rows[i + 1].odometer;
-        } else {
-          // Check initial odometer of the vehicle
-          final vehicleQuery = _db.select(_db.vehicles)..where((t) => t.id.equals(vehicleId));
-          final vehicle = await vehicleQuery.getSingleOrNull();
-          prevOdo = vehicle?.initialOdometer;
-        }
-        entries.add(FuelEntry.fromDrift(current, prevOdometer: prevOdo));
-      }
-      return entries;
-    });
+          final entries = <FuelEntry>[];
+          for (var i = 0; i < rows.length; i++) {
+            final current = rows[i];
+            double? prevOdo;
+            if (i + 1 < rows.length) {
+              prevOdo = rows[i + 1].odometer;
+            } else {
+              // Check initial odometer of the vehicle
+              final vehicleQuery = _db.select(_db.vehicles)
+                ..where((t) => t.id.equals(vehicleId));
+              final vehicle = await vehicleQuery.getSingleOrNull();
+              prevOdo = vehicle?.initialOdometer;
+            }
+            entries.add(FuelEntry.fromDrift(current, prevOdometer: prevOdo));
+          }
+          return entries;
+        });
   }
 
   Future<void> insert(FuelEntry entry) async {
-    await _db.into(_db.fuelEntries).insert(
+    await _db
+        .into(_db.fuelEntries)
+        .insert(
           FuelEntriesCompanion.insert(
             id: entry.id,
             vehicleId: entry.vehicleId,
@@ -62,26 +65,41 @@ class FuelRepository {
 
     final query = _db.selectOnly(_db.fuelEntries)
       ..addColumns([_db.fuelEntries.fuelCost.sum()])
-      ..where(_db.fuelEntries.vehicleId.equals(vehicleId) & _db.fuelEntries.date.isBetweenValues(start, end));
+      ..where(
+        _db.fuelEntries.vehicleId.equals(vehicleId) &
+            _db.fuelEntries.date.isBetweenValues(start, end),
+      );
 
     final result = await query.getSingle();
     return result.read(_db.fuelEntries.fuelCost.sum()) ?? 0.0;
   }
 
-  Future<List<Map<String, double>>> getDailySpend(String vehicleId, int days) async {
+  Future<List<Map<String, double>>> getDailySpend(
+    String vehicleId,
+    int days,
+  ) async {
     final now = DateTime.now();
     final start = now.subtract(Duration(days: days)).toIso8601String();
 
     final query = _db.selectOnly(_db.fuelEntries)
       ..addColumns([_db.fuelEntries.date, _db.fuelEntries.fuelCost.sum()])
-      ..where(_db.fuelEntries.vehicleId.equals(vehicleId) & _db.fuelEntries.date.isBiggerOrEqualValue(start))
+      ..where(
+        _db.fuelEntries.vehicleId.equals(vehicleId) &
+            _db.fuelEntries.date.isBiggerOrEqualValue(start),
+      )
       ..groupBy([_db.fuelEntries.date]);
 
     final rows = await query.get();
-    return rows.map((row) => {
-      'date': (row.read(_db.fuelEntries.date) as String).hashCode.toDouble(), // This is a bit of a hack for now
-      'cost': row.read(_db.fuelEntries.fuelCost.sum()) ?? 0.0,
-    }).toList();
+    return rows
+        .map(
+          (row) => {
+            'date': DateTime.parse(
+              row.read(_db.fuelEntries.date) as String,
+            ).millisecondsSinceEpoch.toDouble(),
+            'cost': row.read(_db.fuelEntries.fuelCost.sum()) ?? 0.0,
+          },
+        )
+        .toList();
   }
 }
 

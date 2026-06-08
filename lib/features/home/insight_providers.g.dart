@@ -1,4 +1,4 @@
-﻿// GENERATED CODE - DO NOT MODIFY BY HAND
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'insight_providers.dart';
 
@@ -46,4 +46,4 @@ final class InsightsProvider
   }
 }
 
-String _$insightsHash() => r'cd96f05ae74a7823c7fed5d88e923c63ad73d7bc';
+String _$insightsHash() => r'1ed2381041c567135fcc81a4bf73118805eb5d64';

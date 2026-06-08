@@ -70,7 +70,7 @@ class FuelEntryCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const DeltaBadge(value: 5.4), // Mock delta
+                  DeltaBadge(value: entry.mileage!),
                 ],
               ),
             ],

@@ -1,4 +1,4 @@
-﻿// GENERATED CODE - DO NOT MODIFY BY HAND
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'active_vehicle_provider.dart';
 
@@ -41,7 +41,7 @@ final class ActiveVehicleProvider
   }
 }
 
-String _$activeVehicleHash() => r'ad52c2429182c939e5d6b336f425d3ccabe72edf';
+String _$activeVehicleHash() => r'29cb451988afcdbdee71e31a0e48a46f0b1e8e72';
 
 abstract class _$ActiveVehicle extends $Notifier<String?> {
   String? build();

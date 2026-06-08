@@ -1,4 +1,4 @@
-﻿// GENERATED CODE - DO NOT MODIFY BY HAND
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'home_providers.dart';
 
@@ -17,9 +17,9 @@ final class HomeSummaryProvider
         $FunctionalProvider<
           AsyncValue<HomeSummary?>,
           HomeSummary?,
-          FutureOr<HomeSummary?>
+          Stream<HomeSummary?>
         >
-    with $FutureModifier<HomeSummary?>, $FutureProvider<HomeSummary?> {
+    with $FutureModifier<HomeSummary?>, $StreamProvider<HomeSummary?> {
   HomeSummaryProvider._()
     : super(
         from: null,
@@ -36,17 +36,17 @@ final class HomeSummaryProvider
 
   @$internal
   @override
-  $FutureProviderElement<HomeSummary?> $createElement(
+  $StreamProviderElement<HomeSummary?> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<HomeSummary?> create(Ref ref) {
+  Stream<HomeSummary?> create(Ref ref) {
     return homeSummary(ref);
   }
 }
 
-String _$homeSummaryHash() => r'39e6c5edbfdbd01798832111e5d5f1552743455f';
+String _$homeSummaryHash() => r'1e7cdca6b208c08107e32853eeb04ba8b6ac1c68';
 
 @ProviderFor(quickStats)
 final quickStatsProvider = QuickStatsProvider._();
@@ -56,9 +56,9 @@ final class QuickStatsProvider
         $FunctionalProvider<
           AsyncValue<QuickStats?>,
           QuickStats?,
-          FutureOr<QuickStats?>
+          Stream<QuickStats?>
         >
-    with $FutureModifier<QuickStats?>, $FutureProvider<QuickStats?> {
+    with $FutureModifier<QuickStats?>, $StreamProvider<QuickStats?> {
   QuickStatsProvider._()
     : super(
         from: null,
@@ -75,14 +75,14 @@ final class QuickStatsProvider
 
   @$internal
   @override
-  $FutureProviderElement<QuickStats?> $createElement(
+  $StreamProviderElement<QuickStats?> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<QuickStats?> create(Ref ref) {
+  Stream<QuickStats?> create(Ref ref) {
     return quickStats(ref);
   }
 }
 
-String _$quickStatsHash() => r'936ea16ba3b01df0e6cb6a09cc6da70da9251e01';
+String _$quickStatsHash() => r'08be98b6812019a13b5aef6a870456f905c875d8';

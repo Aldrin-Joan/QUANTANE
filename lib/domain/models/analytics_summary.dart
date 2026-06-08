@@ -23,3 +23,12 @@ class QuickStats {
     required this.costPerKm,
   });
 }
+
+class DailySpend {
+  final DateTime date;
+  final double amount;
+
+  DailySpend({required this.date, required this.amount});
+
+  String get label => '${date.month}/${date.day}';
+}

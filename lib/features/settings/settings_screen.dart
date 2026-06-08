@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:quantane/core/theme/colors.dart';
+import 'package:quantane/data/database/database_provider.dart';
+import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -18,19 +20,25 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(LucideIcons.car),
               title: const Text('Manage Vehicles'),
               trailing: const Icon(LucideIcons.chevron_right, size: 20),
-              onTap: () => context.push('/vehicles'), // Need to add this route
+              onTap: () => context.push('/vehicles'),
             ),
           ]),
           _buildSection(context, 'Preferences', [
             const ListTile(
               leading: Icon(LucideIcons.indian_rupee),
               title: Text('Currency'),
-              trailing: Text('INR (₹)', style: TextStyle(color: AppColors.textSecondary)),
+              trailing: Text(
+                'INR (₹)',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
             const ListTile(
               leading: Icon(LucideIcons.map_pin),
               title: Text('Distance Unit'),
-              trailing: Text('Kilometers (KM)', style: TextStyle(color: AppColors.textSecondary)),
+              trailing: Text(
+                'Kilometers (KM)',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
           ]),
           _buildSection(context, 'Data', [
@@ -42,12 +50,18 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(LucideIcons.trash_2, color: AppColors.dangerColor),
-              title: const Text('Clear All Data', style: TextStyle(color: AppColors.dangerColor)),
+              leading: const Icon(
+                LucideIcons.trash_2,
+                color: AppColors.dangerColor,
+              ),
+              title: const Text(
+                'Clear All Data',
+                style: TextStyle(color: AppColors.dangerColor),
+              ),
               onTap: () => _showClearDataDialog(context, ref),
             ),
           ]),
-            const Padding(
+          const Padding(
             padding: EdgeInsets.all(24),
             child: Text(
               'Quantane v1.0.0',
@@ -60,7 +74,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    List<Widget> children,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,7 +103,9 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Data?'),
-        content: const Text('This action cannot be undone. All your vehicles, trips, and fuel logs will be permanently deleted.'),
+        content: const Text(
+          'This action cannot be undone. All your vehicles, trips, and fuel logs will be permanently deleted.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -93,10 +113,16 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              // Implementation to clear DB
-              Navigator.pop(context);
+              await ref.read(appDatabaseProvider).clearAllData();
+              await ref.read(activeVehicleProvider.notifier).clear();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
-            child: const Text('Clear Everything', style: TextStyle(color: AppColors.dangerColor)),
+            child: const Text(
+              'Clear Everything',
+              style: TextStyle(color: AppColors.dangerColor),
+            ),
           ),
         ],
       ),

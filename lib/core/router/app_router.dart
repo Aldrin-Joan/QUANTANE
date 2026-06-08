@@ -13,11 +13,21 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'app_router.g.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final _shellNavigatorTripsKey = GlobalKey<NavigatorState>(debugLabel: 'shellTrips');
-final _shellNavigatorFuelKey = GlobalKey<NavigatorState>(debugLabel: 'shellFuel');
-final _shellNavigatorAnalyticsKey = GlobalKey<NavigatorState>(debugLabel: 'shellAnalytics');
-final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'shellSettings');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final _shellNavigatorTripsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellTrips',
+);
+final _shellNavigatorFuelKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellFuel',
+);
+final _shellNavigatorAnalyticsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellAnalytics',
+);
+final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellSettings',
+);
 
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
@@ -72,16 +82,15 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'vehicles',
-                    builder: (context, state) => const VehiclesScreen(),
-                  ),
-                ],
               ),
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/vehicles',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const VehiclesScreen(),
       ),
       GoRoute(
         path: '/live-trip',

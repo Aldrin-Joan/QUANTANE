@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:quantane/main.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:quantane/domain/models/trip.dart';
+import 'package:quantane/features/fuel/fuel_providers.dart';
+import 'package:quantane/features/home/home_screen.dart';
+import 'package:quantane/features/trips/trip_providers.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const QuantaneApp());
+  testWidgets('home metric carousel swipes between mileage and speed', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime(2026, 6, 8);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          fuelHistoryProvider.overrideWith((ref) {
+            return Stream.value([
+              FuelEntry(
+                id: 'fuel-1',
+                vehicleId: 'vehicle-1',
+                date: now,
+                fuelCost: 1000,
+                fuelLiters: 40,
+                odometer: 1200,
+                mileage: 25,
+                costPerKm: 40,
+              ),
+            ]);
+          }),
+          tripHistoryProvider.overrideWith((ref) {
+            return Stream.value([
+              Trip(
+                id: 'trip-1',
+                vehicleId: 'vehicle-1',
+                startTime: now,
+                distance: 42,
+                avgSpeed: 42,
+                maxSpeed: 80,
+              ),
+            ]);
+          }),
+        ],
+        child: const MaterialApp(home: Scaffold(body: HomeScreen())),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Mileage'), findsOneWidget);
+    expect(find.text('25.0 KM/L'), findsOneWidget);
+
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Speed'), findsOneWidget);
+    expect(find.text('42.0 KM/H'), findsOneWidget);
   });
 }

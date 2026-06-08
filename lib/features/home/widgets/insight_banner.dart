@@ -13,7 +13,54 @@ class InsightBanner extends ConsumerWidget {
 
     return insightsAsync.when(
       data: (insights) {
-        if (insights.isEmpty) return const SizedBox();
+        if (insights.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: QuantaneCard(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.lightbulb_outline,
+                      color: AppColors.primaryColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'No insights yet',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Add more trips and fuel data to generate smart insights here.',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         return SizedBox(
           height: 100,
           child: ListView.builder(
@@ -42,9 +89,8 @@ class InsightBanner extends ConsumerWidget {
                             ),
                             Text(
                               insight.description,
-                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(color: AppColors.textSecondary),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),

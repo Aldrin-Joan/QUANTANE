@@ -17,7 +17,7 @@ class ActiveVehicle extends _$ActiveVehicle {
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     final storedId = prefs.getString(_key);
-    
+
     if (storedId != null) {
       state = storedId;
       return;
