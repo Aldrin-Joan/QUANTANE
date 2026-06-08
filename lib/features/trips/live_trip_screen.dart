@@ -43,7 +43,10 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
       startTime: state.startTime,
       endTime: DateTime.now(),
       distance: state.distance,
-      avgSpeed: state.distance / (DateTime.now().difference(state.startTime).inSeconds / 3600.0),
+      avgSpeed: _averageSpeedKmh(
+        distanceKm: state.distance,
+        duration: DateTime.now().difference(state.startTime),
+      ),
       maxSpeed: state.maxSpeed,
     );
 
@@ -58,14 +61,14 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgColor,
-      body: SafeArea(
-        child: _buildBody(tripState),
-      ),
+      body: SafeArea(child: _buildBody(tripState)),
     );
   }
 
   Widget _buildBody(TripState? state) {
-    if (state == null) return const Center(child: Text('Trip stopped'));
+    if (state == null) {
+      return const Center(child: Text('Starting trip...'));
+    }
     return Column(
       children: [
         const Spacer(),
@@ -76,9 +79,15 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStat('Max Speed', '${state.maxSpeed.toStringAsFixed(0)} KM/H'),
+              _buildStat(
+                'Max Speed',
+                '${state.maxSpeed.toStringAsFixed(0)} KM/H',
+              ),
               _buildStat('Distance', '${state.distance.toStringAsFixed(1)} KM'),
-              _buildStat('Duration', _formatDuration(DateTime.now().difference(state.startTime))),
+              _buildStat(
+                'Duration',
+                _formatDuration(DateTime.now().difference(state.startTime)),
+              ),
             ],
           ),
         ),
@@ -114,7 +123,9 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dangerColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Stop Trip'),
                 ),
@@ -126,20 +137,32 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
     );
   }
 
+  double _averageSpeedKmh({
+    required double distanceKm,
+    required Duration duration,
+  }) {
+    final hours = duration.inSeconds / 3600.0;
+    if (hours <= 0) {
+      return 0.0;
+    }
+
+    return distanceKm / hours;
+  }
+
   Widget _buildStat(String label, String value) {
     return Column(
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
