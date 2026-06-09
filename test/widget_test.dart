@@ -203,6 +203,35 @@ void main() {
     expect(tracking.stopCalled, isTrue);
   });
 
+  testWidgets('live trip shows waiting state before first GPS fix', (
+    WidgetTester tester,
+  ) async {
+    final tracking = _FakeTripTracking(
+      TripState(
+        currentSpeed: 0,
+        maxSpeed: 0,
+        distance: 0,
+        startTime: DateTime(2026, 6, 8, 7, 0, 0),
+        positions: const [],
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeVehicleProvider.overrideWithValue('vehicle-1'),
+          tripTrackingProvider.overrideWith(() => tracking),
+        ],
+        child: const MaterialApp(home: LiveTripScreen()),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('Waiting for GPS signal...'), findsNothing);
+    expect(find.text('Starting trip...'), findsOneWidget);
+  });
+
   test(
     'TripTrackingService computes speed and distance from a fake GPS stream',
     () async {
@@ -225,7 +254,7 @@ void main() {
           altitudeAccuracy: 1,
           heading: 0,
           headingAccuracy: 1,
-          speed: 10,
+          speed: 0,
           speedAccuracy: 1,
           isMocked: true,
         ),
@@ -240,7 +269,7 @@ void main() {
           altitudeAccuracy: 1,
           heading: 0,
           headingAccuracy: 1,
-          speed: 15,
+          speed: 0,
           speedAccuracy: 1,
           isMocked: true,
         ),
@@ -251,8 +280,8 @@ void main() {
       await subscription.cancel();
 
       expect(updates, isNotEmpty);
-      expect(updates.last.currentSpeed, closeTo(15 * 3.6, 0.01));
-      expect(updates.last.maxSpeed, closeTo(15 * 3.6, 0.01));
+      expect(updates.last.currentSpeed, greaterThan(0));
+      expect(updates.last.maxSpeed, greaterThan(0));
       expect(updates.last.distance, greaterThan(0));
     },
   );

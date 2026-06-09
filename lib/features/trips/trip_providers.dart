@@ -7,6 +7,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'trip_providers.g.dart';
 
+enum TripTrackingStatus { idle, waitingForLocation, live }
+
 @riverpod
 Stream<List<Trip>> tripHistory(Ref ref) {
   final vehicleId = ref.watch(activeVehicleProvider);
@@ -20,6 +22,7 @@ Stream<List<Trip>> tripHistory(Ref ref) {
 class TripTracking extends _$TripTracking {
   final _service = TripTrackingService();
   StreamSubscription<TripState>? _sub;
+  TripTrackingStatus _status = TripTrackingStatus.idle;
 
   @override
   TripState? build() {
@@ -27,17 +30,31 @@ class TripTracking extends _$TripTracking {
     return null;
   }
 
+  TripTrackingStatus get status => _status;
+
   void start() {
     _sub?.cancel();
-    _sub = _service.startTracking().listen((tripState) {
-      state = tripState;
-    });
+    _status = TripTrackingStatus.waitingForLocation;
+    _sub = _service.startTracking().listen(
+      (tripState) {
+        _status = TripTrackingStatus.live;
+        state = tripState;
+      },
+      onDone: () {
+        if (_status != TripTrackingStatus.idle) {
+          _status = state == null
+              ? TripTrackingStatus.waitingForLocation
+              : TripTrackingStatus.live;
+        }
+      },
+    );
   }
 
   void stop() {
     _service.stopTracking();
     _sub?.cancel();
     _sub = null;
+    _status = TripTrackingStatus.idle;
     state = null;
   }
 }

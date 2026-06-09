@@ -68,16 +68,45 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
   @override
   Widget build(BuildContext context) {
     final tripState = ref.watch(tripTrackingProvider);
+    final trackingStatus = ref.watch(tripTrackingProvider.notifier).status;
 
     return Scaffold(
       backgroundColor: AppColors.bgColor,
-      body: SafeArea(child: _buildBody(tripState)),
+      body: SafeArea(child: _buildBody(tripState, trackingStatus)),
     );
   }
 
-  Widget _buildBody(TripState? state) {
+  Widget _buildBody(TripState? state, TripTrackingStatus status) {
     if (state == null) {
-      return const Center(child: Text('Starting trip...'));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                status == TripTrackingStatus.waitingForLocation
+                    ? 'Waiting for GPS signal...'
+                    : 'Starting trip...',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                status == TripTrackingStatus.waitingForLocation
+                    ? 'Check emulator location permissions and route playback.'
+                    : 'Preparing trip tracking.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return Column(
       children: [
