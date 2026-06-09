@@ -5,7 +5,6 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/fuel/fuel_providers.dart';
-import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 
 class SpeedMileageCarousel extends ConsumerStatefulWidget {
