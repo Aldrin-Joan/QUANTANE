@@ -39,7 +39,7 @@ class _SpeedMileageCarouselState extends ConsumerState<SpeedMileageCarousel> {
 
     return mileageAsync.when(
       data: (fuelEntries) => speedAsync.when(
-        data: (trips) => _buildCarousel(context, fuelEntries, trips),
+        data: (trips) => _buildCarousel(fuelEntries, trips),
         loading: () => const SizedBox(height: 320),
         error: (error, stackTrace) => const SizedBox(height: 320),
       ),
@@ -48,11 +48,7 @@ class _SpeedMileageCarouselState extends ConsumerState<SpeedMileageCarousel> {
     );
   }
 
-  Widget _buildCarousel(
-    BuildContext context,
-    List<FuelEntry> fuelEntries,
-    List<Trip> trips,
-  ) {
+  Widget _buildCarousel(List<FuelEntry> fuelEntries, List<Trip> trips) {
     final mileageSeries = _buildMileageSeries(fuelEntries);
     final speedSeries = _buildSpeedSeries(trips);
 
@@ -74,22 +70,24 @@ class _SpeedMileageCarouselState extends ConsumerState<SpeedMileageCarousel> {
                 _MetricCard(
                   key: const ValueKey('mileage-card'),
                   title: 'Mileage',
-                  subtitle: 'Swipe for speed',
+                  subtitle: 'Efficiency trend',
                   valueLabel: _formatValue(mileageSeries.latestValue, 'KM/L'),
                   points: mileageSeries.points,
                   accent: AppColors.primaryColor,
                   fillGradient: AppColors.primaryGradient,
-                  emptyLabel: 'No mileage data yet',
+                  emptyLabel: 'Add fuel fills to unlock mileage trends.',
+                  icon: Icons.local_gas_station,
                 ),
                 _MetricCard(
                   key: const ValueKey('speed-card'),
                   title: 'Speed',
-                  subtitle: 'Swipe back to mileage',
+                  subtitle: 'Live trip trend',
                   valueLabel: _formatValue(speedSeries.latestValue, 'KM/H'),
                   points: speedSeries.points,
                   accent: AppColors.accentColor,
                   fillGradient: AppColors.successGradient,
-                  emptyLabel: 'No trip speed data yet',
+                  emptyLabel: 'Start a trip to unlock live speed trends.',
+                  icon: Icons.speed,
                 ),
               ],
             ),
@@ -211,6 +209,7 @@ class _MetricCard extends StatelessWidget {
   final Color accent;
   final Gradient fillGradient;
   final String emptyLabel;
+  final IconData icon;
 
   const _MetricCard({
     super.key,
@@ -221,6 +220,7 @@ class _MetricCard extends StatelessWidget {
     required this.accent,
     required this.fillGradient,
     required this.emptyLabel,
+    required this.icon,
   });
 
   @override
@@ -240,146 +240,266 @@ class _MetricCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: QuantaneCard(
-        variant: QuantaneCardVariant.flat,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF0B1220),
+                const Color(0xFF101A2C),
+                accent.withValues(alpha: 0.14),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(color: accent.withValues(alpha: 0.16)),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -16,
+                top: -12,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -32,
+                bottom: -36,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.03),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(icon, color: Colors.white, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  subtitle,
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.68,
+                                        ),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          child: Text(
+                            valueLabel,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: hasData
+                          ? Column(
+                              children: [
+                                Expanded(
+                                  child: LineChart(
+                                    LineChartData(
+                                      minY: 0,
+                                      maxY: maxY,
+                                      gridData: FlGridData(
+                                        show: false,
+                                        drawVerticalLine: false,
+                                      ),
+                                      titlesData: const FlTitlesData(
+                                        rightTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        topTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        leftTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: false,
+                                          ),
+                                        ),
+                                      ),
+                                      borderData: FlBorderData(show: false),
+                                      lineTouchData: const LineTouchData(
+                                        enabled: false,
+                                      ),
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: chartPoints,
+                                          isCurved: true,
+                                          curveSmoothness: 0.35,
+                                          color: Colors.white,
+                                          barWidth: 3,
+                                          isStrokeCapRound: true,
+                                          dotData: const FlDotData(show: false),
+                                          belowBarData: BarAreaData(
+                                            show: true,
+                                            gradient: fillGradient,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  children: [
+                                    _buildStatPill(
+                                      context,
+                                      'AVG',
+                                      _averageValue(points).toStringAsFixed(1),
+                                      accent,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildStatPill(
+                                      context,
+                                      'PEAK',
+                                      _peakValue(points).toStringAsFixed(1),
+                                      Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildStatPill(
+                                      context,
+                                      'POINTS',
+                                      points.length.toString(),
+                                      Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : _EmptyMetricState(
+                              title: emptyLabel,
+                              description: title == 'Mileage'
+                                  ? 'Add fuel fills to unlock mileage trends.'
+                                  : 'Start a trip to unlock live speed trends.',
+                              accent: accent,
+                            ),
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    valueLabel,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatPill(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.62),
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: hasData
-                  ? LineChart(
-                      LineChartData(
-                        minY: 0,
-                        maxY: maxY,
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) => FlLine(
-                            color: AppColors.dividerColor.withValues(
-                              alpha: 0.6,
-                            ),
-                            strokeWidth: 1,
-                            dashArray: const [4, 4],
-                          ),
-                        ),
-                        titlesData: FlTitlesData(
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 42,
-                              interval: maxY <= 4 ? 1 : maxY / 4,
-                              getTitlesWidget: (value, meta) => Text(
-                                value.toInt().toString(),
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(color: AppColors.textSecondary),
-                              ),
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              interval: 1,
-                              reservedSize: 28,
-                              getTitlesWidget: (value, meta) {
-                                final index = value.toInt();
-                                if (index < 0 || index >= points.length) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    points[index].label,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: AppColors.textSecondary,
-                                        ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        borderData: FlBorderData(show: false),
-                        lineTouchData: const LineTouchData(enabled: false),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: chartPoints,
-                            isCurved: true,
-                            color: accent,
-                            barWidth: 2,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              gradient: fillGradient,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : _EmptyMetricState(
-                      title: emptyLabel,
-                      description: title == 'Mileage'
-                          ? 'Add fuel fills to unlock mileage trends.'
-                          : 'Start a trip to unlock live speed trends.',
-                      accent: accent,
-                    ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  double _averageValue(List<_MetricPoint> points) {
+    if (points.isEmpty) return 0.0;
+    final values = points.map((point) => point.value).toList(growable: false);
+    return values.reduce((a, b) => a + b) / values.length;
+  }
+
+  double _peakValue(List<_MetricPoint> points) {
+    if (points.isEmpty) return 0.0;
+    return points.map((point) => point.value).reduce((a, b) => a > b ? a : b);
   }
 }
 

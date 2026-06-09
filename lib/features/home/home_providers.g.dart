@@ -9,17 +9,53 @@ part of 'home_providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(homeMetrics)
+final homeMetricsProvider = HomeMetricsProvider._();
+
+final class HomeMetricsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<HomeMetricsSnapshot?>,
+          HomeMetricsSnapshot?,
+          Stream<HomeMetricsSnapshot?>
+        >
+    with
+        $FutureModifier<HomeMetricsSnapshot?>,
+        $StreamProvider<HomeMetricsSnapshot?> {
+  HomeMetricsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeMetricsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeMetricsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<HomeMetricsSnapshot?> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<HomeMetricsSnapshot?> create(Ref ref) {
+    return homeMetrics(ref);
+  }
+}
+
+String _$homeMetricsHash() => r'4dd1c8ede48dd8db5af2e33319c659412d191ab2';
+
 @ProviderFor(homeSummary)
 final homeSummaryProvider = HomeSummaryProvider._();
 
 final class HomeSummaryProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<HomeSummary?>,
-          HomeSummary?,
-          Stream<HomeSummary?>
-        >
-    with $FutureModifier<HomeSummary?>, $StreamProvider<HomeSummary?> {
+    extends $FunctionalProvider<HomeSummary?, HomeSummary?, HomeSummary?>
+    with $Provider<HomeSummary?> {
   HomeSummaryProvider._()
     : super(
         from: null,
@@ -36,29 +72,31 @@ final class HomeSummaryProvider
 
   @$internal
   @override
-  $StreamProviderElement<HomeSummary?> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  $ProviderElement<HomeSummary?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  Stream<HomeSummary?> create(Ref ref) {
+  HomeSummary? create(Ref ref) {
     return homeSummary(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(HomeSummary? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<HomeSummary?>(value),
+    );
   }
 }
 
-String _$homeSummaryHash() => r'1e7cdca6b208c08107e32853eeb04ba8b6ac1c68';
+String _$homeSummaryHash() => r'1b230de2495a8a582fb13718df548565bbb74d55';
 
 @ProviderFor(quickStats)
 final quickStatsProvider = QuickStatsProvider._();
 
 final class QuickStatsProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<QuickStats?>,
-          QuickStats?,
-          Stream<QuickStats?>
-        >
-    with $FutureModifier<QuickStats?>, $StreamProvider<QuickStats?> {
+    extends $FunctionalProvider<QuickStats?, QuickStats?, QuickStats?>
+    with $Provider<QuickStats?> {
   QuickStatsProvider._()
     : super(
         from: null,
@@ -75,14 +113,21 @@ final class QuickStatsProvider
 
   @$internal
   @override
-  $StreamProviderElement<QuickStats?> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  $ProviderElement<QuickStats?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  Stream<QuickStats?> create(Ref ref) {
+  QuickStats? create(Ref ref) {
     return quickStats(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(QuickStats? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<QuickStats?>(value),
+    );
   }
 }
 
-String _$quickStatsHash() => r'08be98b6812019a13b5aef6a870456f905c875d8';
+String _$quickStatsHash() => r'321f3abc75edf9afa91cbc3b505de8b78a41f87d';

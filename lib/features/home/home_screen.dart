@@ -13,8 +13,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(homeSummaryProvider);
-    final statsAsync = ref.watch(quickStatsProvider);
+    final summary = ref.watch(homeSummaryProvider);
+    final stats = ref.watch(quickStatsProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -32,25 +32,17 @@ class HomeScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
-              summaryAsync.when(
-                data: (summary) => summary != null
-                    ? HeroSummaryCard(summary: summary)
-                    : const SizedBox(),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, s) => Center(child: Text('Error: $e')),
-              ),
+              summary != null
+                  ? HeroSummaryCard(summary: summary)
+                  : const SizedBox(),
               const SectionHeader(title: 'Quick Stats'),
-              statsAsync.when(
-                data: (stats) => stats != null
-                    ? QuickStatsGrid(stats: stats)
-                    : const _EmptySectionCard(
-                        title: 'Quick Stats',
-                        message:
-                            'No stats yet. Add trips and fuel entries to see mileage, distance, speed, and cost summaries.',
-                      ),
-                loading: () => const SizedBox(),
-                error: (e, s) => const SizedBox(),
-              ),
+              stats != null
+                  ? QuickStatsGrid(stats: stats)
+                  : const _EmptySectionCard(
+                      title: 'Quick Stats',
+                      message:
+                          'No stats yet. Add trips and fuel entries to see mileage, distance, speed, and cost summaries.',
+                    ),
               const SectionHeader(title: 'Smart Insights'),
               const InsightBanner(),
               const SectionHeader(title: 'Mileage & Speed'),

@@ -41,7 +41,7 @@ final class ActiveVehicleProvider
   }
 }
 
-String _$activeVehicleHash() => r'29cb451988afcdbdee71e31a0e48a46f0b1e8e72';
+String _$activeVehicleHash() => r'ad52c2429182c939e5d6b336f425d3ccabe72edf';
 
 abstract class _$ActiveVehicle extends $Notifier<String?> {
   String? build();

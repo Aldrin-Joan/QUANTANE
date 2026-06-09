@@ -165,6 +165,38 @@ void main() {
     expect(repo.deletedTripId, 'trip-1');
   });
 
+  testWidgets('Home screen reflects trip data after a trip ends', (
+    WidgetTester tester,
+  ) async {
+    final trip = Trip(
+      id: 'trip-1',
+      vehicleId: 'vehicle-1',
+      startTime: DateTime(2026, 6, 8, 10, 0, 0),
+      endTime: DateTime(2026, 6, 8, 10, 11, 0),
+      distance: 11.2,
+      avgSpeed: 60,
+      maxSpeed: 72,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeVehicleProvider.overrideWithValue('vehicle-1'),
+          fuelHistoryProvider.overrideWith(
+            (ref) => Stream.value(const <FuelEntry>[]),
+          ),
+          tripHistoryProvider.overrideWith((ref) => Stream.value([trip])),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('11 KM'), findsWidgets);
+    expect(find.text('60 KM/H'), findsOneWidget);
+  });
+
   testWidgets('live trip stop saves a trip with safe average speed math', (
     WidgetTester tester,
   ) async {
