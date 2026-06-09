@@ -12,12 +12,14 @@
 
 class QuickStats {
   final double avgMileage;
+  final double? avgMileageDeltaPercent;
   final double totalDistance;
   final double avgSpeed;
   final double costPerKm;
 
   QuickStats({
     required this.avgMileage,
+    this.avgMileageDeltaPercent,
     required this.totalDistance,
     required this.avgSpeed,
     required this.costPerKm,

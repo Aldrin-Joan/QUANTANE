@@ -23,7 +23,7 @@ class QuickStatsGrid extends StatelessWidget {
           icon: LucideIcons.gauge,
           label: 'Avg Mileage',
           value: '${stats.avgMileage.toStringAsFixed(1)} KM/L',
-          delta: stats.avgMileage > 0 ? stats.avgMileage - 26.5 : null,
+          delta: stats.avgMileageDeltaPercent,
         ),
         StatTile(
           icon: LucideIcons.map_pin,

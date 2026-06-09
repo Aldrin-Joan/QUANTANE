@@ -17,21 +17,22 @@ class FuelRepository {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch()
         .asyncMap((rows) async {
+          final vehicleQuery = _db.select(_db.vehicles)
+            ..where((t) => t.id.equals(vehicleId));
+          final vehicle = await vehicleQuery.getSingleOrNull();
+
           final entries = <FuelEntry>[];
-          for (var i = 0; i < rows.length; i++) {
-            final current = rows[i];
-            double? prevOdo;
-            if (i + 1 < rows.length) {
-              prevOdo = rows[i + 1].odometer;
-            } else {
-              // Check initial odometer of the vehicle
-              final vehicleQuery = _db.select(_db.vehicles)
-                ..where((t) => t.id.equals(vehicleId));
-              final vehicle = await vehicleQuery.getSingleOrNull();
-              prevOdo = vehicle?.initialOdometer;
-            }
-            entries.add(FuelEntry.fromDrift(current, prevOdometer: prevOdo));
+          for (var index = 0; index < rows.length; index++) {
+            final current = rows[index];
+            final previousOdometer = index + 1 < rows.length
+                ? rows[index + 1].odometer
+                : null;
+
+            entries.add(
+              FuelEntry.fromDrift(current, previousOdometer: previousOdometer),
+            );
           }
+
           return entries;
         });
   }
@@ -51,6 +52,22 @@ class FuelRepository {
             notes: Value(entry.notes),
           ),
         );
+  }
+
+  Future<void> update(FuelEntry entry) async {
+    await (_db.update(
+      _db.fuelEntries,
+    )..where((t) => t.id.equals(entry.id))).write(
+      FuelEntriesCompanion(
+        vehicleId: Value(entry.vehicleId),
+        date: Value(entry.date.toIso8601String()),
+        fuelCost: Value(entry.fuelCost),
+        fuelLiters: Value(entry.fuelLiters),
+        odometer: Value(entry.odometer),
+        station: Value(entry.station),
+        notes: Value(entry.notes),
+      ),
+    );
   }
 
   Future<void> delete(String id) async {

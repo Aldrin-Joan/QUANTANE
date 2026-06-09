@@ -71,12 +71,14 @@ HomeSummary? homeSummary(Ref ref) {
       final now = DateTime.now();
       final fuelEntries = snapshot.fuelEntries;
       final trips = snapshot.trips;
-      final fuelDistance = _totalDistanceFromFuelEntries(fuelEntries);
+      final currentFuelEntries = _entriesForMonthOrAll(fuelEntries, now);
+      final validFuelEntries = _validEntries(currentFuelEntries);
       final tripDistance = _totalDistanceFromTrips(trips);
+      final fuelDistance = _totalDistanceFromFuelEntries(validFuelEntries);
       final totalDistance = tripDistance > 0 ? tripDistance : fuelDistance;
-      final totalLiters = _totalLitersFromFuelEntries(fuelEntries);
+      final totalLiters = _totalLitersFromFuelEntries(validFuelEntries);
       final avgMileage = totalLiters > 0 ? fuelDistance / totalLiters : 0.0;
-      final spend = _monthlySpendFromFuelEntries(fuelEntries, now);
+      final spend = _monthlySpendFromFuelEntries(currentFuelEntries, now);
 
       return HomeSummary(
         totalSpendMonth: spend,
@@ -98,20 +100,32 @@ QuickStats? quickStats(Ref ref) {
     data: (snapshot) {
       if (snapshot == null) return null;
 
+      final now = DateTime.now();
       final fuelEntries = snapshot.fuelEntries;
       final trips = snapshot.trips;
-      final fuelDistance = _totalDistanceFromFuelEntries(fuelEntries);
-      final tripDistance = _totalDistanceFromTrips(trips);
-      final totalDistance = tripDistance > 0 ? tripDistance : fuelDistance;
-      final totalLiters = _totalLitersFromFuelEntries(fuelEntries);
+      final currentFuelEntries = _entriesForMonthOrAll(fuelEntries, now);
+      final previousFuelEntries = _entriesForMonth(
+        fuelEntries,
+        DateTime(now.year, now.month - 1, 1),
+      );
+      final validFuelEntries = _validEntries(currentFuelEntries);
+      final fuelDistance = _totalDistanceFromFuelEntries(validFuelEntries);
+      final totalLiters = _totalLitersFromFuelEntries(validFuelEntries);
       final avgMileage = totalLiters > 0 ? fuelDistance / totalLiters : 0.0;
-      final totalSpend = _totalSpendFromFuelEntries(fuelEntries);
-      final costPerKm = totalDistance > 0 ? totalSpend / totalDistance : 0.0;
+      final totalSpend = _totalSpendFromFuelEntries(currentFuelEntries);
+      final costPerKm = fuelDistance > 0 ? totalSpend / fuelDistance : 0.0;
       final avgSpeed = _averageTripSpeed(trips);
+      final previousMileage = _averageMileageFromFuelEntries(
+        _validEntries(previousFuelEntries),
+      );
+      final avgMileageDeltaPercent = previousMileage > 0
+          ? ((avgMileage - previousMileage) / previousMileage) * 100
+          : null;
 
       return QuickStats(
         avgMileage: avgMileage,
-        totalDistance: totalDistance,
+        avgMileageDeltaPercent: avgMileageDeltaPercent,
+        totalDistance: fuelDistance,
         avgSpeed: avgSpeed,
         costPerKm: costPerKm,
       );
@@ -125,6 +139,30 @@ double _totalDistanceFromFuelEntries(List<FuelEntry> entries) {
     0.0,
     (sum, entry) => sum + ((entry.mileage ?? 0.0) * entry.fuelLiters),
   );
+}
+
+List<FuelEntry> _validEntries(List<FuelEntry> entries) {
+  return entries.where((entry) => entry.mileage != null).toList();
+}
+
+List<FuelEntry> _entriesForMonth(List<FuelEntry> entries, DateTime month) {
+  return entries
+      .where(
+        (entry) =>
+            entry.date.year == month.year && entry.date.month == month.month,
+      )
+      .toList();
+}
+
+List<FuelEntry> _entriesForMonthOrAll(List<FuelEntry> entries, DateTime month) {
+  final monthEntries = _entriesForMonth(entries, month);
+  return monthEntries.isNotEmpty ? monthEntries : entries;
+}
+
+double _averageMileageFromFuelEntries(List<FuelEntry> entries) {
+  final totalDistance = _totalDistanceFromFuelEntries(entries);
+  final totalLiters = _totalLitersFromFuelEntries(entries);
+  return totalLiters > 0 ? totalDistance / totalLiters : 0.0;
 }
 
 double _totalDistanceFromTrips(List<Trip> trips) {

@@ -25,14 +25,16 @@ class FuelEntry {
     this.costPerKm,
   });
 
-  factory FuelEntry.fromDrift(FuelEntryData data, {double? prevOdometer}) {
+  factory FuelEntry.fromDrift(FuelEntryData data, {double? previousOdometer}) {
     double? mileage;
     double? costPerKm;
 
-    if (prevOdometer != null && data.odometer > prevOdometer) {
-      final distance = data.odometer - prevOdometer;
-      mileage = distance / data.fuelLiters;
-      costPerKm = data.fuelCost / distance;
+    if (previousOdometer != null && data.odometer > previousOdometer) {
+      final distance = data.odometer - previousOdometer;
+      if (distance > 0 && data.fuelLiters > 0) {
+        mileage = distance / data.fuelLiters;
+        costPerKm = data.fuelCost / distance;
+      }
     }
 
     return FuelEntry(

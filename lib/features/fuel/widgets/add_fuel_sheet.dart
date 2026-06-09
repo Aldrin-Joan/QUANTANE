@@ -10,7 +10,9 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 import 'package:uuid/uuid.dart';
 
 class AddFuelSheet extends ConsumerStatefulWidget {
-  const AddFuelSheet({super.key});
+  final FuelEntry? existingEntry;
+
+  const AddFuelSheet({super.key, this.existingEntry});
 
   @override
   ConsumerState<AddFuelSheet> createState() => _AddFuelSheetState();
@@ -23,6 +25,21 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
   final _odoController = TextEditingController();
   final _stationController = TextEditingController();
   final _notesController = TextEditingController();
+
+  bool get _isEditing => widget.existingEntry != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final entry = widget.existingEntry;
+    if (entry != null) {
+      _costController.text = entry.fuelCost.toString();
+      _litersController.text = entry.fuelLiters.toString();
+      _odoController.text = entry.odometer.toString();
+      _stationController.text = entry.station ?? '';
+      _notesController.text = entry.notes ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -50,9 +67,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
 
     try {
       final entry = FuelEntry(
-        id: const Uuid().v4(),
+        id: widget.existingEntry?.id ?? const Uuid().v4(),
         vehicleId: vehicleId,
-        date: DateTime.now(),
+        date: widget.existingEntry?.date ?? DateTime.now(),
         fuelCost: double.parse(_costController.text),
         fuelLiters: double.parse(_litersController.text),
         odometer: double.parse(_odoController.text),
@@ -62,7 +79,12 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
-      await ref.read(fuelRepositoryProvider).insert(entry);
+      final repository = ref.read(fuelRepositoryProvider);
+      if (_isEditing) {
+        await repository.update(entry);
+      } else {
+        await repository.insert(entry);
+      }
       ref.invalidate(fuelHistoryProvider);
       ref.invalidate(homeSummaryProvider);
       ref.invalidate(quickStatsProvider);
@@ -102,7 +124,7 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Add Fuel Fill',
+              _isEditing ? 'Edit Fuel Fill' : 'Add Fuel Fill',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
@@ -165,7 +187,7 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Save Fill'),
+                child: Text(_isEditing ? 'Save Changes' : 'Save Fill'),
               ),
             ),
           ],

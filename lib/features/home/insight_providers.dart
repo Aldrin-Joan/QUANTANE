@@ -14,12 +14,16 @@ Future<List<Insight>> insights(Ref ref) async {
   final fuelRepo = ref.watch(fuelRepositoryProvider);
   final fuelEntries = await fuelRepo.watchAll(vehicleId).first;
 
-  final totalDistance = _totalDistanceFromFuelEntries(fuelEntries);
-  final totalLiters = _totalLitersFromFuelEntries(fuelEntries);
-  final currentMileage = totalLiters > 0 ? totalDistance / totalLiters : 0.0;
-  final totalSpend = _totalSpendFromFuelEntries(fuelEntries);
+  final now = DateTime.now();
+  final currentMonthEntries = _entriesForMonth(fuelEntries, now);
+  final previousMonthEntries = _entriesForMonth(
+    fuelEntries,
+    DateTime(now.year, now.month - 1, 1),
+  );
 
-  final previousMileage = currentMileage > 0 ? currentMileage * 0.95 : 0.0;
+  final currentMileage = _averageMileageFromFuelEntries(currentMonthEntries);
+  final previousMileage = _averageMileageFromFuelEntries(previousMonthEntries);
+  final totalSpend = _totalSpendFromFuelEntries(currentMonthEntries);
 
   return InsightEngine.generateInsights(
     currentMileage: currentMileage,
@@ -29,10 +33,29 @@ Future<List<Insight>> insights(Ref ref) async {
 }
 
 double _totalDistanceFromFuelEntries(List<FuelEntry> entries) {
-  return entries.fold<double>(
-    0.0,
-    (sum, entry) => sum + ((entry.mileage ?? 0.0) * entry.fuelLiters),
-  );
+  if (entries.length < 2) {
+    return 0.0;
+  }
+
+  final ordered = [...entries]
+    ..sort((left, right) => left.date.compareTo(right.date));
+  final distance = ordered.last.odometer - ordered.first.odometer;
+  return distance > 0 ? distance : 0.0;
+}
+
+List<FuelEntry> _entriesForMonth(List<FuelEntry> entries, DateTime month) {
+  return entries
+      .where(
+        (entry) =>
+            entry.date.year == month.year && entry.date.month == month.month,
+      )
+      .toList();
+}
+
+double _averageMileageFromFuelEntries(List<FuelEntry> entries) {
+  final totalDistance = _totalDistanceFromFuelEntries(entries);
+  final totalLiters = _totalLitersFromFuelEntries(entries);
+  return totalLiters > 0 ? totalDistance / totalLiters : 0.0;
 }
 
 double _totalLitersFromFuelEntries(List<FuelEntry> entries) {

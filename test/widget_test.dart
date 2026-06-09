@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/domain/models/trip.dart';
+import 'package:quantane/features/fuel/fuel_history_screen.dart';
 import 'package:quantane/features/fuel/fuel_providers.dart';
 import 'package:quantane/features/home/home_screen.dart';
 import 'package:quantane/features/trips/live_trip_screen.dart';
@@ -101,6 +102,49 @@ void main() {
 
     expect(find.text('Speed'), findsOneWidget);
     expect(find.text('42.0 KM/H'), findsOneWidget);
+  });
+
+  testWidgets('Fuel history uses weighted mileage math per entry and summary', (
+    WidgetTester tester,
+  ) async {
+    final entries = [
+      FuelEntry(
+        id: 'fuel-2',
+        vehicleId: 'vehicle-1',
+        date: DateTime(2026, 6, 9),
+        fuelCost: 100,
+        fuelLiters: 0.8,
+        odometer: 80,
+        mileage: 100,
+        costPerKm: 1.25,
+      ),
+      FuelEntry(
+        id: 'fuel-1',
+        vehicleId: 'vehicle-1',
+        date: DateTime(2026, 6, 8),
+        fuelCost: 200,
+        fuelLiters: 2.0,
+        odometer: 60,
+        mileage: 30,
+        costPerKm: 3.33,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeVehicleProvider.overrideWithValue('vehicle-1'),
+          fuelHistoryProvider.overrideWith((ref) => Stream.value(entries)),
+        ],
+        child: const MaterialApp(home: FuelHistoryScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('50.0 KM/L'), findsOneWidget);
+    expect(find.text('100.0 KM/L'), findsOneWidget);
+    expect(find.text('233.3%'), findsOneWidget);
   });
 
   testWidgets('Trips screen shows an empty state when no trips exist', (
