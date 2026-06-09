@@ -15,6 +15,7 @@ import 'package:quantane/features/trips/trips_screen.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/features/trips/trip_tracking_service.dart';
+import 'package:quantane/features/trips/widgets/speed_gauge.dart';
 
 class _FakeTripRepository implements TripRepository {
   Trip? insertedTrip;
@@ -308,6 +309,65 @@ void main() {
     expect(find.text('Starting trip...'), findsOneWidget);
   });
 
+  testWidgets('speed gauge switches modes and shows warning at high speed', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              SpeedGauge(speed: 92, mode: SpeedDisplayMode.digital),
+              SizedBox(height: 24),
+              SpeedGauge(speed: 92, mode: SpeedDisplayMode.analog),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('92'), findsWidgets);
+    expect(find.textContaining('Exceeding speed limit'), findsWidgets);
+    expect(find.byType(CustomPaint), findsNWidgets(2));
+  });
+
+  testWidgets('live trip mode switch toggles digital and analog speed views', (
+    WidgetTester tester,
+  ) async {
+    final tracking = _FakeTripTracking(
+      TripState(
+        currentSpeed: 42,
+        maxSpeed: 65,
+        distance: 18,
+        startTime: DateTime(2026, 6, 8, 7, 0, 0),
+        positions: const [],
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeVehicleProvider.overrideWithValue('vehicle-1'),
+          tripTrackingProvider.overrideWith(() => tracking),
+        ],
+        child: const MaterialApp(home: LiveTripScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Digital'), findsOneWidget);
+    expect(find.text('Analog'), findsOneWidget);
+    expect(find.byKey(const ValueKey('digital-speed-gauge')), findsOneWidget);
+
+    await tester.tap(find.text('Analog'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('analog-speed-gauge')), findsOneWidget);
+  });
+
   test(
     'TripTrackingService computes speed and distance from a fake GPS stream',
     () async {
@@ -361,4 +421,54 @@ void main() {
       expect(updates.last.distance, greaterThan(0));
     },
   );
+
+  test('TripTrackingService ignores tiny GPS jitter while idle', () async {
+    final controller = StreamController<Position>();
+    final service = TripTrackingService(
+      positionStreamFactory: ({LocationSettings? locationSettings}) =>
+          controller.stream,
+    );
+
+    final updates = <TripState>[];
+    final subscription = service.startTracking().listen(updates.add);
+
+    controller.add(
+      Position(
+        latitude: 37.4219983,
+        longitude: -122.084,
+        timestamp: DateTime(2026, 6, 8, 7, 0, 0),
+        accuracy: 5,
+        altitude: 0,
+        altitudeAccuracy: 1,
+        heading: 0,
+        headingAccuracy: 1,
+        speed: 0.2,
+        speedAccuracy: 1,
+        isMocked: true,
+      ),
+    );
+    controller.add(
+      Position(
+        latitude: 37.4219986,
+        longitude: -122.0839997,
+        timestamp: DateTime(2026, 6, 8, 7, 0, 10),
+        accuracy: 5,
+        altitude: 0,
+        altitudeAccuracy: 1,
+        heading: 0,
+        headingAccuracy: 1,
+        speed: 0.1,
+        speedAccuracy: 1,
+        isMocked: true,
+      ),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+    await controller.close();
+    await subscription.cancel();
+
+    expect(updates, isNotEmpty);
+    expect(updates.last.currentSpeed, 0);
+    expect(updates.last.distance, 0);
+  });
 }

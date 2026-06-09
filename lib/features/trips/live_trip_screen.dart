@@ -21,6 +21,8 @@ class LiveTripScreen extends ConsumerStatefulWidget {
 
 class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
   late final Timer _durationTicker;
+  SpeedDisplayMode _displayMode = SpeedDisplayMode.digital;
+  Duration _elapsedDuration = Duration.zero;
 
   @override
   void initState() {
@@ -28,7 +30,12 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
     WakelockPlus.enable();
     _durationTicker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
-        setState(() {});
+        final state = ref.read(tripTrackingProvider);
+        if (state != null) {
+          setState(() {
+            _elapsedDuration = DateTime.now().difference(state.startTime);
+          });
+        }
       }
     });
   }
@@ -78,6 +85,7 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
 
   Widget _buildBody(TripState? state, TripTrackingStatus status) {
     if (state == null) {
+      _elapsedDuration = Duration.zero;
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -111,10 +119,29 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
     return Column(
       children: [
         const Spacer(),
-        SpeedGauge(speed: state.currentSpeed, maxSpeed: 200),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _SpeedModeSwitcher(
+            mode: _displayMode,
+            onChanged: (mode) {
+              setState(() {
+                _displayMode = mode;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SpeedGauge(
+            speed: state.currentSpeed,
+            maxSpeed: 200,
+            mode: _displayMode,
+          ),
+        ),
         const Spacer(),
         Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -125,7 +152,11 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
               _buildStat('Distance', '${state.distance.toStringAsFixed(1)} KM'),
               _buildStat(
                 'Duration',
-                _formatDuration(DateTime.now().difference(state.startTime)),
+                isElapsedDurationVisible
+                    ? _formatDuration(_elapsedDuration)
+                    : _formatDuration(
+                        DateTime.now().difference(state.startTime),
+                      ),
               ),
             ],
           ),
@@ -144,13 +175,31 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.accentColor,
+                    decoration: BoxDecoration(
+                      color: state.currentSpeed > 80
+                          ? AppColors.dangerColor
+                          : state.currentSpeed > 50
+                          ? AppColors.warningColor
+                          : AppColors.accentColor,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('Trip in progress'),
+                  Text(
+                    state.currentSpeed > 80
+                        ? 'Exceeding speed limit'
+                        : state.currentSpeed > 50
+                        ? 'Slow down'
+                        : 'Trip in progress',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: state.currentSpeed > 80
+                          ? AppColors.dangerColor
+                          : state.currentSpeed > 50
+                          ? AppColors.warningColor
+                          : AppColors.accentColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -175,6 +224,8 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
       ],
     );
   }
+
+  bool get isElapsedDurationVisible => _elapsedDuration > Duration.zero;
 
   double _averageSpeedKmh({
     required double distanceKm,
@@ -213,5 +264,80 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
     final minutes = twoDigits(d.inMinutes.remainder(60));
     final seconds = twoDigits(d.inSeconds.remainder(60));
     return '$hours:$minutes:$seconds';
+  }
+}
+
+class _SpeedModeSwitcher extends StatelessWidget {
+  final SpeedDisplayMode mode;
+  final ValueChanged<SpeedDisplayMode> onChanged;
+
+  const _SpeedModeSwitcher({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.dividerColor),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          children: [
+            Expanded(
+              child: _ModeButton(
+                label: 'Digital',
+                selected: mode == SpeedDisplayMode.digital,
+                onTap: () => onChanged(SpeedDisplayMode.digital),
+              ),
+            ),
+            Expanded(
+              child: _ModeButton(
+                label: 'Analog',
+                selected: mode == SpeedDisplayMode.analog,
+                onTap: () => onChanged(SpeedDisplayMode.analog),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ModeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: selected ? Colors.white : AppColors.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

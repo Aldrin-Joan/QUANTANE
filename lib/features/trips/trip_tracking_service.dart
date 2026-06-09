@@ -38,6 +38,7 @@ class TripState {
 class TripTrackingService {
   final PositionStreamFactory _positionStreamFactory;
   StreamSubscription<Position>? _subscription;
+  static const double _minUsefulStepMeters = 3.0;
   static const double _maxReasonableStepMeters = 5000.0;
 
   TripTrackingService({
@@ -50,7 +51,6 @@ class TripTrackingService {
     var maxSpeed = 0.0;
     var totalDistance = 0.0;
     Position? lastPosition;
-    Position? baselinePosition;
     final positions = <Position>[];
 
     controller.add(
@@ -98,9 +98,7 @@ class TripTrackingService {
               );
               if (speedKmh > maxSpeed) maxSpeed = speedKmh;
 
-              if (baselinePosition == null) {
-                baselinePosition = position;
-              } else if (lastPosition != null) {
+              if (lastPosition != null) {
                 final stepMeters = Geolocator.distanceBetween(
                   lastPosition!.latitude,
                   lastPosition!.longitude,
@@ -108,7 +106,8 @@ class TripTrackingService {
                   position.longitude,
                 );
 
-                if (stepMeters <= _maxReasonableStepMeters) {
+                if (stepMeters >= _minUsefulStepMeters &&
+                    stepMeters <= _maxReasonableStepMeters) {
                   totalDistance += stepMeters / 1000.0;
                 }
               }
@@ -139,11 +138,6 @@ class TripTrackingService {
   }
 
   double _deriveSpeedKmh({required Position current, Position? previous}) {
-    final platformSpeedKmh = current.speed * 3.6;
-    if (platformSpeedKmh > 0) {
-      return platformSpeedKmh;
-    }
-
     if (previous == null) {
       return 0.0;
     }
@@ -161,6 +155,10 @@ class TripTrackingService {
       current.latitude,
       current.longitude,
     );
+
+    if (distanceMeters < _minUsefulStepMeters) {
+      return 0.0;
+    }
 
     return (distanceMeters / elapsedSeconds) * 3.6;
   }
