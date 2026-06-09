@@ -28,7 +28,10 @@ class QuantaneCard extends StatelessWidget {
         decoration = BoxDecoration(
           gradient: AppColors.cardGlassGradient,
           borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
         );
         break;
       case QuantaneCardVariant.colored:
@@ -37,7 +40,7 @@ class QuantaneCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withOpacity(0.08),
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -45,13 +48,12 @@ class QuantaneCard extends StatelessWidget {
         );
         break;
       case QuantaneCardVariant.flat:
-      default:
         decoration = BoxDecoration(
           color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withOpacity(0.08),
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),

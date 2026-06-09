@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/fuel/fuel_providers.dart';
@@ -9,14 +12,12 @@ import 'package:quantane/features/trips/live_trip_screen.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/trips_screen.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
-import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/features/trips/trip_tracking_service.dart';
 
-class _FakeTripRepository extends TripRepository {
-  _FakeTripRepository() : super(AppDatabase());
-
+class _FakeTripRepository implements TripRepository {
   Trip? insertedTrip;
+  String? deletedTripId;
 
   @override
   Future<void> insert(Trip trip) async {
@@ -26,6 +27,11 @@ class _FakeTripRepository extends TripRepository {
   @override
   Stream<List<Trip>> watchAll(String vehicleId) {
     return Stream.value(const <Trip>[]);
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    deletedTripId = id;
   }
 }
 
@@ -121,6 +127,44 @@ void main() {
     );
   });
 
+  testWidgets('Trips screen long press deletes a trip after confirmation', (
+    WidgetTester tester,
+  ) async {
+    final repo = _FakeTripRepository();
+    final trip = Trip(
+      id: 'trip-1',
+      vehicleId: 'vehicle-1',
+      startTime: DateTime(2026, 6, 8),
+      endTime: DateTime(2026, 6, 8, 1),
+      distance: 12.5,
+      avgSpeed: 25,
+      maxSpeed: 40,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeVehicleProvider.overrideWithValue('vehicle-1'),
+          tripRepositoryProvider.overrideWithValue(repo),
+          tripHistoryProvider.overrideWith((ref) => Stream.value([trip])),
+        ],
+        child: const MaterialApp(home: TripsScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('12.5 KM'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete trip?'), findsOneWidget);
+
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(repo.deletedTripId, 'trip-1');
+  });
+
   testWidgets('live trip stop saves a trip with safe average speed math', (
     WidgetTester tester,
   ) async {
@@ -158,4 +202,58 @@ void main() {
     expect(repo.insertedTrip!.avgSpeed!, greaterThanOrEqualTo(0));
     expect(tracking.stopCalled, isTrue);
   });
+
+  test(
+    'TripTrackingService computes speed and distance from a fake GPS stream',
+    () async {
+      final controller = StreamController<Position>();
+      final service = TripTrackingService(
+        positionStreamFactory: ({LocationSettings? locationSettings}) =>
+            controller.stream,
+      );
+
+      final updates = <TripState>[];
+      final subscription = service.startTracking().listen(updates.add);
+
+      controller.add(
+        Position(
+          latitude: 37.4219983,
+          longitude: -122.084,
+          timestamp: DateTime(2026, 6, 8, 7, 0, 0),
+          accuracy: 5,
+          altitude: 0,
+          altitudeAccuracy: 1,
+          heading: 0,
+          headingAccuracy: 1,
+          speed: 10,
+          speedAccuracy: 1,
+          isMocked: true,
+        ),
+      );
+      controller.add(
+        Position(
+          latitude: 37.4225,
+          longitude: -122.0835,
+          timestamp: DateTime(2026, 6, 8, 7, 0, 10),
+          accuracy: 5,
+          altitude: 0,
+          altitudeAccuracy: 1,
+          heading: 0,
+          headingAccuracy: 1,
+          speed: 15,
+          speedAccuracy: 1,
+          isMocked: true,
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      await controller.close();
+      await subscription.cancel();
+
+      expect(updates, isNotEmpty);
+      expect(updates.last.currentSpeed, closeTo(15 * 3.6, 0.01));
+      expect(updates.last.maxSpeed, closeTo(15 * 3.6, 0.01));
+      expect(updates.last.distance, greaterThan(0));
+    },
+  );
 }

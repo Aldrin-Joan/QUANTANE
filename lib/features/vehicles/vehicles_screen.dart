@@ -36,20 +36,29 @@ class VehiclesScreen extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    vehicle.type == VehicleType.bike ? LucideIcons.bike : LucideIcons.car,
+                    vehicle.type == VehicleType.bike
+                        ? LucideIcons.bike
+                        : LucideIcons.car,
                     color: AppColors.primaryColor,
                   ),
                 ),
                 title: Text(vehicle.name),
-                subtitle: Text('${vehicle.fuelType.name} | ${vehicle.type.name}'),
-                trailing: isActive 
-                    ? const Icon(Icons.check_circle, color: AppColors.accentColor)
+                subtitle: Text(
+                  '${vehicle.fuelType.name} | ${vehicle.type.name}',
+                ),
+                trailing: isActive
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: AppColors.accentColor,
+                      )
                     : null,
-                onTap: () => ref.read(activeVehicleProvider.notifier).setVehicle(vehicle.id),
+                onTap: () => ref
+                    .read(activeVehicleProvider.notifier)
+                    .setVehicle(vehicle.id),
               );
             },
           );

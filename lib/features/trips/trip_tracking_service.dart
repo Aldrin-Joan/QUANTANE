@@ -1,6 +1,9 @@
 ﻿import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 
+typedef PositionStreamFactory =
+    Stream<Position> Function({LocationSettings? locationSettings});
+
 class TripState {
   final double currentSpeed;
   final double maxSpeed;
@@ -33,7 +36,12 @@ class TripState {
 }
 
 class TripTrackingService {
+  final PositionStreamFactory _positionStreamFactory;
   StreamSubscription<Position>? _subscription;
+
+  TripTrackingService({
+    PositionStreamFactory positionStreamFactory = Geolocator.getPositionStream,
+  }) : _positionStreamFactory = positionStreamFactory;
 
   Stream<TripState> startTracking() {
     final startTime = DateTime.now();
@@ -55,7 +63,7 @@ class TripTrackingService {
 
     _subscription?.cancel();
     _subscription =
-        Geolocator.getPositionStream(
+        _positionStreamFactory(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
             distanceFilter: 10,

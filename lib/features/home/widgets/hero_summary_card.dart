@@ -20,7 +20,7 @@ class HeroSummaryCard extends StatelessWidget {
             Text(
               'Fuel This Month',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 4),
@@ -42,15 +42,16 @@ class HeroSummaryCard extends StatelessWidget {
                     children: [
                       Text(
                         '${summary.totalDistanceMonth.toStringAsFixed(0)} KM',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(color: Colors.white),
                       ),
                       Text(
                         'Distance',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.6),
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
                       ),
                     ],
                   ),
@@ -61,15 +62,16 @@ class HeroSummaryCard extends StatelessWidget {
                     children: [
                       Text(
                         '${summary.avgMileageMonth.toStringAsFixed(1)} KM/L',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(color: Colors.white),
                       ),
                       Text(
                         'Avg Mileage',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.6),
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
                       ),
                     ],
                   ),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/app_theme.dart';
 
@@ -6,11 +6,7 @@ import 'package:quantane/core/router/app_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const ProviderScope(
-      child: QuantaneApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: QuantaneApp()));
 }
 
 class QuantaneApp extends ConsumerWidget {

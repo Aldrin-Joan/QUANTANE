@@ -274,7 +274,7 @@ class _MetricCard extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.12),
+                    color: accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -298,7 +298,9 @@ class _MetricCard extends StatelessWidget {
                           show: true,
                           drawVerticalLine: false,
                           getDrawingHorizontalLine: (value) => FlLine(
-                            color: AppColors.dividerColor.withOpacity(0.6),
+                            color: AppColors.dividerColor.withValues(
+                              alpha: 0.6,
+                            ),
                             strokeWidth: 1,
                             dashArray: const [4, 4],
                           ),
@@ -404,8 +406,10 @@ class _EmptyMetricState extends StatelessWidget {
           padding: EdgeInsets.all(compactLayout ? 12 : 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            color: AppColors.bgColor.withOpacity(0.55),
-            border: Border.all(color: AppColors.dividerColor.withOpacity(0.6)),
+            color: AppColors.bgColor.withValues(alpha: 0.55),
+            border: Border.all(
+              color: AppColors.dividerColor.withValues(alpha: 0.6),
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -416,7 +420,7 @@ class _EmptyMetricState extends StatelessWidget {
                     width: iconSize,
                     height: iconSize,
                     decoration: BoxDecoration(
-                      color: accent.withOpacity(0.14),
+                      color: accent.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(
@@ -474,8 +478,8 @@ class _EmptyMetricState extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   gradient: LinearGradient(
                     colors: [
-                      accent.withOpacity(0.22),
-                      accent.withOpacity(0.06),
+                      accent.withValues(alpha: 0.22),
+                      accent.withValues(alpha: 0.06),
                     ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,

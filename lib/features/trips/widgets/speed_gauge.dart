@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:quantane/core/theme/colors.dart';
 
@@ -6,11 +6,7 @@ class SpeedGauge extends StatelessWidget {
   final double speed;
   final double maxSpeed;
 
-  const SpeedGauge({
-    super.key,
-    required this.speed,
-    this.maxSpeed = 200,
-  });
+  const SpeedGauge({super.key, required this.speed, this.maxSpeed = 200});
 
   @override
   Widget build(BuildContext context) {

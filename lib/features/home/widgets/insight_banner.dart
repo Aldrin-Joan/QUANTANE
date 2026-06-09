@@ -24,7 +24,7 @@ class InsightBanner extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withOpacity(0.14),
+                      color: AppColors.primaryColor.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(

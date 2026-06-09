@@ -1,4 +1,4 @@
-﻿import 'package:drift/drift.dart';
+import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/domain/models/trip.dart';
@@ -20,7 +20,9 @@ class TripRepository {
   }
 
   Future<void> insert(Trip trip) async {
-    await _db.into(_db.trips).insert(
+    await _db
+        .into(_db.trips)
+        .insert(
           TripsCompanion.insert(
             id: trip.id,
             vehicleId: trip.vehicleId,

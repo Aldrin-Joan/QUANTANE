@@ -6,28 +6,30 @@ class DeltaBadge extends StatelessWidget {
   final double value;
   final bool isPercentage;
 
-  const DeltaBadge({
-    super.key,
-    required this.value,
-    this.isPercentage = true,
-  });
+  const DeltaBadge({super.key, required this.value, this.isPercentage = true});
 
   @override
   Widget build(BuildContext context) {
     final isPositive = value > 0;
     final isNeutral = value == 0;
-    
-    final Color bgColor = isNeutral 
-        ? AppColors.textTertiary.withOpacity(0.1)
-        : isPositive ? AppColors.accentMuted : AppColors.dangerMuted;
-    
+
+    final Color bgColor = isNeutral
+        ? AppColors.textTertiary.withValues(alpha: 0.1)
+        : isPositive
+        ? AppColors.accentMuted
+        : AppColors.dangerMuted;
+
     final Color textColor = isNeutral
         ? AppColors.textTertiary
-        : isPositive ? AppColors.accentColor : AppColors.dangerColor;
+        : isPositive
+        ? AppColors.accentColor
+        : AppColors.dangerColor;
 
     final icon = isNeutral
         ? null
-        : isPositive ? LucideIcons.arrow_up : LucideIcons.arrow_down;
+        : isPositive
+        ? LucideIcons.arrow_up
+        : LucideIcons.arrow_down;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -1,4 +1,4 @@
-﻿import 'package:drift/drift.dart';
+import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/domain/models/vehicle.dart';
@@ -12,9 +12,10 @@ class VehicleRepository {
   VehicleRepository(this._db);
 
   Stream<List<Vehicle>> watchAll() {
-    return _db.select(_db.vehicles).watch().map(
-          (rows) => rows.map((row) => Vehicle.fromDrift(row)).toList(),
-        );
+    return _db
+        .select(_db.vehicles)
+        .watch()
+        .map((rows) => rows.map((row) => Vehicle.fromDrift(row)).toList());
   }
 
   Future<Vehicle?> getById(String id) async {
@@ -24,7 +25,9 @@ class VehicleRepository {
   }
 
   Future<void> insert(Vehicle vehicle) async {
-    await _db.into(_db.vehicles).insert(
+    await _db
+        .into(_db.vehicles)
+        .insert(
           VehiclesCompanion.insert(
             id: vehicle.id,
             name: vehicle.name,
@@ -38,15 +41,17 @@ class VehicleRepository {
   }
 
   Future<void> update(Vehicle vehicle) async {
-    await (_db.update(_db.vehicles)..where((t) => t.id.equals(vehicle.id))).write(
-          VehiclesCompanion(
-            name: Value(vehicle.name),
-            type: Value(vehicle.type.name),
-            fuelType: Value(vehicle.fuelType.name),
-            tankCapacity: Value(vehicle.tankCapacity),
-            initialOdometer: Value(vehicle.initialOdometer),
-          ),
-        );
+    await (_db.update(
+      _db.vehicles,
+    )..where((t) => t.id.equals(vehicle.id))).write(
+      VehiclesCompanion(
+        name: Value(vehicle.name),
+        type: Value(vehicle.type.name),
+        fuelType: Value(vehicle.fuelType.name),
+        tankCapacity: Value(vehicle.tankCapacity),
+        initialOdometer: Value(vehicle.initialOdometer),
+      ),
+    );
   }
 
   Future<void> delete(String id) async {

@@ -88,7 +88,7 @@ class _EmptySectionCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withOpacity(0.14),
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(

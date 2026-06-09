@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
@@ -18,14 +20,22 @@ class LiveTripScreen extends ConsumerStatefulWidget {
 }
 
 class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
+  late final Timer _durationTicker;
+
   @override
   void initState() {
     super.initState();
     WakelockPlus.enable();
+    _durationTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
+    _durationTicker.cancel();
     WakelockPlus.disable();
     super.dispose();
   }

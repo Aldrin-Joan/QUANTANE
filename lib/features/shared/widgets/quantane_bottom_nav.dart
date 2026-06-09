@@ -1,13 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:quantane/core/theme/colors.dart';
 
 class QuantaneBottomNav extends StatelessWidget {
-  const QuantaneBottomNav({
-    required this.navigationShell,
-    super.key,
-  });
+  const QuantaneBottomNav({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 

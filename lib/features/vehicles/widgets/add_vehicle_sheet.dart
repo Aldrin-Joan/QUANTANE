@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/vehicle_repository.dart';
@@ -73,7 +73,12 @@ class _AddVehicleSheetState extends ConsumerState<AddVehicleSheet> {
                 Expanded(
                   child: DropdownButtonFormField<VehicleType>(
                     initialValue: _type,
-                    items: VehicleType.values.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
+                    items: VehicleType.values
+                        .map(
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text(e.name)),
+                        )
+                        .toList(),
                     onChanged: (v) => setState(() => _type = v!),
                     decoration: const InputDecoration(labelText: 'Type'),
                   ),
@@ -82,7 +87,12 @@ class _AddVehicleSheetState extends ConsumerState<AddVehicleSheet> {
                 Expanded(
                   child: DropdownButtonFormField<FuelType>(
                     initialValue: _fuelType,
-                    items: FuelType.values.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
+                    items: FuelType.values
+                        .map(
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text(e.name)),
+                        )
+                        .toList(),
                     onChanged: (v) => setState(() => _fuelType = v!),
                     decoration: const InputDecoration(labelText: 'Fuel'),
                   ),
@@ -97,7 +107,8 @@ class _AddVehicleSheetState extends ConsumerState<AddVehicleSheet> {
                     controller: _odoController,
                     decoration: const InputDecoration(labelText: 'Initial Odo'),
                     keyboardType: TextInputType.number,
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -119,7 +130,9 @@ class _AddVehicleSheetState extends ConsumerState<AddVehicleSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text('Save Vehicle'),
               ),

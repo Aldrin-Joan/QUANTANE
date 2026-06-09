@@ -38,8 +38,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final vehicleId = ref.read(activeVehicleProvider);
+    final messenger = ScaffoldMessenger.of(context);
     if (vehicleId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('Please add and select a vehicle first in Settings.'),
         ),
@@ -68,9 +69,9 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
       ref.invalidate(insightsProvider);
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error saving fuel fill: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error saving fuel fill: $e')),
+      );
     }
   }
 

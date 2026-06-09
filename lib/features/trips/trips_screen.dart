@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:quantane/core/theme/colors.dart';
+import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 
@@ -41,7 +42,17 @@ class TripsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             itemCount: trips.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _TripTile(trip: trips[index]),
+            itemBuilder: (context, index) => _TripTile(
+              trip: trips[index],
+              onDelete: () async {
+                await ref.read(tripRepositoryProvider).delete(trips[index].id);
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Trip deleted')));
+              },
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -112,8 +123,64 @@ class _TripsEmptyState extends StatelessWidget {
 
 class _TripTile extends StatelessWidget {
   final Trip trip;
+  final Future<void> Function() onDelete;
 
-  const _TripTile({required this.trip});
+  const _TripTile({required this.trip, required this.onDelete});
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final shouldDelete = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: AppColors.cardColor,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Delete trip?',
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'This removes the trip history entry permanently.',
+                  style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.of(sheetContext).pop(true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.dangerColor.withValues(
+                      alpha: 0.16,
+                    ),
+                    foregroundColor: AppColors.dangerColor,
+                  ),
+                  child: const Text('Delete'),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await onDelete();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +188,7 @@ class _TripTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        onLongPress: () => _confirmDelete(context),
         title: Text('${trip.distance.toStringAsFixed(1)} KM'),
         subtitle: Text(
           '${_formatDate(trip.startTime)} • ${_formatDuration(duration)}',
