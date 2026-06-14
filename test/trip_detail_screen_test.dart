@@ -65,9 +65,7 @@ void main() {
         overrides: [
           tripRepositoryProvider.overrideWithValue(_FakeTripRepository(trip)),
         ],
-        child: MaterialApp(
-          home: TripDetailScreen(tripId: 'trip-1'),
-        ),
+        child: MaterialApp(home: TripDetailScreen(tripId: 'trip-1')),
       ),
     );
     await tester.pumpAndSettle();
@@ -97,9 +95,7 @@ void main() {
         overrides: [
           tripRepositoryProvider.overrideWithValue(_FakeTripRepository(trip)),
         ],
-        child: MaterialApp(
-          home: TripDetailScreen(tripId: 'legacy-trip'),
-        ),
+        child: MaterialApp(home: TripDetailScreen(tripId: 'legacy-trip')),
       ),
     );
     await tester.pumpAndSettle();

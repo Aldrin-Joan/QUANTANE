@@ -25,10 +25,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (context, state) => Scaffold(
-            body: TripHistoryCard(
-              trip: trip,
-              onDelete: () async {},
-            ),
+            body: TripHistoryCard(trip: trip, onDelete: () async {}),
           ),
         ),
         GoRoute(

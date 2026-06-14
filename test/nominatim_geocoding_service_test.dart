@@ -14,9 +14,7 @@ void main() {
     late GeocodingCacheRepository cacheRepository;
 
     setUp(() {
-      database = AppDatabase.forTesting(
-        NativeDatabase.memory(),
-      );
+      database = AppDatabase.forTesting(NativeDatabase.memory());
       cacheRepository = GeocodingCacheRepository(database);
     });
 
@@ -96,10 +94,7 @@ void main() {
         client: client,
       );
 
-      final address = await service.reverseGeocode(
-        latitude: 10,
-        longitude: 20,
-      );
+      final address = await service.reverseGeocode(latitude: 10, longitude: 20);
       expect(address, isNull);
       service.dispose();
     });

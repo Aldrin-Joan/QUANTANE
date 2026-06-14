@@ -103,10 +103,11 @@ class TripHistoryCard extends StatelessWidget {
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ),
                       IconButton(
@@ -204,11 +205,7 @@ class _RoutePreviewFallback extends StatelessWidget {
         ),
       ),
       child: const Center(
-        child: Icon(
-          LucideIcons.map,
-          color: AppColors.textSecondary,
-          size: 36,
-        ),
+        child: Icon(LucideIcons.map, color: AppColors.textSecondary, size: 36),
       ),
     );
   }

@@ -93,10 +93,7 @@ void main() {
       maxSpeed: 40,
       distance: 6.2,
       endTime: DateTime(2026, 6, 14, 8, 25),
-      positions: [
-        _point(13.0800, 80.2700),
-        _point(13.0900, 80.2800),
-      ],
+      positions: [_point(13.0800, 80.2700), _point(13.0900, 80.2800)],
     );
 
     final finalizedTrip = await service.finalize(session);

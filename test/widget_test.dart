@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -37,9 +37,8 @@ class _FakeTripRepository implements TripRepository {
   }
 
   @override
-  Future<Trip?> getById(String id) async => insertedTrip?.id == id
-      ? insertedTrip
-      : null;
+  Future<Trip?> getById(String id) async =>
+      insertedTrip?.id == id ? insertedTrip : null;
 
   @override
   Future<void> delete(String id) async {
@@ -56,9 +55,11 @@ class _FakeTripTracking extends TripTracking {
 
   @override
   TripTrackingState build() => TripTrackingState(
-        session: sessionToReturn,
-        status: sessionToReturn != null ? TripTrackingStatus.live : TripTrackingStatus.idle,
-      );
+    session: sessionToReturn,
+    status: sessionToReturn != null
+        ? TripTrackingStatus.live
+        : TripTrackingStatus.idle,
+  );
 
   @override
   Future<void> stop() async {

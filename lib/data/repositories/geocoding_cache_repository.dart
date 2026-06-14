@@ -40,14 +40,16 @@ class GeocodingCacheRepository {
       latitude: latitude,
       longitude: longitude,
     );
-    await _db.into(_db.geocodingCache).insert(
-      GeocodingCacheCompanion.insert(
-        cacheKey: cacheKey,
-        address: address,
-        cachedAt: DateTime.now().toIso8601String(),
-      ),
-      mode: InsertMode.insertOrReplace,
-    );
+    await _db
+        .into(_db.geocodingCache)
+        .insert(
+          GeocodingCacheCompanion.insert(
+            cacheKey: cacheKey,
+            address: address,
+            cachedAt: DateTime.now().toIso8601String(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
   }
 }
 

@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,9 +21,7 @@ class TripSnapshotStorage {
 
   static Future<Directory> snapshotsDirectory() async {
     final documentsDir = await _documentsDirectory();
-    final directory = Directory(
-      '${documentsDir.path}/$snapshotsFolderName',
-    );
+    final directory = Directory('${documentsDir.path}/$snapshotsFolderName');
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -77,27 +75,29 @@ class TripRepository {
   }
 
   Future<void> insert(Trip trip) async {
-    await _db.into(_db.trips).insert(
-      TripsCompanion.insert(
-        id: trip.id,
-        vehicleId: trip.vehicleId,
-        startTime: trip.startTime.toIso8601String(),
-        endTime: Value(trip.endTime?.toIso8601String()),
-        distance: Value(trip.distance),
-        avgSpeed: Value(trip.avgSpeed),
-        maxSpeed: Value(trip.maxSpeed),
-        minSpeed: Value(trip.minSpeed),
-        startAddress: Value(trip.startAddress),
-        endAddress: Value(trip.endAddress),
-        minLatitude: Value(trip.minLatitude),
-        maxLatitude: Value(trip.maxLatitude),
-        minLongitude: Value(trip.minLongitude),
-        maxLongitude: Value(trip.maxLongitude),
-        routeSnapshotPath: Value(trip.routeSnapshotPath),
-        routePointsJson: Value(Trip.encodeRoutePoints(trip.routePoints)),
-      ),
-      mode: InsertMode.insertOrReplace,
-    );
+    await _db
+        .into(_db.trips)
+        .insert(
+          TripsCompanion.insert(
+            id: trip.id,
+            vehicleId: trip.vehicleId,
+            startTime: trip.startTime.toIso8601String(),
+            endTime: Value(trip.endTime?.toIso8601String()),
+            distance: Value(trip.distance),
+            avgSpeed: Value(trip.avgSpeed),
+            maxSpeed: Value(trip.maxSpeed),
+            minSpeed: Value(trip.minSpeed),
+            startAddress: Value(trip.startAddress),
+            endAddress: Value(trip.endAddress),
+            minLatitude: Value(trip.minLatitude),
+            maxLatitude: Value(trip.maxLatitude),
+            minLongitude: Value(trip.minLongitude),
+            maxLongitude: Value(trip.maxLongitude),
+            routeSnapshotPath: Value(trip.routeSnapshotPath),
+            routePointsJson: Value(Trip.encodeRoutePoints(trip.routePoints)),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
   }
 
   Future<void> delete(String id) async {

@@ -64,35 +64,38 @@ void main() {
       expect(trip.routeSnapshotPath, isNull);
     });
 
-    test('enriches trip with route metadata, addresses, and snapshot', () async {
-      final service = TripFinalizationService(
-        routeProcessingService: RouteProcessingService(),
-        geocodingService: _FakeGeocodingService({
-          '13.08:80.27': 'Anna Nagar, Chennai',
-          '13.1:80.29': 'T Nagar, Chennai',
-        }),
-        snapshotWriter: FakeRouteSnapshotWriter(),
-      );
+    test(
+      'enriches trip with route metadata, addresses, and snapshot',
+      () async {
+        final service = TripFinalizationService(
+          routeProcessingService: RouteProcessingService(),
+          geocodingService: _FakeGeocodingService({
+            '13.08:80.27': 'Anna Nagar, Chennai',
+            '13.1:80.29': 'T Nagar, Chennai',
+          }),
+          snapshotWriter: FakeRouteSnapshotWriter(),
+        );
 
-      final trip = await service.finalize(
-        _session(
-          positions: [
-            _point(13.0800, 80.2700),
-            _point(13.0850, 80.2750),
-            _point(13.0900, 80.2800),
-            _point(13.1000, 80.2900),
-          ],
-        ),
-      );
+        final trip = await service.finalize(
+          _session(
+            positions: [
+              _point(13.0800, 80.2700),
+              _point(13.0850, 80.2750),
+              _point(13.0900, 80.2800),
+              _point(13.1000, 80.2900),
+            ],
+          ),
+        );
 
-      expect(trip.routePoints.length, greaterThanOrEqualTo(2));
-      expect(trip.startAddress, 'Anna Nagar, Chennai');
-      expect(trip.endAddress, 'T Nagar, Chennai');
-      expect(trip.minLatitude, lessThanOrEqualTo(trip.maxLatitude));
-      expect(trip.routeSnapshotPath, 'trip_snapshots/trip-1.png');
-      expect(trip.avgSpeed, isNotNull);
-      expect(trip.maxSpeed, 62);
-    });
+        expect(trip.routePoints.length, greaterThanOrEqualTo(2));
+        expect(trip.startAddress, 'Anna Nagar, Chennai');
+        expect(trip.endAddress, 'T Nagar, Chennai');
+        expect(trip.minLatitude, lessThanOrEqualTo(trip.maxLatitude));
+        expect(trip.routeSnapshotPath, 'trip_snapshots/trip-1.png');
+        expect(trip.avgSpeed, isNotNull);
+        expect(trip.maxSpeed, 62);
+      },
+    );
 
     test('still returns trip when geocoding and snapshot fail', () async {
       final service = TripFinalizationService(
@@ -120,10 +123,8 @@ void main() {
     test('handles large routes through simplification pipeline', () async {
       final positions = List<TripPoint>.generate(
         10000,
-        (index) => _point(
-          13.08 + (index * 0.000005),
-          80.27 + (index * 0.000005),
-        ),
+        (index) =>
+            _point(13.08 + (index * 0.000005), 80.27 + (index * 0.000005)),
       );
 
       final service = TripFinalizationService(

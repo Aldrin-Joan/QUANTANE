@@ -87,12 +87,7 @@ double _perpendicularDistanceMeters({
   final pointLng = point.longitude;
 
   if (startLat == endLat && startLng == endLng) {
-    return Geolocator.distanceBetween(
-      startLat,
-      startLng,
-      pointLat,
-      pointLng,
-    );
+    return Geolocator.distanceBetween(startLat, startLng, pointLat, pointLng);
   }
 
   final dx = endLng - startLng;

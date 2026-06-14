@@ -17,7 +17,8 @@ class NominatimGeocodingService implements ReverseGeocodingService {
 
   final GeocodingCacheRepository _cacheRepository;
   final http.Client _client;
-  final Uri Function(double latitude, double longitude) _reverseGeocodeUriBuilder;
+  final Uri Function(double latitude, double longitude)
+  _reverseGeocodeUriBuilder;
   DateTime? _lastRequestAt;
 
   NominatimGeocodingService({

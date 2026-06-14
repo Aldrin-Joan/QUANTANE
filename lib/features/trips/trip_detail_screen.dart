@@ -75,7 +75,8 @@ class _TripDetailBody extends StatelessWidget {
             children: [
               _LocationRow(
                 label: 'Start',
-                value: trip.startAddress ??
+                value:
+                    trip.startAddress ??
                     TripFormatters.coordinateLabel(trip, isStart: true),
                 icon: LucideIcons.map_pin,
                 iconColor: const Color(0xFF22C55E),
@@ -83,7 +84,8 @@ class _TripDetailBody extends StatelessWidget {
               const SizedBox(height: 14),
               _LocationRow(
                 label: 'End',
-                value: trip.endAddress ??
+                value:
+                    trip.endAddress ??
                     TripFormatters.coordinateLabel(trip, isStart: false),
                 icon: LucideIcons.map_pin,
                 iconColor: const Color(0xFFEF4444),
@@ -201,9 +203,9 @@ class _StatRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
         ),
         Text(

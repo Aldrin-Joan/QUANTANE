@@ -27,9 +27,7 @@ class TripFinalizationService {
 
     ProcessedRoute? processedRoute;
     try {
-      processedRoute = await _routeProcessingService.process(
-        session.positions,
-      );
+      processedRoute = await _routeProcessingService.process(session.positions);
     } catch (error, stack) {
       debugPrint('Route processing failed: $error\n$stack');
     }
@@ -88,10 +86,7 @@ class TripFinalizationService {
     required ProcessedRoute route,
   }) async {
     try {
-      return await _snapshotWriter.writeSnapshot(
-        tripId: tripId,
-        route: route,
-      );
+      return await _snapshotWriter.writeSnapshot(tripId: tripId, route: route);
     } catch (error, stack) {
       debugPrint('Snapshot generation failed: $error\n$stack');
       return null;

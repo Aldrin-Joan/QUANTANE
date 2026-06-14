@@ -68,17 +68,14 @@ class _TripRouteMapState extends State<TripRouteMap> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _fitCamera());
 
-    final loadTileLayer =
-        widget.showTileLayer && !_isRunningWidgetTest;
+    final loadTileLayer = widget.showTileLayer && !_isRunningWidgetTest;
 
     return SizedBox(
       height: widget.height,
       child: Stack(
         children: [
           if (!loadTileLayer)
-            const Positioned.fill(
-              child: ColoredBox(color: Color(0xFF1A1F2B)),
-            ),
+            const Positioned.fill(child: ColoredBox(color: Color(0xFF1A1F2B))),
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -130,11 +127,7 @@ class _TripRouteMapState extends State<TripRouteMap> {
               ),
             ],
           ),
-          const Positioned(
-            right: 8,
-            bottom: 8,
-            child: _AttributionLabel(),
-          ),
+          const Positioned(right: 8, bottom: 8, child: _AttributionLabel()),
         ],
       ),
     );
@@ -178,11 +171,7 @@ class _RouteMarker extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
     );
@@ -224,9 +213,7 @@ class _RouteUnavailable extends StatelessWidget {
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Center(
-          child: Text('Route unavailable for this trip'),
-        ),
+        child: const Center(child: Text('Route unavailable for this trip')),
       ),
     );
   }

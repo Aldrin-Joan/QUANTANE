@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -36,9 +36,7 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
     WakelockPlus.enable();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _redirectIfTripStopped(
-        ref.read(tripTrackingProvider),
-      );
+      _redirectIfTripStopped(ref.read(tripTrackingProvider));
     });
   }
 
@@ -78,7 +76,10 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
     }
   }
 
-  void _handleTripStateChange(TripTrackingState? previous, TripTrackingState next) {
+  void _handleTripStateChange(
+    TripTrackingState? previous,
+    TripTrackingState next,
+  ) {
     _redirectIfTripStopped(next);
   }
 
@@ -114,7 +115,9 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
 
     return Scaffold(
       backgroundColor: AppColors.bgColor,
-      body: SafeArea(child: _buildBody(trackingState.session, trackingState.status)),
+      body: SafeArea(
+        child: _buildBody(trackingState.session, trackingState.status),
+      ),
     );
   }
 
