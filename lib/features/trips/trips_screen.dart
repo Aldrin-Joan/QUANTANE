@@ -12,6 +12,7 @@ import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
+import 'package:quantane/features/shared/widgets/vehicle_selector_chip.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 
 class TripsScreen extends ConsumerWidget {
@@ -274,6 +275,8 @@ class _TripsHero extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  const VehicleSelectorChip(),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
