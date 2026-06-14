@@ -94,6 +94,7 @@ class _TripRouteMapState extends State<TripRouteMap> {
               if (loadTileLayer)
                 TileLayer(
                   urlTemplate: TripMapStyle.tileUrlTemplate,
+                  subdomains: TripMapStyle.subdomains,
                   userAgentPackageName: 'com.quantane.app',
                 ),
               PolylineLayer(
