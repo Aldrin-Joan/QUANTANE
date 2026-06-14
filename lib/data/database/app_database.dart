@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -18,7 +18,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,6 +33,9 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(trips, trips.routeSnapshotPath);
         await migrator.addColumn(trips, trips.routePointsJson);
         await migrator.createTable(geocodingCache);
+      }
+      if (from < 3) {
+        await delete(geocodingCache).go();
       }
     },
   );

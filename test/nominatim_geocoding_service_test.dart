@@ -31,6 +31,7 @@ void main() {
               'neighbourhood': 'Anna Nagar',
               'city': 'Chennai',
               'state': 'Tamil Nadu',
+              'country': 'India',
             },
           }),
           200,
@@ -47,7 +48,7 @@ void main() {
         longitude: 80.2707,
       );
 
-      expect(address, 'Anna Nagar, Chennai');
+      expect(address, 'Anna Nagar, Chennai, Tamil Nadu, India');
       service.dispose();
     });
 
@@ -58,7 +59,12 @@ void main() {
         return http.Response(
           jsonEncode({
             'display_name': 'T Nagar, Chennai, Tamil Nadu, India',
-            'address': {'suburb': 'T Nagar', 'city': 'Chennai'},
+            'address': {
+              'suburb': 'T Nagar',
+              'city': 'Chennai',
+              'state': 'Tamil Nadu',
+              'country': 'India',
+            },
           }),
           200,
         );
@@ -78,8 +84,8 @@ void main() {
         longitude: 80.2400,
       );
 
-      expect(first, 'T Nagar, Chennai');
-      expect(second, 'T Nagar, Chennai');
+      expect(first, 'T Nagar, Chennai, Tamil Nadu, India');
+      expect(second, 'T Nagar, Chennai, Tamil Nadu, India');
       expect(requestCount, 1);
       service.dispose();
     });

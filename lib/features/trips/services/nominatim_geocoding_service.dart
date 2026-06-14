@@ -31,7 +31,7 @@ class NominatimGeocodingService implements ReverseGeocodingService {
            reverseGeocodeUriBuilder ??
            ((latitude, longitude) => Uri.parse(
              'https://nominatim.openstreetmap.org/reverse'
-             '?format=jsonv2&lat=$latitude&lon=$longitude&zoom=14&addressdetails=1',
+             '?format=jsonv2&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1',
            ));
 
   @override
@@ -95,38 +95,91 @@ class NominatimGeocodingService implements ReverseGeocodingService {
   String? _formatAddress(Map<String, dynamic> payload) {
     final address = payload['address'];
     if (address is Map<String, dynamic>) {
-      final neighbourhood =
-          address['neighbourhood'] ??
-          address['suburb'] ??
-          address['quarter'] ??
-          address['hamlet'];
+      final parts = <String>[];
+      final seen = <String>{};
+
+      void addPart(dynamic value) {
+        if (value == null) return;
+        final trimmed = value.toString().trim();
+        if (trimmed.isEmpty) return;
+        final lowercase = trimmed.toLowerCase();
+        if (!seen.contains(lowercase)) {
+          parts.add(trimmed);
+          seen.add(lowercase);
+        }
+      }
+
+      // 1. Building / House details
+      final houseNumber =
+          address['house_number'] ??
+          address['building'] ??
+          address['public_building'] ??
+          address['office'];
+      addPart(houseNumber);
+
+      // 2. Road / Street details
+      final road =
+          address['road'] ??
+          address['street'] ??
+          address['footway'] ??
+          address['path'] ??
+          address['pedestrian'];
+      addPart(road);
+
+      // 3. Local area / Neighbourhood / Suburb / Wards
+      addPart(address['neighbourhood']);
+      addPart(address['residential']);
+      addPart(address['suburb']);
+      addPart(address['quarter']);
+      addPart(address['ward']);
+      addPart(address['subdistrict']);
+
+      // 4. District / County / City District (avoid adding if it duplicates city)
       final city =
           address['city'] ??
           address['town'] ??
           address['village'] ??
-          address['county'];
-      final state = address['state'];
+          address['municipality'];
+      final county =
+          address['county'] ??
+          address['district'] ??
+          address['city_district'] ??
+          address['state_district'];
 
-      if (neighbourhood is String && city is String) {
-        return '$neighbourhood, $city';
+      if (county != null) {
+        final countyStr = county.toString().trim();
+        final cityStr = city?.toString().trim();
+        if (cityStr == null ||
+            !countyStr.toLowerCase().contains(cityStr.toLowerCase())) {
+          addPart(countyStr);
+        }
       }
-      if (city is String && state is String) {
-        return '$city, $state';
+
+      // 5. City / Town
+      addPart(city);
+
+      // 6. State & Postcode
+      final state =
+          address['state'] ?? address['province'] ?? address['region'];
+      final postcode = address['postcode'];
+      if (state != null && postcode != null) {
+        addPart('$state $postcode');
+      } else {
+        addPart(state);
+        addPart(postcode);
       }
-      if (city is String) {
-        return city;
-      }
-      if (neighbourhood is String) {
-        return neighbourhood;
+
+      // 7. Country
+      final country = address['country'];
+      addPart(country);
+
+      if (parts.isNotEmpty) {
+        return parts.join(', ');
       }
     }
 
     final displayName = payload['display_name'];
     if (displayName is String && displayName.isNotEmpty) {
-      final parts = displayName.split(',');
-      if (parts.length >= 2) {
-        return '${parts.first.trim()}, ${parts[1].trim()}';
-      }
       return displayName.trim();
     }
 
