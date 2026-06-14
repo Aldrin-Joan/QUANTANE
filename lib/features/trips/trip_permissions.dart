@@ -254,9 +254,16 @@ class TripPermissionsController with WidgetsBindingObserver {
     }
   }
 
-  Stream<TripPermissionState> get stream async* {
-    yield _state;
-    yield* _stateController.stream;
+  Stream<TripPermissionState> get stream {
+    return Stream<TripPermissionState>.multi((controller) {
+      controller.add(_state);
+      final subscription = _stateController.stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close,
+      );
+      controller.onCancel = subscription.cancel;
+    });
   }
 
   void dispose() {
