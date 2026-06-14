@@ -283,6 +283,13 @@ class _TripTaskHandler extends TaskHandler {
 
     final updated = _metricsCalculator.update(current, position);
     _currentState = updated;
+
+    // DEBUG LOGGING
+    debugPrint('[TRIP_DEBUG] Lat: ${position.latitude}, Lon: ${position.longitude}, '
+               'SensorSpeed: ${(position.speed * 3.6).toStringAsFixed(1)} KM/H, '
+               'Accuracy: ${position.accuracy}m, '
+               'FinalCalcSpeed: ${updated.currentSpeed.toStringAsFixed(1)} KM/H');
+
     await _sessionRepository.save(updated);
     await FlutterForegroundTask.updateService(
       notificationTitle: 'Trip tracking',

@@ -1,4 +1,6 @@
-﻿import 'package:geolocator/geolocator.dart';
+﻿import 'dart:math';
+
+import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/trip.dart';
 
 class TripPoint {
@@ -154,6 +156,9 @@ class TripMetricsCalculator {
   /// Minimum distance between points to consider it a "move".
   static const double minUsefulStepMeters = 3.0;
 
+  /// Minimum derived speed needed before we trust a motion reading.
+  static const double minReliableSpeedKmh = 3.0;
+
   /// Maximum speed for a road vehicle (km/h). Anything above is likely noise.
   static const double maxRealisticSpeedKmh = 250.0;
 
@@ -186,10 +191,13 @@ class TripMetricsCalculator {
     final currentSpeed = _estimateCurrentSpeed(
       position: position,
       derivedSpeed: derivedSpeed,
+      previousPoint: previousPoint,
     );
 
     // Final sanity check on total speed used for display/max tracking.
-    final verifiedSpeed = currentSpeed > maxRealisticSpeedKmh ? 0.0 : currentSpeed;
+    final verifiedSpeed = currentSpeed > maxRealisticSpeedKmh
+        ? 0.0
+        : currentSpeed;
 
     final updatedPositions = List<TripPoint>.of(current.positions)
       ..add(TripPoint.fromPosition(position, verifiedSpeed));
@@ -204,8 +212,8 @@ class TripMetricsCalculator {
       );
 
       // Only add distance if it's significant but realistic.
-      if (stepMeters >= minUsefulStepMeters &&
-          (stepMeters / 1000.0) < 5.0) { // Max 5km jump per poll (approx poll is 1s)
+      if (stepMeters >= minUsefulStepMeters && (stepMeters / 1000.0) < 5.0) {
+        // Max 5km jump per poll (approx poll is 1s)
         distanceKm += stepMeters / 1000.0;
       }
     }
@@ -224,17 +232,40 @@ class TripMetricsCalculator {
   double _estimateCurrentSpeed({
     required Position position,
     required double derivedSpeed,
+    required TripPoint? previousPoint,
   }) {
-    final reportedSpeed = position.speed.isFinite ? position.speed * 3.6 : 0.0;
-    if (reportedSpeed <= 0) {
+    if (position.isMocked) {
+      return 0.0;
+    }
+
+    final reportedSpeed = position.speed.isFinite && position.speed > 0
+        ? position.speed * 3.6
+        : 0.0;
+
+    // Require actual position movement before accepting a speed reading.
+    // GPS speed alone is noisy at trip start and while the device is idle.
+    if (previousPoint == null || derivedSpeed < minReliableSpeedKmh) {
+      return 0.0;
+    }
+
+    final speedAccuracy =
+        position.speedAccuracy.isFinite && position.speedAccuracy > 0
+        ? position.speedAccuracy * 3.6
+        : 0.0;
+
+    // When the reported speed is less reliable than the coordinate-derived
+    // movement, prefer the derived value.
+    if (reportedSpeed > 0 &&
+        speedAccuracy > 0 &&
+        reportedSpeed < speedAccuracy) {
       return derivedSpeed;
     }
 
-    if (derivedSpeed <= 0) {
-      return reportedSpeed;
+    if (reportedSpeed > 0) {
+      return max(reportedSpeed, derivedSpeed);
     }
 
-    return reportedSpeed > derivedSpeed ? reportedSpeed : derivedSpeed;
+    return derivedSpeed;
   }
 
   double _deriveSpeedKmh({required Position position, TripPoint? previous}) {
