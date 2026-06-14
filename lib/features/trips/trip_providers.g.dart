@@ -51,7 +51,7 @@ String _$tripHistoryHash() => r'846280c199ec1a8f1fc4e33693f2bcf75ce617f2';
 final tripTrackingProvider = TripTrackingProvider._();
 
 final class TripTrackingProvider
-    extends $NotifierProvider<TripTracking, TripState?> {
+    extends $NotifierProvider<TripTracking, TripTrackingState> {
   TripTrackingProvider._()
     : super(
         from: null,
@@ -71,27 +71,27 @@ final class TripTrackingProvider
   TripTracking create() => TripTracking();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TripState? value) {
+  Override overrideWithValue(TripTrackingState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<TripState?>(value),
+      providerOverride: $SyncValueProvider<TripTrackingState>(value),
     );
   }
 }
 
-String _$tripTrackingHash() => r'8f7b9f12761da81f21a2a513dfd3216ffce181b8';
+String _$tripTrackingHash() => r'0feee1aa828226bb9dcb016219582cf27bf67f2c';
 
-abstract class _$TripTracking extends $Notifier<TripState?> {
-  TripState? build();
+abstract class _$TripTracking extends $Notifier<TripTrackingState> {
+  TripTrackingState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<TripState?, TripState?>;
+    final ref = this.ref as $Ref<TripTrackingState, TripTrackingState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<TripState?, TripState?>,
-              TripState?,
+              AnyNotifier<TripTrackingState, TripTrackingState>,
+              TripTrackingState,
               Object?,
               Object?
             >;

@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+﻿// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'home_providers.dart';
 
@@ -89,7 +89,7 @@ final class HomeSummaryProvider
   }
 }
 
-String _$homeSummaryHash() => r'1b230de2495a8a582fb13718df548565bbb74d55';
+String _$homeSummaryHash() => r'ddfa11e0db089dd9a3e20e6797e10ea4437e0d63';
 
 @ProviderFor(quickStats)
 final quickStatsProvider = QuickStatsProvider._();
@@ -130,4 +130,4 @@ final class QuickStatsProvider
   }
 }
 
-String _$quickStatsHash() => r'321f3abc75edf9afa91cbc3b505de8b78a41f87d';
+String _$quickStatsHash() => r'3286fba932abe6ee8e0a0453b0535412fe144659';

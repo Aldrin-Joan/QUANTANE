@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -174,6 +174,12 @@ class TripTrackingService {
     await _stateController.close();
   }
 
+  Future<void> clearPersistedSession() async {
+    await _sessionRepository.clear();
+    _currentState = null;
+    _stateController.add(null);
+  }
+
   Future<void> _startForegroundService(TripState session) async {
     FlutterForegroundTask.startService(
       serviceId: 2042,
@@ -203,23 +209,13 @@ class TripTrackingService {
 
       final session = TripState.fromJson(sessionMap.cast<String, Object?>());
       _currentState = session;
+      
+      // We don't want to unawaited save here if we can help it, 
+      // but TripTrackingService doesn't have a good way to wait.
+      // The session is already saved by the background task if stopped there.
       unawaited(_sessionRepository.save(session));
       _stateController.add(session);
       return;
-    }
-
-    if (method == _tripUpdateEvent) {
-      final sessionMap = payload['session'] as Map<dynamic, dynamic>?;
-      if (sessionMap == null) {
-        return;
-      }
-
-      final finalizedSession = TripState.fromJson(
-        sessionMap.cast<String, Object?>(),
-      );
-
-      _currentState = finalizedSession;
-      _stateController.add(finalizedSession);
     }
   }
 }
@@ -322,11 +318,14 @@ class _TripTaskHandler extends TaskHandler {
         endTime: DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+      // CRITICAL: Save the finalized session so it can be recovered if main process is dead.
+      await _sessionRepository.save(finalized);
+
       FlutterForegroundTask.sendDataToMain({
         'method': _tripUpdateEvent,
         'session': finalized.toJson(),
       });
-      await _sessionRepository.clear();
     }
 
     await FlutterForegroundTask.stopService();

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/vehicle_repository.dart';

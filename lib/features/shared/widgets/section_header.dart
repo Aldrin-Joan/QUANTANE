@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:quantane/core/theme/colors.dart';
 
 class SectionHeader extends StatelessWidget {

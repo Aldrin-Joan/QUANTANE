@@ -1,4 +1,4 @@
-import 'package:geolocator/geolocator.dart';
+﻿import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/trip.dart';
 
 class TripPoint {
@@ -148,23 +148,51 @@ class TripState {
 }
 
 class TripMetricsCalculator {
+  /// GPS horizontal accuracy must be better than this (lower is better).
+  static const double maxAccuracyMeters = 30.0;
+
+  /// Minimum distance between points to consider it a "move".
   static const double minUsefulStepMeters = 3.0;
-  static const double maxReasonableStepMeters = 5000.0;
+
+  /// Maximum speed for a road vehicle (km/h). Anything above is likely noise.
+  static const double maxRealisticSpeedKmh = 250.0;
 
   TripState update(TripState current, Position position) {
+    // 1. Accuracy Filter: Discard noisy GPS points immediately.
+    if (position.accuracy > maxAccuracyMeters) {
+      return current;
+    }
+
     final previousPoint = current.positions.isEmpty
         ? null
         : current.positions.last;
+
+    // 2. Temporal Filter: Prevent division by zero or negative time.
+    if (previousPoint != null &&
+        position.timestamp.isBefore(previousPoint.timestamp)) {
+      return current;
+    }
+
     final derivedSpeed = _deriveSpeedKmh(
       position: position,
       previous: previousPoint,
     );
+
+    // 3. Realistic Speed Filter: If derived speed is physically impossible, ignore point.
+    if (derivedSpeed > maxRealisticSpeedKmh) {
+      return current;
+    }
+
     final currentSpeed = _estimateCurrentSpeed(
       position: position,
       derivedSpeed: derivedSpeed,
     );
+
+    // Final sanity check on total speed used for display/max tracking.
+    final verifiedSpeed = currentSpeed > maxRealisticSpeedKmh ? 0.0 : currentSpeed;
+
     final updatedPositions = List<TripPoint>.of(current.positions)
-      ..add(TripPoint.fromPosition(position, currentSpeed));
+      ..add(TripPoint.fromPosition(position, verifiedSpeed));
 
     var distanceKm = current.distance;
     if (previousPoint != null) {
@@ -175,16 +203,17 @@ class TripMetricsCalculator {
         position.longitude,
       );
 
+      // Only add distance if it's significant but realistic.
       if (stepMeters >= minUsefulStepMeters &&
-          stepMeters <= maxReasonableStepMeters) {
+          (stepMeters / 1000.0) < 5.0) { // Max 5km jump per poll (approx poll is 1s)
         distanceKm += stepMeters / 1000.0;
       }
     }
 
     return current.copyWith(
-      currentSpeed: currentSpeed,
-      maxSpeed: currentSpeed > current.maxSpeed
-          ? currentSpeed
+      currentSpeed: verifiedSpeed,
+      maxSpeed: verifiedSpeed > current.maxSpeed
+          ? verifiedSpeed
           : current.maxSpeed,
       distance: distanceKm,
       updatedAt: position.timestamp,

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+﻿import 'package:drift/drift.dart';
 import 'package:quantane/data/database/tables/vehicles_table.dart';
 
 @DataClassName('FuelEntryData')

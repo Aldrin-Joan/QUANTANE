@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -19,6 +19,7 @@ import 'package:quantane/features/trips/trips_screen.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
+import 'package:quantane/features/trips/trip_tracking_state.dart';
 
 class _FakeTripRepository implements TripRepository {
   Trip? insertedTrip;
@@ -41,14 +42,17 @@ class _FakeTripRepository implements TripRepository {
 }
 
 class _FakeTripTracking extends TripTracking {
-  _FakeTripTracking(this.stateToReturn, {this.onStop});
+  _FakeTripTracking(this.sessionToReturn, {this.onStop});
 
-  final TripState stateToReturn;
+  final TripState? sessionToReturn;
   final Future<void> Function()? onStop;
   bool stopCalled = false;
 
   @override
-  TripState? build() => stateToReturn;
+  TripTrackingState build() => TripTrackingState(
+        session: sessionToReturn,
+        status: sessionToReturn != null ? TripTrackingStatus.live : TripTrackingStatus.idle,
+      );
 
   @override
   Future<void> stop() async {
@@ -357,7 +361,7 @@ void main() {
             child: Column(
               children: [
                 SpeedGauge(speed: 102, mode: SpeedDisplayMode.digital),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 SpeedGauge(speed: 102, mode: SpeedDisplayMode.analog),
               ],
             ),

@@ -1,4 +1,4 @@
-class Insight {
+﻿class Insight {
   final String title;
   final String description;
   final String emoji;

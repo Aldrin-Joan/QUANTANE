@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -41,8 +41,19 @@ class TripsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: null,
-        onPressed: () => _startTrip(context, ref, activeVehicleId),
-        child: const Icon(LucideIcons.route),
+        onPressed: () {
+          final trackingState = ref.read(tripTrackingProvider);
+          if (trackingState.session != null) {
+            context.push('/live-trip');
+          } else {
+            _startTrip(context, ref, activeVehicleId);
+          }
+        },
+        child: Icon(
+          ref.watch(tripTrackingProvider).session != null
+              ? LucideIcons.eye
+              : LucideIcons.route,
+        ),
       ),
     );
   }

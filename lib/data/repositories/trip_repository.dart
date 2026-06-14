@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+﻿import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/domain/models/trip.dart';

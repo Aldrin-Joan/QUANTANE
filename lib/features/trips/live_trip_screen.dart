@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
+import 'package:quantane/features/trips/trip_tracking_state.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -20,14 +21,14 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
     with WidgetsBindingObserver {
   SpeedDisplayMode _displayMode = SpeedDisplayMode.digital;
   Timer? _durationTicker;
-  ProviderSubscription<TripState?>? _tripStateSubscription;
+  ProviderSubscription<TripTrackingState>? _tripStateSubscription;
   bool _hasRedirectedToTrips = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _tripStateSubscription = ref.listenManual<TripState?>(
+    _tripStateSubscription = ref.listenManual<TripTrackingState>(
       tripTrackingProvider,
       _handleTripStateChange,
     );
@@ -37,7 +38,6 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _redirectIfTripStopped(
         ref.read(tripTrackingProvider),
-        ref.read(tripTrackingProvider.notifier).status,
       );
     });
   }
@@ -78,17 +78,16 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
     }
   }
 
-  void _handleTripStateChange(TripState? previous, TripState? next) {
-    final trackingStatus = ref.read(tripTrackingProvider.notifier).status;
-    _redirectIfTripStopped(next, trackingStatus);
+  void _handleTripStateChange(TripTrackingState? previous, TripTrackingState next) {
+    _redirectIfTripStopped(next);
   }
 
-  void _redirectIfTripStopped(TripState? state, TripTrackingStatus status) {
+  void _redirectIfTripStopped(TripTrackingState state) {
     if (_hasRedirectedToTrips || !mounted) {
       return;
     }
 
-    if (state != null || status != TripTrackingStatus.idle) {
+    if (state.session != null || state.status != TripTrackingStatus.idle) {
       return;
     }
 
@@ -111,17 +110,38 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
 
   @override
   Widget build(BuildContext context) {
-    final tripState = ref.watch(tripTrackingProvider);
-    final trackingStatus = ref.watch(tripTrackingProvider.notifier).status;
+    final trackingState = ref.watch(tripTrackingProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgColor,
-      body: SafeArea(child: _buildBody(tripState, trackingStatus)),
+      body: SafeArea(child: _buildBody(trackingState.session, trackingState.status)),
     );
   }
 
   Widget _buildBody(TripState? state, TripTrackingStatus status) {
     if (state == null) {
+      String message;
+      String subMessage;
+
+      switch (status) {
+        case TripTrackingStatus.bootstrapping:
+          message = 'Restoring session...';
+          subMessage = 'Checking for active trips.';
+          break;
+        case TripTrackingStatus.waitingForLocation:
+          message = 'Waiting for GPS signal...';
+          subMessage = 'Check location permissions and route playback.';
+          break;
+        case TripTrackingStatus.idle:
+          message = 'Trip stopped';
+          subMessage = 'Redirecting to history.';
+          break;
+        case TripTrackingStatus.live:
+          message = 'Starting trip...';
+          subMessage = 'Preparing trip tracking.';
+          break;
+      }
+
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -131,17 +151,13 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                status == TripTrackingStatus.waitingForLocation
-                    ? 'Waiting for GPS signal...'
-                    : 'Starting trip...',
+                message,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               Text(
-                status == TripTrackingStatus.waitingForLocation
-                    ? 'Check location permissions and route playback.'
-                    : 'Preparing trip tracking.',
+                subMessage,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,

@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+﻿// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'database_provider.dart';
 
@@ -48,4 +48,4 @@ final class AppDatabaseProvider
   }
 }
 
-String _$appDatabaseHash() => r'8c69eb46d45206533c176c88a926608e79ca927d';
+String _$appDatabaseHash() => r'567ebce07bb6074f90ab77ae1f50e8a835e70885';
