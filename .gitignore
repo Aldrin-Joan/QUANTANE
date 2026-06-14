@@ -1,4 +1,4 @@
-# Miscellaneous
+# Miscellaneous / System junk
 *.class
 *.log
 *.pyc
@@ -12,35 +12,46 @@
 temp/
 .swiftpm/
 migrate_working_dir/
-.vscode
-# IntelliJ related
+
+# IntelliJ / Android Studio related
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code related
+# We comment out the main folder so team launch configurations can be shared...
 #.vscode/
+# ...but we ignore local user workspace settings
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
 
-# Symbolication related
-app.*.symbols
+# Web/Desktop specific ephemeral files
+.web/
+.tool/
+ephemeral/
+**/linux/flutter/ephemeral/
+**/macOS/flutter/ephemeral/
+**/windows/flutter/ephemeral/
 
-# Obfuscation related
+# Symbolication / Obfuscation related
+app.*.symbols
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android Studio build artifacts
 /android/app/debug
 /android/app/profile
 /android/app/release

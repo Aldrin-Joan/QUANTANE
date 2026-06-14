@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:quantane/data/repositories/active_trip_session_repository.dart';
+import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:uuid/uuid.dart';
 
@@ -115,22 +116,9 @@ class TripTrackingService {
   }
 
   Future<void> _ensureTrackingPermissions() async {
-    final notificationPermission =
-        await FlutterForegroundTask.checkNotificationPermission();
-    if (notificationPermission != NotificationPermission.granted) {
-      await FlutterForegroundTask.requestNotificationPermission();
-    }
-
-    var locationPermission = await Geolocator.checkPermission();
-    if (locationPermission == LocationPermission.denied) {
-      locationPermission = await Geolocator.requestPermission();
-    }
-
-    if (locationPermission == LocationPermission.denied ||
-        locationPermission == LocationPermission.deniedForever) {
-      throw StateError(
-        'Location permission is required to start trip tracking.',
-      );
+    final permissions = await TripPermissionEvaluator.loadCurrent();
+    if (!permissions.location.canTrack) {
+      throw StateError(permissions.location.message);
     }
   }
 
@@ -209,8 +197,8 @@ class TripTrackingService {
 
       final session = TripState.fromJson(sessionMap.cast<String, Object?>());
       _currentState = session;
-      
-      // We don't want to unawaited save here if we can help it, 
+
+      // We don't want to unawaited save here if we can help it,
       // but TripTrackingService doesn't have a good way to wait.
       // The session is already saved by the background task if stopped there.
       unawaited(_sessionRepository.save(session));
@@ -285,10 +273,12 @@ class _TripTaskHandler extends TaskHandler {
     _currentState = updated;
 
     // DEBUG LOGGING
-    debugPrint('[TRIP_DEBUG] Lat: ${position.latitude}, Lon: ${position.longitude}, '
-               'SensorSpeed: ${(position.speed * 3.6).toStringAsFixed(1)} KM/H, '
-               'Accuracy: ${position.accuracy}m, '
-               'FinalCalcSpeed: ${updated.currentSpeed.toStringAsFixed(1)} KM/H');
+    debugPrint(
+      '[TRIP_DEBUG] Lat: ${position.latitude}, Lon: ${position.longitude}, '
+      'SensorSpeed: ${(position.speed * 3.6).toStringAsFixed(1)} KM/H, '
+      'Accuracy: ${position.accuracy}m, '
+      'FinalCalcSpeed: ${updated.currentSpeed.toStringAsFixed(1)} KM/H',
+    );
 
     await _sessionRepository.save(updated);
     await FlutterForegroundTask.updateService(

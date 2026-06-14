@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
+import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trip_tracking_service.dart';
 import 'package:quantane/features/trips/trip_tracking_state.dart';
@@ -31,6 +32,18 @@ class TripTracking extends _$TripTracking {
   @override
   TripTrackingState build() {
     unawaited(_bootstrapOnce());
+    ref.listen<AsyncValue<TripPermissionState>>(tripPermissionsProvider, (
+      previous,
+      next,
+    ) {
+      final permissions = next.value;
+      if (permissions != null &&
+          permissions.hasBlockingLocationIssue &&
+          state.status == TripTrackingStatus.live &&
+          state.session != null) {
+        unawaited(stop());
+      }
+    });
     ref.onDispose(() {
       unawaited(_sub?.cancel());
       unawaited(_service.dispose());
@@ -82,7 +95,10 @@ class TripTracking extends _$TripTracking {
     try {
       await ref.read(tripRepositoryProvider).insert(finalizedSession.toTrip());
       await _service.clearPersistedSession();
-      state = state.copyWith(clearSession: true, status: TripTrackingStatus.idle);
+      state = state.copyWith(
+        clearSession: true,
+        status: TripTrackingStatus.idle,
+      );
     } catch (e, stack) {
       // Log error but allow UI to continue.
       debugPrint('Error persisting trip session: $e\n$stack');
@@ -91,6 +107,16 @@ class TripTracking extends _$TripTracking {
   }
 
   Future<void> start({required String vehicleId}) async {
+    final permissions = await ref
+        .read(tripPermissionsControllerProvider)
+        .refresh();
+    if (!permissions.canStartTrip) {
+      throw StateError(
+        permissions.blockingLocationMessage ??
+            'Location permission is required to start trip tracking.',
+      );
+    }
+
     state = state.copyWith(status: TripTrackingStatus.waitingForLocation);
     final session = await _service.startTrip(vehicleId: vehicleId);
     state = state.copyWith(session: session, status: TripTrackingStatus.live);
@@ -100,7 +126,10 @@ class TripTracking extends _$TripTracking {
     state = state.copyWith(status: TripTrackingStatus.waitingForLocation);
     final finalizedSession = await _service.stopTrip();
     if (finalizedSession == null) {
-      state = state.copyWith(clearSession: true, status: TripTrackingStatus.idle);
+      state = state.copyWith(
+        clearSession: true,
+        status: TripTrackingStatus.idle,
+      );
       return;
     }
 

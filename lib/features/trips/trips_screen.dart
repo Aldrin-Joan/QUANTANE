@@ -1,11 +1,9 @@
 ﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
@@ -13,6 +11,7 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
 import 'package:quantane/features/shared/widgets/vehicle_selector_chip.dart';
+import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 
 class TripsScreen extends ConsumerWidget {
@@ -21,12 +20,55 @@ class TripsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeVehicleId = ref.watch(activeVehicleProvider);
+    final permissionsAsync = ref.watch(tripPermissionsProvider);
+    final permissions = permissionsAsync.value ?? TripPermissionState.loading();
     final tripHistoryAsync = ref.watch(tripHistoryProvider);
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(floating: true, title: const Text('Trips')),
+          if (permissions.isRefreshing)
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
+            )
+          else if (permissions.hasBlockingLocationIssue ||
+              permissions.shouldWarnAboutNotifications)
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: _PermissionStack(
+                  permissions: permissions,
+                  onFixLocation: () async {
+                    final locationStatus = permissions.location.status;
+                    if (locationStatus == TripPermissionStatus.denied) {
+                      await ref
+                          .read(tripPermissionsControllerProvider)
+                          .requestLocationAccess();
+                      return;
+                    }
+
+                    if (locationStatus ==
+                        TripPermissionStatus.serviceDisabled) {
+                      await ref
+                          .read(tripPermissionsControllerProvider)
+                          .openLocationSettings();
+                      return;
+                    }
+
+                    await ref
+                        .read(tripPermissionsControllerProvider)
+                        .openAppSettings();
+                  },
+                  onEnableNotifications: () async {
+                    await ref
+                        .read(tripPermissionsControllerProvider)
+                        .requestNotificationAccess();
+                  },
+                ),
+              ),
+            ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             sliver: SliverToBoxAdapter(
@@ -42,14 +84,33 @@ class TripsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: null,
-        onPressed: () {
-          final trackingState = ref.read(tripTrackingProvider);
-          if (trackingState.session != null) {
-            context.push('/live-trip');
-          } else {
-            _startTrip(context, ref, activeVehicleId);
-          }
-        },
+        onPressed:
+            permissions.canStartTrip ||
+                ref.read(tripTrackingProvider).session != null
+            ? () {
+                final trackingState = ref.read(tripTrackingProvider);
+                if (trackingState.session != null) {
+                  context.push('/live-trip');
+                  return;
+                }
+
+                if (activeVehicleId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Please add and select a vehicle first in Settings.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                _startTrip(context, ref, activeVehicleId);
+              }
+            : null,
+        tooltip: permissions.canStartTrip
+            ? 'Start Trip'
+            : permissions.blockingLocationMessage ?? 'Location required',
         child: Icon(
           ref.watch(tripTrackingProvider).session != null
               ? LucideIcons.eye
@@ -73,18 +134,6 @@ class TripsScreen extends ConsumerWidget {
       return;
     }
 
-    final startPermissionError = await _ensureTripStartPermissions();
-    if (startPermissionError != null) {
-      if (!context.mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(startPermissionError)));
-      return;
-    }
-
     try {
       await ref
           .read(tripTrackingProvider.notifier)
@@ -103,34 +152,6 @@ class TripsScreen extends ConsumerWidget {
       return;
     }
     context.push('/live-trip');
-  }
-
-  Future<String?> _ensureTripStartPermissions() async {
-    final notificationPermission =
-        await FlutterForegroundTask.checkNotificationPermission();
-    if (notificationPermission != NotificationPermission.granted) {
-      await FlutterForegroundTask.requestNotificationPermission();
-    }
-
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return 'Location services are turned off on this device.';
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.denied) {
-      return 'Location permission is required to start trip tracking.';
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return 'Location permission is permanently denied. Enable it in system settings.';
-    }
-
-    return null;
   }
 
   Widget _buildTripSliver(
@@ -194,6 +215,134 @@ class TripsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(24),
           child: Center(child: Text('Unable to load trip history: $e')),
         ),
+      ),
+    );
+  }
+}
+
+class _PermissionStack extends StatelessWidget {
+  final TripPermissionState permissions;
+  final Future<void> Function() onFixLocation;
+  final Future<void> Function() onEnableNotifications;
+
+  const _PermissionStack({
+    required this.permissions,
+    required this.onFixLocation,
+    required this.onEnableNotifications,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (permissions.hasBlockingLocationIssue)
+          _PermissionCard(
+            icon: LucideIcons.locate,
+            title: 'Location required',
+            message:
+                permissions.blockingLocationMessage ??
+                'Location access is required to start trip tracking.',
+            actionLabel: permissions.location.actionLabel,
+            onAction: onFixLocation,
+            accentColor: AppColors.dangerColor,
+          ),
+        if (permissions.shouldWarnAboutNotifications) ...[
+          const SizedBox(height: 12),
+          _PermissionCard(
+            icon: LucideIcons.bell,
+            title: 'Notifications are off',
+            message:
+                permissions.notificationMessage ??
+                'Trip tracking still works, but notifications make it easier to follow progress.',
+            actionLabel: permissions.notification.actionLabel,
+            onAction: onEnableNotifications,
+            accentColor: AppColors.warningColor,
+            compact: true,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PermissionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final Future<void> Function()? onAction;
+  final Color accentColor;
+  final bool compact;
+
+  const _PermissionCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    required this.accentColor,
+    this.compact = false,
+  });
+
+  const _PermissionCard.loading()
+    : icon = LucideIcons.loader_circle,
+      title = 'Checking permissions',
+      message =
+          'Verifying location and notification access before trip tracking starts.',
+      actionLabel = null,
+      onAction = null,
+      accentColor = AppColors.textSecondary,
+      compact = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return QuantaneCard(
+      variant: QuantaneCardVariant.flat,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: compact ? 40 : 48,
+            height: compact ? 40 : 48,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: accentColor, size: compact ? 20 : 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => onAction!(),
+                      child: Text(actionLabel!),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
