@@ -79,7 +79,7 @@ final class TripTrackingProvider
   }
 }
 
-String _$tripTrackingHash() => r'0feee1aa828226bb9dcb016219582cf27bf67f2c';
+String _$tripTrackingHash() => r'7d6a653171601dc986cc976a2f77c448440f4bd2';
 
 abstract class _$TripTracking extends $Notifier<TripTrackingState> {
   TripTrackingState build();

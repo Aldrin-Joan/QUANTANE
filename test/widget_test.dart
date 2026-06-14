@@ -16,6 +16,7 @@ import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/data/repositories/active_trip_session_repository.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trips_screen.dart';
+import 'package:quantane/features/trips/widgets/trip_history_card.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
@@ -34,6 +35,11 @@ class _FakeTripRepository implements TripRepository {
   Stream<List<Trip>> watchAll(String vehicleId) {
     return Stream.value(const <Trip>[]);
   }
+
+  @override
+  Future<Trip?> getById(String id) async => insertedTrip?.id == id
+      ? insertedTrip
+      : null;
 
   @override
   Future<void> delete(String id) async {
@@ -209,7 +215,11 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.longPress(find.text('12.5 KM'));
+    final tripCard = find.byType(TripHistoryCard);
+    await tester.ensureVisible(tripCard);
+    await tester.pumpAndSettle();
+
+    await tester.longPress(tripCard);
     await tester.pumpAndSettle();
 
     expect(find.text('Delete trip?'), findsOneWidget);

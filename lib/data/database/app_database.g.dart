@@ -1,4 +1,4 @@
-﻿// GENERATED CODE - DO NOT MODIFY BY HAND
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'app_database.dart';
 
@@ -1082,6 +1082,99 @@ class $TripsTable extends trip.Trips with TableInfo<$TripsTable, TripData> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _startAddressMeta = const VerificationMeta(
+    'startAddress',
+  );
+  @override
+  late final GeneratedColumn<String> startAddress = GeneratedColumn<String>(
+    'start_address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endAddressMeta = const VerificationMeta(
+    'endAddress',
+  );
+  @override
+  late final GeneratedColumn<String> endAddress = GeneratedColumn<String>(
+    'end_address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _minLatitudeMeta = const VerificationMeta(
+    'minLatitude',
+  );
+  @override
+  late final GeneratedColumn<double> minLatitude = GeneratedColumn<double>(
+    'min_latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _maxLatitudeMeta = const VerificationMeta(
+    'maxLatitude',
+  );
+  @override
+  late final GeneratedColumn<double> maxLatitude = GeneratedColumn<double>(
+    'max_latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _minLongitudeMeta = const VerificationMeta(
+    'minLongitude',
+  );
+  @override
+  late final GeneratedColumn<double> minLongitude = GeneratedColumn<double>(
+    'min_longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _maxLongitudeMeta = const VerificationMeta(
+    'maxLongitude',
+  );
+  @override
+  late final GeneratedColumn<double> maxLongitude = GeneratedColumn<double>(
+    'max_longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _routeSnapshotPathMeta = const VerificationMeta(
+    'routeSnapshotPath',
+  );
+  @override
+  late final GeneratedColumn<String> routeSnapshotPath =
+      GeneratedColumn<String>(
+        'route_snapshot_path',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _routePointsJsonMeta = const VerificationMeta(
+    'routePointsJson',
+  );
+  @override
+  late final GeneratedColumn<String> routePointsJson = GeneratedColumn<String>(
+    'route_points_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1092,6 +1185,14 @@ class $TripsTable extends trip.Trips with TableInfo<$TripsTable, TripData> {
     avgSpeed,
     maxSpeed,
     minSpeed,
+    startAddress,
+    endAddress,
+    minLatitude,
+    maxLatitude,
+    minLongitude,
+    maxLongitude,
+    routeSnapshotPath,
+    routePointsJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1156,6 +1257,75 @@ class $TripsTable extends trip.Trips with TableInfo<$TripsTable, TripData> {
         minSpeed.isAcceptableOrUnknown(data['min_speed']!, _minSpeedMeta),
       );
     }
+    if (data.containsKey('start_address')) {
+      context.handle(
+        _startAddressMeta,
+        startAddress.isAcceptableOrUnknown(
+          data['start_address']!,
+          _startAddressMeta,
+        ),
+      );
+    }
+    if (data.containsKey('end_address')) {
+      context.handle(
+        _endAddressMeta,
+        endAddress.isAcceptableOrUnknown(data['end_address']!, _endAddressMeta),
+      );
+    }
+    if (data.containsKey('min_latitude')) {
+      context.handle(
+        _minLatitudeMeta,
+        minLatitude.isAcceptableOrUnknown(
+          data['min_latitude']!,
+          _minLatitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('max_latitude')) {
+      context.handle(
+        _maxLatitudeMeta,
+        maxLatitude.isAcceptableOrUnknown(
+          data['max_latitude']!,
+          _maxLatitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('min_longitude')) {
+      context.handle(
+        _minLongitudeMeta,
+        minLongitude.isAcceptableOrUnknown(
+          data['min_longitude']!,
+          _minLongitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('max_longitude')) {
+      context.handle(
+        _maxLongitudeMeta,
+        maxLongitude.isAcceptableOrUnknown(
+          data['max_longitude']!,
+          _maxLongitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('route_snapshot_path')) {
+      context.handle(
+        _routeSnapshotPathMeta,
+        routeSnapshotPath.isAcceptableOrUnknown(
+          data['route_snapshot_path']!,
+          _routeSnapshotPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('route_points_json')) {
+      context.handle(
+        _routePointsJsonMeta,
+        routePointsJson.isAcceptableOrUnknown(
+          data['route_points_json']!,
+          _routePointsJsonMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1197,6 +1367,38 @@ class $TripsTable extends trip.Trips with TableInfo<$TripsTable, TripData> {
         DriftSqlType.double,
         data['${effectivePrefix}min_speed'],
       ),
+      startAddress: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}start_address'],
+      ),
+      endAddress: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}end_address'],
+      ),
+      minLatitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}min_latitude'],
+      )!,
+      maxLatitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}max_latitude'],
+      )!,
+      minLongitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}min_longitude'],
+      )!,
+      maxLongitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}max_longitude'],
+      )!,
+      routeSnapshotPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}route_snapshot_path'],
+      ),
+      routePointsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}route_points_json'],
+      ),
     );
   }
 
@@ -1215,6 +1417,14 @@ class TripData extends DataClass implements Insertable<TripData> {
   final double? avgSpeed;
   final double? maxSpeed;
   final double? minSpeed;
+  final String? startAddress;
+  final String? endAddress;
+  final double minLatitude;
+  final double maxLatitude;
+  final double minLongitude;
+  final double maxLongitude;
+  final String? routeSnapshotPath;
+  final String? routePointsJson;
   const TripData({
     required this.id,
     required this.vehicleId,
@@ -1224,6 +1434,14 @@ class TripData extends DataClass implements Insertable<TripData> {
     this.avgSpeed,
     this.maxSpeed,
     this.minSpeed,
+    this.startAddress,
+    this.endAddress,
+    required this.minLatitude,
+    required this.maxLatitude,
+    required this.minLongitude,
+    required this.maxLongitude,
+    this.routeSnapshotPath,
+    this.routePointsJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1243,6 +1461,22 @@ class TripData extends DataClass implements Insertable<TripData> {
     }
     if (!nullToAbsent || minSpeed != null) {
       map['min_speed'] = Variable<double>(minSpeed);
+    }
+    if (!nullToAbsent || startAddress != null) {
+      map['start_address'] = Variable<String>(startAddress);
+    }
+    if (!nullToAbsent || endAddress != null) {
+      map['end_address'] = Variable<String>(endAddress);
+    }
+    map['min_latitude'] = Variable<double>(minLatitude);
+    map['max_latitude'] = Variable<double>(maxLatitude);
+    map['min_longitude'] = Variable<double>(minLongitude);
+    map['max_longitude'] = Variable<double>(maxLongitude);
+    if (!nullToAbsent || routeSnapshotPath != null) {
+      map['route_snapshot_path'] = Variable<String>(routeSnapshotPath);
+    }
+    if (!nullToAbsent || routePointsJson != null) {
+      map['route_points_json'] = Variable<String>(routePointsJson);
     }
     return map;
   }
@@ -1265,6 +1499,22 @@ class TripData extends DataClass implements Insertable<TripData> {
       minSpeed: minSpeed == null && nullToAbsent
           ? const Value.absent()
           : Value(minSpeed),
+      startAddress: startAddress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startAddress),
+      endAddress: endAddress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endAddress),
+      minLatitude: Value(minLatitude),
+      maxLatitude: Value(maxLatitude),
+      minLongitude: Value(minLongitude),
+      maxLongitude: Value(maxLongitude),
+      routeSnapshotPath: routeSnapshotPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routeSnapshotPath),
+      routePointsJson: routePointsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routePointsJson),
     );
   }
 
@@ -1282,6 +1532,16 @@ class TripData extends DataClass implements Insertable<TripData> {
       avgSpeed: serializer.fromJson<double?>(json['avgSpeed']),
       maxSpeed: serializer.fromJson<double?>(json['maxSpeed']),
       minSpeed: serializer.fromJson<double?>(json['minSpeed']),
+      startAddress: serializer.fromJson<String?>(json['startAddress']),
+      endAddress: serializer.fromJson<String?>(json['endAddress']),
+      minLatitude: serializer.fromJson<double>(json['minLatitude']),
+      maxLatitude: serializer.fromJson<double>(json['maxLatitude']),
+      minLongitude: serializer.fromJson<double>(json['minLongitude']),
+      maxLongitude: serializer.fromJson<double>(json['maxLongitude']),
+      routeSnapshotPath: serializer.fromJson<String?>(
+        json['routeSnapshotPath'],
+      ),
+      routePointsJson: serializer.fromJson<String?>(json['routePointsJson']),
     );
   }
   @override
@@ -1296,6 +1556,14 @@ class TripData extends DataClass implements Insertable<TripData> {
       'avgSpeed': serializer.toJson<double?>(avgSpeed),
       'maxSpeed': serializer.toJson<double?>(maxSpeed),
       'minSpeed': serializer.toJson<double?>(minSpeed),
+      'startAddress': serializer.toJson<String?>(startAddress),
+      'endAddress': serializer.toJson<String?>(endAddress),
+      'minLatitude': serializer.toJson<double>(minLatitude),
+      'maxLatitude': serializer.toJson<double>(maxLatitude),
+      'minLongitude': serializer.toJson<double>(minLongitude),
+      'maxLongitude': serializer.toJson<double>(maxLongitude),
+      'routeSnapshotPath': serializer.toJson<String?>(routeSnapshotPath),
+      'routePointsJson': serializer.toJson<String?>(routePointsJson),
     };
   }
 
@@ -1308,6 +1576,14 @@ class TripData extends DataClass implements Insertable<TripData> {
     Value<double?> avgSpeed = const Value.absent(),
     Value<double?> maxSpeed = const Value.absent(),
     Value<double?> minSpeed = const Value.absent(),
+    Value<String?> startAddress = const Value.absent(),
+    Value<String?> endAddress = const Value.absent(),
+    double? minLatitude,
+    double? maxLatitude,
+    double? minLongitude,
+    double? maxLongitude,
+    Value<String?> routeSnapshotPath = const Value.absent(),
+    Value<String?> routePointsJson = const Value.absent(),
   }) => TripData(
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
@@ -1317,6 +1593,18 @@ class TripData extends DataClass implements Insertable<TripData> {
     avgSpeed: avgSpeed.present ? avgSpeed.value : this.avgSpeed,
     maxSpeed: maxSpeed.present ? maxSpeed.value : this.maxSpeed,
     minSpeed: minSpeed.present ? minSpeed.value : this.minSpeed,
+    startAddress: startAddress.present ? startAddress.value : this.startAddress,
+    endAddress: endAddress.present ? endAddress.value : this.endAddress,
+    minLatitude: minLatitude ?? this.minLatitude,
+    maxLatitude: maxLatitude ?? this.maxLatitude,
+    minLongitude: minLongitude ?? this.minLongitude,
+    maxLongitude: maxLongitude ?? this.maxLongitude,
+    routeSnapshotPath: routeSnapshotPath.present
+        ? routeSnapshotPath.value
+        : this.routeSnapshotPath,
+    routePointsJson: routePointsJson.present
+        ? routePointsJson.value
+        : this.routePointsJson,
   );
   TripData copyWithCompanion(TripsCompanion data) {
     return TripData(
@@ -1328,6 +1616,30 @@ class TripData extends DataClass implements Insertable<TripData> {
       avgSpeed: data.avgSpeed.present ? data.avgSpeed.value : this.avgSpeed,
       maxSpeed: data.maxSpeed.present ? data.maxSpeed.value : this.maxSpeed,
       minSpeed: data.minSpeed.present ? data.minSpeed.value : this.minSpeed,
+      startAddress: data.startAddress.present
+          ? data.startAddress.value
+          : this.startAddress,
+      endAddress: data.endAddress.present
+          ? data.endAddress.value
+          : this.endAddress,
+      minLatitude: data.minLatitude.present
+          ? data.minLatitude.value
+          : this.minLatitude,
+      maxLatitude: data.maxLatitude.present
+          ? data.maxLatitude.value
+          : this.maxLatitude,
+      minLongitude: data.minLongitude.present
+          ? data.minLongitude.value
+          : this.minLongitude,
+      maxLongitude: data.maxLongitude.present
+          ? data.maxLongitude.value
+          : this.maxLongitude,
+      routeSnapshotPath: data.routeSnapshotPath.present
+          ? data.routeSnapshotPath.value
+          : this.routeSnapshotPath,
+      routePointsJson: data.routePointsJson.present
+          ? data.routePointsJson.value
+          : this.routePointsJson,
     );
   }
 
@@ -1341,7 +1653,15 @@ class TripData extends DataClass implements Insertable<TripData> {
           ..write('distance: $distance, ')
           ..write('avgSpeed: $avgSpeed, ')
           ..write('maxSpeed: $maxSpeed, ')
-          ..write('minSpeed: $minSpeed')
+          ..write('minSpeed: $minSpeed, ')
+          ..write('startAddress: $startAddress, ')
+          ..write('endAddress: $endAddress, ')
+          ..write('minLatitude: $minLatitude, ')
+          ..write('maxLatitude: $maxLatitude, ')
+          ..write('minLongitude: $minLongitude, ')
+          ..write('maxLongitude: $maxLongitude, ')
+          ..write('routeSnapshotPath: $routeSnapshotPath, ')
+          ..write('routePointsJson: $routePointsJson')
           ..write(')'))
         .toString();
   }
@@ -1356,6 +1676,14 @@ class TripData extends DataClass implements Insertable<TripData> {
     avgSpeed,
     maxSpeed,
     minSpeed,
+    startAddress,
+    endAddress,
+    minLatitude,
+    maxLatitude,
+    minLongitude,
+    maxLongitude,
+    routeSnapshotPath,
+    routePointsJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -1368,7 +1696,15 @@ class TripData extends DataClass implements Insertable<TripData> {
           other.distance == this.distance &&
           other.avgSpeed == this.avgSpeed &&
           other.maxSpeed == this.maxSpeed &&
-          other.minSpeed == this.minSpeed);
+          other.minSpeed == this.minSpeed &&
+          other.startAddress == this.startAddress &&
+          other.endAddress == this.endAddress &&
+          other.minLatitude == this.minLatitude &&
+          other.maxLatitude == this.maxLatitude &&
+          other.minLongitude == this.minLongitude &&
+          other.maxLongitude == this.maxLongitude &&
+          other.routeSnapshotPath == this.routeSnapshotPath &&
+          other.routePointsJson == this.routePointsJson);
 }
 
 class TripsCompanion extends UpdateCompanion<TripData> {
@@ -1380,6 +1716,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
   final Value<double?> avgSpeed;
   final Value<double?> maxSpeed;
   final Value<double?> minSpeed;
+  final Value<String?> startAddress;
+  final Value<String?> endAddress;
+  final Value<double> minLatitude;
+  final Value<double> maxLatitude;
+  final Value<double> minLongitude;
+  final Value<double> maxLongitude;
+  final Value<String?> routeSnapshotPath;
+  final Value<String?> routePointsJson;
   final Value<int> rowid;
   const TripsCompanion({
     this.id = const Value.absent(),
@@ -1390,6 +1734,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
     this.avgSpeed = const Value.absent(),
     this.maxSpeed = const Value.absent(),
     this.minSpeed = const Value.absent(),
+    this.startAddress = const Value.absent(),
+    this.endAddress = const Value.absent(),
+    this.minLatitude = const Value.absent(),
+    this.maxLatitude = const Value.absent(),
+    this.minLongitude = const Value.absent(),
+    this.maxLongitude = const Value.absent(),
+    this.routeSnapshotPath = const Value.absent(),
+    this.routePointsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TripsCompanion.insert({
@@ -1401,6 +1753,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
     this.avgSpeed = const Value.absent(),
     this.maxSpeed = const Value.absent(),
     this.minSpeed = const Value.absent(),
+    this.startAddress = const Value.absent(),
+    this.endAddress = const Value.absent(),
+    this.minLatitude = const Value.absent(),
+    this.maxLatitude = const Value.absent(),
+    this.minLongitude = const Value.absent(),
+    this.maxLongitude = const Value.absent(),
+    this.routeSnapshotPath = const Value.absent(),
+    this.routePointsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        vehicleId = Value(vehicleId),
@@ -1414,6 +1774,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
     Expression<double>? avgSpeed,
     Expression<double>? maxSpeed,
     Expression<double>? minSpeed,
+    Expression<String>? startAddress,
+    Expression<String>? endAddress,
+    Expression<double>? minLatitude,
+    Expression<double>? maxLatitude,
+    Expression<double>? minLongitude,
+    Expression<double>? maxLongitude,
+    Expression<String>? routeSnapshotPath,
+    Expression<String>? routePointsJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1425,6 +1793,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
       if (avgSpeed != null) 'avg_speed': avgSpeed,
       if (maxSpeed != null) 'max_speed': maxSpeed,
       if (minSpeed != null) 'min_speed': minSpeed,
+      if (startAddress != null) 'start_address': startAddress,
+      if (endAddress != null) 'end_address': endAddress,
+      if (minLatitude != null) 'min_latitude': minLatitude,
+      if (maxLatitude != null) 'max_latitude': maxLatitude,
+      if (minLongitude != null) 'min_longitude': minLongitude,
+      if (maxLongitude != null) 'max_longitude': maxLongitude,
+      if (routeSnapshotPath != null) 'route_snapshot_path': routeSnapshotPath,
+      if (routePointsJson != null) 'route_points_json': routePointsJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1438,6 +1814,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
     Value<double?>? avgSpeed,
     Value<double?>? maxSpeed,
     Value<double?>? minSpeed,
+    Value<String?>? startAddress,
+    Value<String?>? endAddress,
+    Value<double>? minLatitude,
+    Value<double>? maxLatitude,
+    Value<double>? minLongitude,
+    Value<double>? maxLongitude,
+    Value<String?>? routeSnapshotPath,
+    Value<String?>? routePointsJson,
     Value<int>? rowid,
   }) {
     return TripsCompanion(
@@ -1449,6 +1833,14 @@ class TripsCompanion extends UpdateCompanion<TripData> {
       avgSpeed: avgSpeed ?? this.avgSpeed,
       maxSpeed: maxSpeed ?? this.maxSpeed,
       minSpeed: minSpeed ?? this.minSpeed,
+      startAddress: startAddress ?? this.startAddress,
+      endAddress: endAddress ?? this.endAddress,
+      minLatitude: minLatitude ?? this.minLatitude,
+      maxLatitude: maxLatitude ?? this.maxLatitude,
+      minLongitude: minLongitude ?? this.minLongitude,
+      maxLongitude: maxLongitude ?? this.maxLongitude,
+      routeSnapshotPath: routeSnapshotPath ?? this.routeSnapshotPath,
+      routePointsJson: routePointsJson ?? this.routePointsJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1480,6 +1872,30 @@ class TripsCompanion extends UpdateCompanion<TripData> {
     if (minSpeed.present) {
       map['min_speed'] = Variable<double>(minSpeed.value);
     }
+    if (startAddress.present) {
+      map['start_address'] = Variable<String>(startAddress.value);
+    }
+    if (endAddress.present) {
+      map['end_address'] = Variable<String>(endAddress.value);
+    }
+    if (minLatitude.present) {
+      map['min_latitude'] = Variable<double>(minLatitude.value);
+    }
+    if (maxLatitude.present) {
+      map['max_latitude'] = Variable<double>(maxLatitude.value);
+    }
+    if (minLongitude.present) {
+      map['min_longitude'] = Variable<double>(minLongitude.value);
+    }
+    if (maxLongitude.present) {
+      map['max_longitude'] = Variable<double>(maxLongitude.value);
+    }
+    if (routeSnapshotPath.present) {
+      map['route_snapshot_path'] = Variable<String>(routeSnapshotPath.value);
+    }
+    if (routePointsJson.present) {
+      map['route_points_json'] = Variable<String>(routePointsJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1497,6 +1913,284 @@ class TripsCompanion extends UpdateCompanion<TripData> {
           ..write('avgSpeed: $avgSpeed, ')
           ..write('maxSpeed: $maxSpeed, ')
           ..write('minSpeed: $minSpeed, ')
+          ..write('startAddress: $startAddress, ')
+          ..write('endAddress: $endAddress, ')
+          ..write('minLatitude: $minLatitude, ')
+          ..write('maxLatitude: $maxLatitude, ')
+          ..write('minLongitude: $minLongitude, ')
+          ..write('maxLongitude: $maxLongitude, ')
+          ..write('routeSnapshotPath: $routeSnapshotPath, ')
+          ..write('routePointsJson: $routePointsJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GeocodingCacheTable extends GeocodingCache
+    with TableInfo<$GeocodingCacheTable, GeocodingCacheEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeocodingCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
+  );
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
+  );
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<String> cachedAt = GeneratedColumn<String>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [cacheKey, address, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geocoding_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeocodingCacheEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('address')) {
+      context.handle(
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addressMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  GeocodingCacheEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeocodingCacheEntry(
+      cacheKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cache_key'],
+      )!,
+      address: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GeocodingCacheTable createAlias(String alias) {
+    return $GeocodingCacheTable(attachedDatabase, alias);
+  }
+}
+
+class GeocodingCacheEntry extends DataClass
+    implements Insertable<GeocodingCacheEntry> {
+  final String cacheKey;
+  final String address;
+  final String cachedAt;
+  const GeocodingCacheEntry({
+    required this.cacheKey,
+    required this.address,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['address'] = Variable<String>(address);
+    map['cached_at'] = Variable<String>(cachedAt);
+    return map;
+  }
+
+  GeocodingCacheCompanion toCompanion(bool nullToAbsent) {
+    return GeocodingCacheCompanion(
+      cacheKey: Value(cacheKey),
+      address: Value(address),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory GeocodingCacheEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeocodingCacheEntry(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      address: serializer.fromJson<String>(json['address']),
+      cachedAt: serializer.fromJson<String>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'address': serializer.toJson<String>(address),
+      'cachedAt': serializer.toJson<String>(cachedAt),
+    };
+  }
+
+  GeocodingCacheEntry copyWith({
+    String? cacheKey,
+    String? address,
+    String? cachedAt,
+  }) => GeocodingCacheEntry(
+    cacheKey: cacheKey ?? this.cacheKey,
+    address: address ?? this.address,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  GeocodingCacheEntry copyWithCompanion(GeocodingCacheCompanion data) {
+    return GeocodingCacheEntry(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      address: data.address.present ? data.address.value : this.address,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeocodingCacheEntry(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('address: $address, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cacheKey, address, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeocodingCacheEntry &&
+          other.cacheKey == this.cacheKey &&
+          other.address == this.address &&
+          other.cachedAt == this.cachedAt);
+}
+
+class GeocodingCacheCompanion extends UpdateCompanion<GeocodingCacheEntry> {
+  final Value<String> cacheKey;
+  final Value<String> address;
+  final Value<String> cachedAt;
+  final Value<int> rowid;
+  const GeocodingCacheCompanion({
+    this.cacheKey = const Value.absent(),
+    this.address = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeocodingCacheCompanion.insert({
+    required String cacheKey,
+    required String address,
+    required String cachedAt,
+    this.rowid = const Value.absent(),
+  }) : cacheKey = Value(cacheKey),
+       address = Value(address),
+       cachedAt = Value(cachedAt);
+  static Insertable<GeocodingCacheEntry> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? address,
+    Expression<String>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (address != null) 'address': address,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeocodingCacheCompanion copyWith({
+    Value<String>? cacheKey,
+    Value<String>? address,
+    Value<String>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return GeocodingCacheCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      address: address ?? this.address,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<String>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeocodingCacheCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('address: $address, ')
+          ..write('cachedAt: $cachedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1509,6 +2203,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VehiclesTable vehicles = $VehiclesTable(this);
   late final $FuelEntriesTable fuelEntries = $FuelEntriesTable(this);
   late final $TripsTable trips = $TripsTable(this);
+  late final $GeocodingCacheTable geocodingCache = $GeocodingCacheTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1517,6 +2212,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vehicles,
     fuelEntries,
     trips,
+    geocodingCache,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2364,6 +3060,14 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<double?> avgSpeed,
       Value<double?> maxSpeed,
       Value<double?> minSpeed,
+      Value<String?> startAddress,
+      Value<String?> endAddress,
+      Value<double> minLatitude,
+      Value<double> maxLatitude,
+      Value<double> minLongitude,
+      Value<double> maxLongitude,
+      Value<String?> routeSnapshotPath,
+      Value<String?> routePointsJson,
       Value<int> rowid,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
@@ -2376,6 +3080,14 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<double?> avgSpeed,
       Value<double?> maxSpeed,
       Value<double?> minSpeed,
+      Value<String?> startAddress,
+      Value<String?> endAddress,
+      Value<double> minLatitude,
+      Value<double> maxLatitude,
+      Value<double> minLongitude,
+      Value<double> maxLongitude,
+      Value<String?> routeSnapshotPath,
+      Value<String?> routePointsJson,
       Value<int> rowid,
     });
 
@@ -2441,6 +3153,46 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<double> get minSpeed => $composableBuilder(
     column: $table.minSpeed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startAddress => $composableBuilder(
+    column: $table.startAddress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endAddress => $composableBuilder(
+    column: $table.endAddress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minLatitude => $composableBuilder(
+    column: $table.minLatitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxLatitude => $composableBuilder(
+    column: $table.maxLatitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minLongitude => $composableBuilder(
+    column: $table.minLongitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxLongitude => $composableBuilder(
+    column: $table.maxLongitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get routeSnapshotPath => $composableBuilder(
+    column: $table.routeSnapshotPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get routePointsJson => $composableBuilder(
+    column: $table.routePointsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2512,6 +3264,46 @@ class $$TripsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get startAddress => $composableBuilder(
+    column: $table.startAddress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endAddress => $composableBuilder(
+    column: $table.endAddress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minLatitude => $composableBuilder(
+    column: $table.minLatitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maxLatitude => $composableBuilder(
+    column: $table.maxLatitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minLongitude => $composableBuilder(
+    column: $table.minLongitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maxLongitude => $composableBuilder(
+    column: $table.maxLongitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get routeSnapshotPath => $composableBuilder(
+    column: $table.routeSnapshotPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get routePointsJson => $composableBuilder(
+    column: $table.routePointsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$VehiclesTableOrderingComposer get vehicleId {
     final $$VehiclesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2565,6 +3357,46 @@ class $$TripsTableAnnotationComposer
 
   GeneratedColumn<double> get minSpeed =>
       $composableBuilder(column: $table.minSpeed, builder: (column) => column);
+
+  GeneratedColumn<String> get startAddress => $composableBuilder(
+    column: $table.startAddress,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get endAddress => $composableBuilder(
+    column: $table.endAddress,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minLatitude => $composableBuilder(
+    column: $table.minLatitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maxLatitude => $composableBuilder(
+    column: $table.maxLatitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minLongitude => $composableBuilder(
+    column: $table.minLongitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maxLongitude => $composableBuilder(
+    column: $table.maxLongitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get routeSnapshotPath => $composableBuilder(
+    column: $table.routeSnapshotPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get routePointsJson => $composableBuilder(
+    column: $table.routePointsJson,
+    builder: (column) => column,
+  );
 
   $$VehiclesTableAnnotationComposer get vehicleId {
     final $$VehiclesTableAnnotationComposer composer = $composerBuilder(
@@ -2626,6 +3458,14 @@ class $$TripsTableTableManager
                 Value<double?> avgSpeed = const Value.absent(),
                 Value<double?> maxSpeed = const Value.absent(),
                 Value<double?> minSpeed = const Value.absent(),
+                Value<String?> startAddress = const Value.absent(),
+                Value<String?> endAddress = const Value.absent(),
+                Value<double> minLatitude = const Value.absent(),
+                Value<double> maxLatitude = const Value.absent(),
+                Value<double> minLongitude = const Value.absent(),
+                Value<double> maxLongitude = const Value.absent(),
+                Value<String?> routeSnapshotPath = const Value.absent(),
+                Value<String?> routePointsJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
@@ -2636,6 +3476,14 @@ class $$TripsTableTableManager
                 avgSpeed: avgSpeed,
                 maxSpeed: maxSpeed,
                 minSpeed: minSpeed,
+                startAddress: startAddress,
+                endAddress: endAddress,
+                minLatitude: minLatitude,
+                maxLatitude: maxLatitude,
+                minLongitude: minLongitude,
+                maxLongitude: maxLongitude,
+                routeSnapshotPath: routeSnapshotPath,
+                routePointsJson: routePointsJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2648,6 +3496,14 @@ class $$TripsTableTableManager
                 Value<double?> avgSpeed = const Value.absent(),
                 Value<double?> maxSpeed = const Value.absent(),
                 Value<double?> minSpeed = const Value.absent(),
+                Value<String?> startAddress = const Value.absent(),
+                Value<String?> endAddress = const Value.absent(),
+                Value<double> minLatitude = const Value.absent(),
+                Value<double> maxLatitude = const Value.absent(),
+                Value<double> minLongitude = const Value.absent(),
+                Value<double> maxLongitude = const Value.absent(),
+                Value<String?> routeSnapshotPath = const Value.absent(),
+                Value<String?> routePointsJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
@@ -2658,6 +3514,14 @@ class $$TripsTableTableManager
                 avgSpeed: avgSpeed,
                 maxSpeed: maxSpeed,
                 minSpeed: minSpeed,
+                startAddress: startAddress,
+                endAddress: endAddress,
+                minLatitude: minLatitude,
+                maxLatitude: maxLatitude,
+                minLongitude: minLongitude,
+                maxLongitude: maxLongitude,
+                routeSnapshotPath: routeSnapshotPath,
+                routePointsJson: routePointsJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2725,6 +3589,178 @@ typedef $$TripsTableProcessedTableManager =
       TripData,
       PrefetchHooks Function({bool vehicleId})
     >;
+typedef $$GeocodingCacheTableCreateCompanionBuilder =
+    GeocodingCacheCompanion Function({
+      required String cacheKey,
+      required String address,
+      required String cachedAt,
+      Value<int> rowid,
+    });
+typedef $$GeocodingCacheTableUpdateCompanionBuilder =
+    GeocodingCacheCompanion Function({
+      Value<String> cacheKey,
+      Value<String> address,
+      Value<String> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$GeocodingCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $GeocodingCacheTable> {
+  $$GeocodingCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeocodingCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeocodingCacheTable> {
+  $$GeocodingCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeocodingCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeocodingCacheTable> {
+  $$GeocodingCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<String> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$GeocodingCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GeocodingCacheTable,
+          GeocodingCacheEntry,
+          $$GeocodingCacheTableFilterComposer,
+          $$GeocodingCacheTableOrderingComposer,
+          $$GeocodingCacheTableAnnotationComposer,
+          $$GeocodingCacheTableCreateCompanionBuilder,
+          $$GeocodingCacheTableUpdateCompanionBuilder,
+          (
+            GeocodingCacheEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $GeocodingCacheTable,
+              GeocodingCacheEntry
+            >,
+          ),
+          GeocodingCacheEntry,
+          PrefetchHooks Function()
+        > {
+  $$GeocodingCacheTableTableManager(
+    _$AppDatabase db,
+    $GeocodingCacheTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeocodingCacheTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeocodingCacheTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeocodingCacheTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> cacheKey = const Value.absent(),
+                Value<String> address = const Value.absent(),
+                Value<String> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeocodingCacheCompanion(
+                cacheKey: cacheKey,
+                address: address,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cacheKey,
+                required String address,
+                required String cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => GeocodingCacheCompanion.insert(
+                cacheKey: cacheKey,
+                address: address,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeocodingCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GeocodingCacheTable,
+      GeocodingCacheEntry,
+      $$GeocodingCacheTableFilterComposer,
+      $$GeocodingCacheTableOrderingComposer,
+      $$GeocodingCacheTableAnnotationComposer,
+      $$GeocodingCacheTableCreateCompanionBuilder,
+      $$GeocodingCacheTableUpdateCompanionBuilder,
+      (
+        GeocodingCacheEntry,
+        BaseReferences<
+          _$AppDatabase,
+          $GeocodingCacheTable,
+          GeocodingCacheEntry
+        >,
+      ),
+      GeocodingCacheEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2735,4 +3771,6 @@ class $AppDatabaseManager {
       $$FuelEntriesTableTableManager(_db, _db.fuelEntries);
   $$TripsTableTableManager get trips =>
       $$TripsTableTableManager(_db, _db.trips);
+  $$GeocodingCacheTableTableManager get geocodingCache =>
+      $$GeocodingCacheTableTableManager(_db, _db.geocodingCache);
 }

@@ -12,6 +12,14 @@ class Trips extends Table {
   RealColumn get avgSpeed => real().nullable()();
   RealColumn get maxSpeed => real().nullable()();
   RealColumn get minSpeed => real().nullable()();
+  TextColumn get startAddress => text().nullable()();
+  TextColumn get endAddress => text().nullable()();
+  RealColumn get minLatitude => real().withDefault(const Constant(0.0))();
+  RealColumn get maxLatitude => real().withDefault(const Constant(0.0))();
+  RealColumn get minLongitude => real().withDefault(const Constant(0.0))();
+  RealColumn get maxLongitude => real().withDefault(const Constant(0.0))();
+  TextColumn get routeSnapshotPath => text().nullable()();
+  TextColumn get routePointsJson => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

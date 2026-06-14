@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:quantane/features/home/home_screen.dart';
 import 'package:quantane/features/fuel/fuel_history_screen.dart';
 import 'package:quantane/features/trips/trips_screen.dart';
-import 'package:quantane/features/analytics/analytics_screen.dart';
+import 'package:quantane/features/trips/trip_detail_screen.dart';
 import 'package:quantane/features/settings/settings_screen.dart';
 import 'package:quantane/features/vehicles/vehicles_screen.dart';
 import 'package:quantane/features/trips/live_trip_screen.dart';
@@ -21,9 +21,6 @@ final _shellNavigatorTripsKey = GlobalKey<NavigatorState>(
 );
 final _shellNavigatorFuelKey = GlobalKey<NavigatorState>(
   debugLabel: 'shellFuel',
-);
-final _shellNavigatorAnalyticsKey = GlobalKey<NavigatorState>(
-  debugLabel: 'shellAnalytics',
 );
 final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(
   debugLabel: 'shellSettings',
@@ -68,15 +65,6 @@ GoRouter router(Ref ref) {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorAnalyticsKey,
-            routes: [
-              GoRoute(
-                path: '/analytics',
-                builder: (context, state) => const AnalyticsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
             navigatorKey: _shellNavigatorSettingsKey,
             routes: [
               GoRoute(
@@ -96,6 +84,14 @@ GoRouter router(Ref ref) {
         path: '/live-trip',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const LiveTripScreen(),
+      ),
+      GoRoute(
+        path: '/trips/:tripId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final tripId = state.pathParameters['tripId']!;
+          return TripDetailScreen(tripId: tripId);
+        },
       ),
     ],
   );

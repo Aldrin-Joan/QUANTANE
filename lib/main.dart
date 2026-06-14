@@ -5,6 +5,7 @@ import 'package:quantane/core/theme/app_theme.dart';
 
 import 'package:quantane/core/router/app_router.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
+import 'package:quantane/features/trips/widgets/route_snapshot_host.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,11 +31,20 @@ class _QuantaneAppState extends ConsumerState<QuantaneApp> {
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'Quantane',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      routerConfig: router,
+    return Stack(
+      children: [
+        MaterialApp.router(
+          title: 'Quantane',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.darkTheme,
+          routerConfig: router,
+        ),
+        Positioned(
+          left: -1200,
+          top: 0,
+          child: RouteSnapshotHost(key: routeSnapshotHostKey),
+        ),
+      ],
     );
   }
 }

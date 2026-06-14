@@ -21,24 +21,20 @@ class QuantaneBottomNav extends StatelessWidget {
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
           onTap: (index) => navigationShell.goBranch(index),
-          items: [
-            const BottomNavigationBarItem(
+          items: const [
+            BottomNavigationBarItem(
               icon: Icon(LucideIcons.house),
               label: 'Home',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(LucideIcons.fuel),
               label: 'Fuel',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(LucideIcons.route),
               label: 'Trips',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Analytics',
-            ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(LucideIcons.settings),
               label: 'Settings',
             ),

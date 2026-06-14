@@ -27,7 +27,7 @@ migrate_working_dir/
 .vscode/tasks.json
 .vscode/launch.json
 .vscode/extensions.json
-
+Note.txt
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -38,7 +38,7 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
-
+.cursor
 # Web/Desktop specific ephemeral files
 .web/
 .tool/

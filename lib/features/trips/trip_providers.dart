@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
+import 'package:quantane/features/trips/trip_finalization_providers.dart';
 import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trip_tracking_service.dart';
@@ -93,7 +94,10 @@ class TripTracking extends _$TripTracking {
 
   Future<void> _persistAndClearSession(TripState finalizedSession) async {
     try {
-      await ref.read(tripRepositoryProvider).insert(finalizedSession.toTrip());
+      final trip = await ref
+          .read(tripFinalizationServiceProvider)
+          .finalize(finalizedSession);
+      await ref.read(tripRepositoryProvider).insert(trip);
       await _service.clearPersistedSession();
       state = state.copyWith(
         clearSession: true,
