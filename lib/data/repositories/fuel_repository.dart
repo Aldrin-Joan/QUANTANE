@@ -1,4 +1,4 @@
-﻿import 'package:drift/drift.dart';
+import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
@@ -17,19 +17,22 @@ class FuelRepository {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch()
         .asyncMap((rows) async {
-          final entries = <FuelEntry>[];
-          for (var index = 0; index < rows.length; index++) {
-            final current = rows[index];
-            final previousOdometer = index + 1 < rows.length
-                ? rows[index + 1].odometer
-                : null;
+          // Sort rows chronologically by odometer to calculate mileage correctly
+          final sortedRows = List<FuelEntryData>.from(rows)
+            ..sort((a, b) => a.odometer.compareTo(b.odometer));
 
-            entries.add(
-              FuelEntry.fromDrift(current, previousOdometer: previousOdometer),
+          final entryMap = <String, FuelEntry>{};
+          for (var i = 0; i < sortedRows.length; i++) {
+            final current = sortedRows[i];
+            final previousOdometer = i > 0 ? sortedRows[i - 1].odometer : null;
+            entryMap[current.id] = FuelEntry.fromDrift(
+              current,
+              previousOdometer: previousOdometer,
             );
           }
 
-          return entries;
+          // Return entries in the original date desc order
+          return rows.map((row) => entryMap[row.id]!).toList();
         });
   }
 
