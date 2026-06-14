@@ -17,10 +17,6 @@ class FuelRepository {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch()
         .asyncMap((rows) async {
-          final vehicleQuery = _db.select(_db.vehicles)
-            ..where((t) => t.id.equals(vehicleId));
-          final vehicle = await vehicleQuery.getSingleOrNull();
-
           final entries = <FuelEntry>[];
           for (var index = 0; index < rows.length; index++) {
             final current = rows[index];

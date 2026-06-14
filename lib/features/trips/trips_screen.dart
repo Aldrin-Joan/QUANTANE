@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
@@ -36,17 +40,18 @@ class TripsScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => _startTrip(context, ref, activeVehicleId),
         child: const Icon(LucideIcons.route),
       ),
     );
   }
 
-  void _startTrip(
+  Future<void> _startTrip(
     BuildContext context,
     WidgetRef ref,
     String? activeVehicleId,
-  ) {
+  ) async {
     if (activeVehicleId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -56,8 +61,64 @@ class TripsScreen extends ConsumerWidget {
       return;
     }
 
-    ref.read(tripTrackingProvider.notifier).start();
+    final startPermissionError = await _ensureTripStartPermissions();
+    if (startPermissionError != null) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(startPermissionError)));
+      return;
+    }
+
+    try {
+      await ref
+          .read(tripTrackingProvider.notifier)
+          .start(vehicleId: activeVehicleId);
+    } on StateError catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
     context.push('/live-trip');
+  }
+
+  Future<String?> _ensureTripStartPermissions() async {
+    final notificationPermission =
+        await FlutterForegroundTask.checkNotificationPermission();
+    if (notificationPermission != NotificationPermission.granted) {
+      await FlutterForegroundTask.requestNotificationPermission();
+    }
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return 'Location services are turned off on this device.';
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      return 'Location permission is required to start trip tracking.';
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return 'Location permission is permanently denied. Enable it in system settings.';
+    }
+
+    return null;
   }
 
   Widget _buildTripSliver(

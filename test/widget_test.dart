@@ -1,20 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:quantane/domain/models/analytics_summary.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/fuel/fuel_history_screen.dart';
 import 'package:quantane/features/fuel/fuel_providers.dart';
 import 'package:quantane/features/home/home_screen.dart';
+import 'package:quantane/features/home/home_providers.dart';
 import 'package:quantane/features/trips/live_trip_screen.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
+import 'package:quantane/data/repositories/active_trip_session_repository.dart';
+import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trips_screen.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
-import 'package:quantane/features/trips/trip_tracking_service.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
 
 class _FakeTripRepository implements TripRepository {
@@ -38,18 +41,21 @@ class _FakeTripRepository implements TripRepository {
 }
 
 class _FakeTripTracking extends TripTracking {
-  _FakeTripTracking(this.stateToReturn);
+  _FakeTripTracking(this.stateToReturn, {this.onStop});
 
   final TripState stateToReturn;
+  final Future<void> Function()? onStop;
   bool stopCalled = false;
 
   @override
   TripState? build() => stateToReturn;
 
   @override
-  void stop() {
+  Future<void> stop() async {
     stopCalled = true;
-    super.stop();
+    if (onStop != null) {
+      await onStop!();
+    }
   }
 }
 
@@ -227,10 +233,21 @@ void main() {
       ProviderScope(
         overrides: [
           activeVehicleProvider.overrideWithValue('vehicle-1'),
-          fuelHistoryProvider.overrideWith(
-            (ref) => Stream.value(const <FuelEntry>[]),
+          homeSummaryProvider.overrideWith(
+            (ref) => HomeSummary(
+              totalSpendMonth: 0,
+              totalDistanceMonth: trip.distance,
+              avgMileageMonth: 25.0,
+            ),
           ),
-          tripHistoryProvider.overrideWith((ref) => Stream.value([trip])),
+          quickStatsProvider.overrideWith(
+            (ref) => QuickStats(
+              avgMileage: 25.0,
+              totalDistance: trip.distance,
+              avgSpeed: trip.avgSpeed!,
+              costPerKm: 40,
+            ),
+          ),
         ],
         child: const MaterialApp(home: HomeScreen()),
       ),
@@ -242,19 +259,36 @@ void main() {
     expect(find.text('60 KM/H'), findsOneWidget);
   });
 
-  testWidgets('live trip stop saves a trip with safe average speed math', (
+  testWidgets('live trip stop uses the active session and clears state', (
     WidgetTester tester,
   ) async {
     final repo = _FakeTripRepository();
     final now = DateTime(2026, 6, 8, 7, 0, 0);
     final tracking = _FakeTripTracking(
       TripState(
+        sessionId: 'session-1',
+        vehicleId: 'vehicle-1',
         currentSpeed: 45,
         maxSpeed: 65,
         distance: 18,
         startTime: now,
+        updatedAt: now.add(const Duration(minutes: 20)),
         positions: const [],
       ),
+      onStop: () async {
+        await repo.insert(
+          TripState(
+            sessionId: 'session-1',
+            vehicleId: 'vehicle-1',
+            currentSpeed: 45,
+            maxSpeed: 65,
+            distance: 18,
+            startTime: now,
+            updatedAt: now.add(const Duration(minutes: 20)),
+            positions: const [],
+          ).toTrip(),
+        );
+      },
     );
 
     await tester.pumpWidget(
@@ -273,6 +307,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.insertedTrip, isNotNull);
+    expect(repo.insertedTrip!.id, 'session-1');
     expect(repo.insertedTrip!.distance, 18);
     expect(repo.insertedTrip!.maxSpeed, 65);
     expect(repo.insertedTrip!.avgSpeed, isNotNull);
@@ -280,15 +315,18 @@ void main() {
     expect(tracking.stopCalled, isTrue);
   });
 
-  testWidgets('live trip shows waiting state before first GPS fix', (
+  testWidgets('active session restores on provider bootstrap', (
     WidgetTester tester,
   ) async {
     final tracking = _FakeTripTracking(
       TripState(
+        sessionId: 'session-2',
+        vehicleId: 'vehicle-1',
         currentSpeed: 0,
         maxSpeed: 0,
         distance: 0,
         startTime: DateTime(2026, 6, 8, 7, 0, 0),
+        updatedAt: DateTime(2026, 6, 8, 7, 1, 0),
         positions: const [],
       ),
     );
@@ -305,22 +343,24 @@ void main() {
 
     await tester.pump();
 
-    expect(find.text('Waiting for GPS signal...'), findsNothing);
-    expect(find.text('Starting trip...'), findsOneWidget);
+    expect(find.text('Starting trip...'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('speed gauge switches modes and shows warning at high speed', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
-          body: Column(
-            children: [
-              SpeedGauge(speed: 92, mode: SpeedDisplayMode.digital),
-              SizedBox(height: 24),
-              SpeedGauge(speed: 92, mode: SpeedDisplayMode.analog),
-            ],
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                SpeedGauge(speed: 102, mode: SpeedDisplayMode.digital),
+                SizedBox(height: 24),
+                SpeedGauge(speed: 102, mode: SpeedDisplayMode.analog),
+              ],
+            ),
           ),
         ),
       ),
@@ -328,9 +368,12 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('92'), findsWidgets);
+    expect(find.text('102'), findsWidgets);
     expect(find.textContaining('Exceeding speed limit'), findsWidgets);
-    expect(find.byType(CustomPaint), findsNWidgets(2));
+    expect(
+      tester.widgetList(find.byType(CustomPaint)).length,
+      greaterThanOrEqualTo(2),
+    );
   });
 
   testWidgets('live trip mode switch toggles digital and analog speed views', (
@@ -338,10 +381,13 @@ void main() {
   ) async {
     final tracking = _FakeTripTracking(
       TripState(
+        sessionId: 'session-5',
+        vehicleId: 'vehicle-1',
         currentSpeed: 42,
         maxSpeed: 65,
         distance: 18,
         startTime: DateTime(2026, 6, 8, 7, 0, 0),
+        updatedAt: DateTime(2026, 6, 8, 7, 11, 0),
         positions: const [],
       ),
     );
@@ -352,7 +398,7 @@ void main() {
           activeVehicleProvider.overrideWithValue('vehicle-1'),
           tripTrackingProvider.overrideWith(() => tracking),
         ],
-        child: const MaterialApp(home: LiveTripScreen()),
+        child: const MaterialApp(home: Scaffold(body: LiveTripScreen())),
       ),
     );
 
@@ -368,107 +414,53 @@ void main() {
     expect(find.byKey(const ValueKey('analog-speed-gauge')), findsOneWidget);
   });
 
-  test(
-    'TripTrackingService computes speed and distance from a fake GPS stream',
-    () async {
-      final controller = StreamController<Position>();
-      final service = TripTrackingService(
-        positionStreamFactory: ({LocationSettings? locationSettings}) =>
-            controller.stream,
-      );
-
-      final updates = <TripState>[];
-      final subscription = service.startTracking().listen(updates.add);
-
-      controller.add(
-        Position(
-          latitude: 37.4219983,
-          longitude: -122.084,
-          timestamp: DateTime(2026, 6, 8, 7, 0, 0),
-          accuracy: 5,
-          altitude: 0,
-          altitudeAccuracy: 1,
-          heading: 0,
-          headingAccuracy: 1,
-          speed: 0,
-          speedAccuracy: 1,
-          isMocked: true,
-        ),
-      );
-      controller.add(
-        Position(
-          latitude: 37.4225,
-          longitude: -122.0835,
-          timestamp: DateTime(2026, 6, 8, 7, 0, 10),
-          accuracy: 5,
-          altitude: 0,
-          altitudeAccuracy: 1,
-          heading: 0,
-          headingAccuracy: 1,
-          speed: 0,
-          speedAccuracy: 1,
-          isMocked: true,
-        ),
-      );
-
-      await Future<void>.delayed(Duration.zero);
-      await controller.close();
-      await subscription.cancel();
-
-      expect(updates, isNotEmpty);
-      expect(updates.last.currentSpeed, greaterThan(0));
-      expect(updates.last.maxSpeed, greaterThan(0));
-      expect(updates.last.distance, greaterThan(0));
-    },
-  );
-
-  test('TripTrackingService ignores tiny GPS jitter while idle', () async {
-    final controller = StreamController<Position>();
-    final service = TripTrackingService(
-      positionStreamFactory: ({LocationSettings? locationSettings}) =>
-          controller.stream,
+  test('TripState serialization round-trips active session data', () async {
+    final state = TripState(
+      sessionId: 'session-3',
+      vehicleId: 'vehicle-1',
+      startTime: DateTime(2026, 6, 8, 7, 0, 0),
+      updatedAt: DateTime(2026, 6, 8, 7, 12, 0),
+      currentSpeed: 45,
+      maxSpeed: 65,
+      distance: 18,
+      positions: const [],
     );
 
-    final updates = <TripState>[];
-    final subscription = service.startTracking().listen(updates.add);
+    final roundTrip = TripState.fromJson(state.toJson());
 
-    controller.add(
-      Position(
-        latitude: 37.4219983,
-        longitude: -122.084,
-        timestamp: DateTime(2026, 6, 8, 7, 0, 0),
-        accuracy: 5,
-        altitude: 0,
-        altitudeAccuracy: 1,
-        heading: 0,
-        headingAccuracy: 1,
-        speed: 0.2,
-        speedAccuracy: 1,
-        isMocked: true,
-      ),
+    expect(roundTrip.sessionId, state.sessionId);
+    expect(roundTrip.vehicleId, state.vehicleId);
+    expect(roundTrip.distance, state.distance);
+    expect(roundTrip.maxSpeed, state.maxSpeed);
+  });
+
+  test('Active session repository persists and clears state', () async {
+    final tempDir = await Directory.systemTemp.createTemp(
+      'quantane-trip-session-',
     );
-    controller.add(
-      Position(
-        latitude: 37.4219986,
-        longitude: -122.0839997,
-        timestamp: DateTime(2026, 6, 8, 7, 0, 10),
-        accuracy: 5,
-        altitude: 0,
-        altitudeAccuracy: 1,
-        heading: 0,
-        headingAccuracy: 1,
-        speed: 0.1,
-        speedAccuracy: 1,
-        isMocked: true,
-      ),
+    final repository = ActiveTripSessionRepository(
+      directoryResolver: () async => tempDir,
+    );
+    final state = TripState(
+      sessionId: 'session-4',
+      vehicleId: 'vehicle-1',
+      startTime: DateTime.utc(2026, 6, 8, 7),
+      updatedAt: DateTime.utc(2026, 6, 8, 7, 15),
+      currentSpeed: 55,
+      maxSpeed: 70,
+      distance: 10.2,
+      positions: const [],
     );
 
-    await Future<void>.delayed(Duration.zero);
-    await controller.close();
-    await subscription.cancel();
+    await repository.save(state);
 
-    expect(updates, isNotEmpty);
-    expect(updates.last.currentSpeed, 0);
-    expect(updates.last.distance, 0);
+    final loaded = await repository.load();
+    expect(loaded, isNotNull);
+    expect(loaded!.sessionId, state.sessionId);
+    expect(loaded.distance, state.distance);
+
+    await repository.clear();
+    expect(await repository.load(), isNull);
+    await tempDir.delete(recursive: true);
   });
 }

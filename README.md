@@ -91,5 +91,9 @@ This repository currently contains the Flutter app scaffold and supporting Andro
 
 ```bash
 flutter emulators --launch Medium_Phone_API_35
+```
+
+
+```bash
 flutter run
 ```

@@ -33,6 +33,7 @@ class TripRepository {
             maxSpeed: Value(trip.maxSpeed),
             minSpeed: Value(trip.minSpeed),
           ),
+          mode: InsertMode.insertOrReplace,
         );
   }
 

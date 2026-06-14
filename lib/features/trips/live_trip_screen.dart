@@ -1,16 +1,13 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
+import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
-import 'package:quantane/features/trips/trip_tracking_service.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:quantane/data/repositories/trip_repository.dart';
-import 'package:quantane/domain/models/trip.dart';
-import 'package:uuid/uuid.dart';
-import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 
 class LiveTripScreen extends ConsumerStatefulWidget {
   const LiveTripScreen({super.key});
@@ -19,57 +16,97 @@ class LiveTripScreen extends ConsumerStatefulWidget {
   ConsumerState<LiveTripScreen> createState() => _LiveTripScreenState();
 }
 
-class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
-  late final Timer _durationTicker;
+class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
+    with WidgetsBindingObserver {
   SpeedDisplayMode _displayMode = SpeedDisplayMode.digital;
-  Duration _elapsedDuration = Duration.zero;
+  Timer? _durationTicker;
+  ProviderSubscription<TripState?>? _tripStateSubscription;
+  bool _hasRedirectedToTrips = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _tripStateSubscription = ref.listenManual<TripState?>(
+      tripTrackingProvider,
+      _handleTripStateChange,
+    );
+    _startDurationTicker();
     WakelockPlus.enable();
-    _durationTicker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        final state = ref.read(tripTrackingProvider);
-        if (state != null) {
-          setState(() {
-            _elapsedDuration = DateTime.now().difference(state.startTime);
-          });
-        }
-      }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _redirectIfTripStopped(
+        ref.read(tripTrackingProvider),
+        ref.read(tripTrackingProvider.notifier).status,
+      );
     });
   }
 
   @override
   void dispose() {
-    _durationTicker.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _tripStateSubscription?.close();
+    _stopDurationTicker();
     WakelockPlus.disable();
     super.dispose();
   }
 
-  void _stopTrip() async {
-    final state = ref.read(tripTrackingProvider);
-    if (state == null) return;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) {
+      return;
+    }
 
-    final vehicleId = ref.read(activeVehicleProvider);
-    if (vehicleId == null) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _startDurationTicker();
+        setState(() {});
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        _stopDurationTicker();
+        break;
+    }
+  }
 
-    final trip = Trip(
-      id: const Uuid().v4(),
-      vehicleId: vehicleId,
-      startTime: state.startTime,
-      endTime: DateTime.now(),
-      distance: state.distance,
-      avgSpeed: _averageSpeedKmh(
-        distanceKm: state.distance,
-        duration: DateTime.now().difference(state.startTime),
-      ),
-      maxSpeed: state.maxSpeed,
-    );
+  Future<void> _stopTrip() async {
+    await ref.read(tripTrackingProvider.notifier).stop();
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
 
-    await ref.read(tripRepositoryProvider).insert(trip);
-    ref.read(tripTrackingProvider.notifier).stop();
-    if (mounted) Navigator.pop(context);
+  void _handleTripStateChange(TripState? previous, TripState? next) {
+    final trackingStatus = ref.read(tripTrackingProvider.notifier).status;
+    _redirectIfTripStopped(next, trackingStatus);
+  }
+
+  void _redirectIfTripStopped(TripState? state, TripTrackingStatus status) {
+    if (_hasRedirectedToTrips || !mounted) {
+      return;
+    }
+
+    if (state != null || status != TripTrackingStatus.idle) {
+      return;
+    }
+
+    _hasRedirectedToTrips = true;
+    context.go('/trips');
+  }
+
+  void _startDurationTicker() {
+    _durationTicker ??= Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  void _stopDurationTicker() {
+    _durationTicker?.cancel();
+    _durationTicker = null;
   }
 
   @override
@@ -85,7 +122,6 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
 
   Widget _buildBody(TripState? state, TripTrackingStatus status) {
     if (state == null) {
-      _elapsedDuration = Duration.zero;
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -104,7 +140,7 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
               const SizedBox(height: 8),
               Text(
                 status == TripTrackingStatus.waitingForLocation
-                    ? 'Check emulator location permissions and route playback.'
+                    ? 'Check location permissions and route playback.'
                     : 'Preparing trip tracking.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -116,127 +152,151 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
         ),
       );
     }
-    return Column(
-      children: [
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _SpeedModeSwitcher(
-            mode: _displayMode,
-            onChanged: (mode) {
-              setState(() {
-                _displayMode = mode;
-              });
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SpeedGauge(
-            speed: state.currentSpeed,
-            maxSpeed: 200,
-            mode: _displayMode,
-          ),
-        ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStat(
-                'Max Speed',
-                '${state.maxSpeed.toStringAsFixed(0)} KM/H',
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.dividerColor),
               ),
-              _buildStat('Distance', '${state.distance.toStringAsFixed(1)} KM'),
-              _buildStat(
-                'Duration',
-                isElapsedDurationVisible
-                    ? _formatDuration(_elapsedDuration)
-                    : _formatDuration(
-                        DateTime.now().difference(state.startTime),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ModeButton(
+                        label: 'Digital',
+                        selected: _displayMode == SpeedDisplayMode.digital,
+                        onTap: () => setState(() {
+                          _displayMode = SpeedDisplayMode.digital;
+                        }),
                       ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: AppColors.cardColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: state.currentSpeed > 80
-                          ? AppColors.dangerColor
-                          : state.currentSpeed > 50
-                          ? AppColors.warningColor
-                          : AppColors.accentColor,
-                      shape: BoxShape.circle,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    state.currentSpeed > 80
-                        ? 'Exceeding speed limit'
-                        : state.currentSpeed > 50
-                        ? 'Slow down'
-                        : 'Trip in progress',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: state.currentSpeed > 80
-                          ? AppColors.dangerColor
-                          : state.currentSpeed > 50
-                          ? AppColors.warningColor
-                          : AppColors.accentColor,
-                      fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: _ModeButton(
+                        label: 'Analog',
+                        selected: _displayMode == SpeedDisplayMode.analog,
+                        onTap: () => setState(() {
+                          _displayMode = SpeedDisplayMode.analog;
+                        }),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _stopTrip,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.dangerColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Stop Trip'),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SpeedGauge(
+              speed: state.currentSpeed,
+              maxSpeed: 200,
+              mode: _displayMode,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStat(
+                  'Max Speed',
+                  '${state.maxSpeed.toStringAsFixed(0)} KM/H',
+                ),
+                _buildStat(
+                  'Distance',
+                  '${state.distance.toStringAsFixed(1)} KM',
+                ),
+                _buildStat(
+                  'Duration',
+                  _formatDuration(_elapsedDuration(state)),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: AppColors.cardColor,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: state.currentSpeed > 80
+                            ? AppColors.dangerColor
+                            : state.currentSpeed > 50
+                            ? AppColors.warningColor
+                            : AppColors.accentColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      state.currentSpeed > 80
+                          ? 'Exceeding speed limit'
+                          : state.currentSpeed > 50
+                          ? 'Slow down'
+                          : 'Trip in progress',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: state.currentSpeed > 80
+                            ? AppColors.dangerColor
+                            : state.currentSpeed > 50
+                            ? AppColors.warningColor
+                            : AppColors.accentColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _stopTrip,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.dangerColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Stop Trip'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  bool get isElapsedDurationVisible => _elapsedDuration > Duration.zero;
+  Duration _elapsedDuration(TripState state) {
+    return DateTime.now().difference(state.startTime);
+  }
 
-  double _averageSpeedKmh({
-    required double distanceKm,
-    required Duration duration,
-  }) {
-    final hours = duration.inSeconds / 3600.0;
-    if (hours <= 0) {
-      return 0.0;
-    }
-
-    return distanceKm / hours;
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(d.inHours);
+    final minutes = twoDigits(d.inMinutes.remainder(60));
+    final seconds = twoDigits(d.inSeconds.remainder(60));
+    return '$hours:$minutes:$seconds';
   }
 
   Widget _buildStat(String label, String value) {
@@ -255,53 +315,6 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen> {
           ).textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
         ),
       ],
-    );
-  }
-
-  String _formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(d.inHours);
-    final minutes = twoDigits(d.inMinutes.remainder(60));
-    final seconds = twoDigits(d.inSeconds.remainder(60));
-    return '$hours:$minutes:$seconds';
-  }
-}
-
-class _SpeedModeSwitcher extends StatelessWidget {
-  final SpeedDisplayMode mode;
-  final ValueChanged<SpeedDisplayMode> onChanged;
-
-  const _SpeedModeSwitcher({required this.mode, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.dividerColor),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          children: [
-            Expanded(
-              child: _ModeButton(
-                label: 'Digital',
-                selected: mode == SpeedDisplayMode.digital,
-                onTap: () => onChanged(SpeedDisplayMode.digital),
-              ),
-            ),
-            Expanded(
-              child: _ModeButton(
-                label: 'Analog',
-                selected: mode == SpeedDisplayMode.analog,
-                onTap: () => onChanged(SpeedDisplayMode.analog),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
