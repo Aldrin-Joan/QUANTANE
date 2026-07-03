@@ -1,9 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
@@ -11,6 +13,7 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
 import 'package:quantane/features/shared/widgets/vehicle_selector_chip.dart';
+import 'package:quantane/features/trips/trip_finalization_providers.dart';
 import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/widgets/trip_history_card.dart';
@@ -26,62 +29,137 @@ class TripsScreen extends ConsumerWidget {
     final tripHistoryAsync = ref.watch(tripHistoryProvider);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(floating: true, title: const Text('Trips')),
-          if (permissions.isRefreshing)
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(tripPermissionsProvider);
+
+          final trips = tripHistoryAsync.value ?? [];
+          final tripRepo = ref.read(tripRepositoryProvider);
+          final geocoder = ref.read(nominatimGeocodingServiceProvider);
+          final routeProcessing = ref.read(routeProcessingServiceProvider);
+          final snapshotWriter = ref.read(routeSnapshotWriterProvider);
+          final docDir = await getApplicationDocumentsDirectory();
+
+          for (final trip in trips) {
+            bool updated = false;
+            String? startAddress = trip.startAddress;
+            String? endAddress = trip.endAddress;
+            String? snapshotPath = trip.routeSnapshotPath;
+
+            if ((startAddress == null || startAddress == 'Unknown location') &&
+                trip.routePoints.isNotEmpty) {
+              try {
+                final resolved = await geocoder.reverseGeocode(
+                  latitude: trip.routePoints.first.latitude,
+                  longitude: trip.routePoints.first.longitude,
+                );
+                if (resolved != null && resolved.isNotEmpty) {
+                  startAddress = resolved;
+                  updated = true;
+                }
+              } catch (_) {}
+            }
+
+            if ((endAddress == null || endAddress == 'Unknown location') &&
+                trip.routePoints.isNotEmpty) {
+              try {
+                final resolved = await geocoder.reverseGeocode(
+                  latitude: trip.routePoints.last.latitude,
+                  longitude: trip.routePoints.last.longitude,
+                );
+                if (resolved != null && resolved.isNotEmpty) {
+                  endAddress = resolved;
+                  updated = true;
+                }
+              } catch (_) {}
+            }
+
+            final bool snapshotMissing = snapshotPath == null ||
+                !File('${docDir.path}/$snapshotPath').existsSync();
+
+            if (snapshotMissing && trip.routePoints.length >= 2) {
+              try {
+                final processed = await routeProcessing.process(trip.routePoints);
+                if (processed != null) {
+                  final newPath = await snapshotWriter.writeSnapshot(
+                    tripId: trip.id,
+                    route: processed,
+                  );
+                  if (newPath != null) {
+                    snapshotPath = newPath;
+                    updated = true;
+                  }
+                }
+              } catch (_) {}
+            }
+
+            if (updated) {
+              final newTrip = trip.copyWith(
+                startAddress: startAddress,
+                endAddress: endAddress,
+                routeSnapshotPath: snapshotPath,
+              );
+              await tripRepo.insert(newTrip);
+            }
+          }
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(floating: true, title: const Text('Trips')),
+            if (permissions.isRefreshing)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
+              )
+            else if (permissions.hasBlockingLocationIssue ||
+                permissions.shouldWarnAboutNotifications)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _PermissionStack(
+                    permissions: permissions,
+                    onFixLocation: () async {
+                      final locationStatus = permissions.location.status;
+                      if (locationStatus == TripPermissionStatus.denied) {
+                        await ref
+                            .read(tripPermissionsControllerProvider)
+                            .requestLocationAccess();
+                        return;
+                      }
+
+                      if (locationStatus ==
+                          TripPermissionStatus.serviceDisabled) {
+                        await ref
+                            .read(tripPermissionsControllerProvider)
+                            .openLocationSettings();
+                        return;
+                      }
+
+                      await ref
+                          .read(tripPermissionsControllerProvider)
+                          .openAppSettings();
+                    },
+                    onEnableNotifications: () async {
+                      await ref
+                          .read(tripPermissionsControllerProvider)
+                          .requestNotificationAccess();
+                    },
+                  ),
+                ),
+              ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
-            )
-          else if (permissions.hasBlockingLocationIssue ||
-              permissions.shouldWarnAboutNotifications)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               sliver: SliverToBoxAdapter(
-                child: _PermissionStack(
-                  permissions: permissions,
-                  onFixLocation: () async {
-                    final locationStatus = permissions.location.status;
-                    if (locationStatus == TripPermissionStatus.denied) {
-                      await ref
-                          .read(tripPermissionsControllerProvider)
-                          .requestLocationAccess();
-                      return;
-                    }
-
-                    if (locationStatus ==
-                        TripPermissionStatus.serviceDisabled) {
-                      await ref
-                          .read(tripPermissionsControllerProvider)
-                          .openLocationSettings();
-                      return;
-                    }
-
-                    await ref
-                        .read(tripPermissionsControllerProvider)
-                        .openAppSettings();
-                  },
-                  onEnableNotifications: () async {
-                    await ref
-                        .read(tripPermissionsControllerProvider)
-                        .requestNotificationAccess();
-                  },
+                child: _TripsHero(
+                  activeVehicleId: activeVehicleId,
+                  tripsAsync: tripHistoryAsync,
                 ),
               ),
             ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            sliver: SliverToBoxAdapter(
-              child: _TripsHero(
-                activeVehicleId: activeVehicleId,
-                tripsAsync: tripHistoryAsync,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
-          _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
-        ],
+            SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
+            _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: null,

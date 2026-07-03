@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
@@ -39,6 +39,44 @@ class Trip {
     this.routeSnapshotPath,
     this.routePoints = const [],
   });
+
+  Trip copyWith({
+    String? id,
+    String? vehicleId,
+    DateTime? startTime,
+    DateTime? endTime,
+    double? distance,
+    double? avgSpeed,
+    double? maxSpeed,
+    double? minSpeed,
+    String? startAddress,
+    String? endAddress,
+    double? minLatitude,
+    double? maxLatitude,
+    double? minLongitude,
+    double? maxLongitude,
+    String? routeSnapshotPath,
+    List<TripPoint>? routePoints,
+  }) {
+    return Trip(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      distance: distance ?? this.distance,
+      avgSpeed: avgSpeed ?? this.avgSpeed,
+      maxSpeed: maxSpeed ?? this.maxSpeed,
+      minSpeed: minSpeed ?? this.minSpeed,
+      startAddress: startAddress ?? this.startAddress,
+      endAddress: endAddress ?? this.endAddress,
+      minLatitude: minLatitude ?? this.minLatitude,
+      maxLatitude: maxLatitude ?? this.maxLatitude,
+      minLongitude: minLongitude ?? this.minLongitude,
+      maxLongitude: maxLongitude ?? this.maxLongitude,
+      routeSnapshotPath: routeSnapshotPath ?? this.routeSnapshotPath,
+      routePoints: routePoints ?? this.routePoints,
+    );
+  }
 
   bool get hasRoute => routePoints.length >= 2;
 
