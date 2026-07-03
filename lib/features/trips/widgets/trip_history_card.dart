@@ -8,6 +8,7 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/trips/trip_formatters.dart';
+import 'package:quantane/features/trips/widgets/trip_route_map.dart';
 
 class TripHistoryCard extends StatelessWidget {
   final Trip trip;
@@ -87,7 +88,7 @@ class TripHistoryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _RoutePreview(snapshotPath: trip.routeSnapshotPath),
+            _RoutePreview(trip: trip),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 8, 16),
               child: Column(
@@ -144,9 +145,9 @@ class TripHistoryCard extends StatelessWidget {
 }
 
 class _RoutePreview extends StatelessWidget {
-  final String? snapshotPath;
+  final Trip trip;
 
-  const _RoutePreview({required this.snapshotPath});
+  const _RoutePreview({required this.trip});
 
   @override
   Widget build(BuildContext context) {
@@ -155,36 +156,19 @@ class _RoutePreview extends StatelessWidget {
       child: SizedBox(
         height: 148,
         width: double.infinity,
-        child: FutureBuilder<File?>(
-          future: _resolveSnapshotFile(snapshotPath),
-          builder: (context, snapshot) {
-            final file = snapshot.data;
-            if (file != null) {
-              return Image.file(
-                file,
-                fit: BoxFit.cover,
-                cacheWidth: 720,
-                errorBuilder: (context, error, stackTrace) {
-                  return const _RoutePreviewFallback();
-                },
-              );
-            }
-
-            return const _RoutePreviewFallback();
-          },
-        ),
+        child: trip.routePoints.length < 2
+            ? const _RoutePreviewFallback()
+            : TripRouteMap(
+                routePoints: trip.routePoints,
+                minLatitude: trip.minLatitude,
+                maxLatitude: trip.maxLatitude,
+                minLongitude: trip.minLongitude,
+                maxLongitude: trip.maxLongitude,
+                interactive: false,
+                height: 148,
+              ),
       ),
     );
-  }
-
-  static Future<File?> _resolveSnapshotFile(String? snapshotPath) async {
-    if (snapshotPath == null || snapshotPath.isEmpty) {
-      return null;
-    }
-
-    final documentsDir = await getApplicationDocumentsDirectory();
-    final file = File('${documentsDir.path}/$snapshotPath');
-    return file.existsSync() ? file : null;
   }
 }
 
