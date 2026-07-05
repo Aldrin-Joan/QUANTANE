@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+
+// Project imports:
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/widgets/trip_history_card.dart';
 

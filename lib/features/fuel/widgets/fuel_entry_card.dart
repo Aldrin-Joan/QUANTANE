@@ -1,5 +1,10 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/features/shared/widgets/delta_badge.dart';

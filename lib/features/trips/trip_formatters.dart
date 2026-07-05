@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:quantane/domain/models/trip.dart';
 
 class TripFormatters {

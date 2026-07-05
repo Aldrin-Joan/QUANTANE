@@ -1,3 +1,4 @@
+// Project imports:
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class Trip {

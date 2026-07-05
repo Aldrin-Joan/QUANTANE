@@ -1,7 +1,12 @@
+// Dart imports:
 import 'dart:convert';
+
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+
+// Project imports:
 import 'package:quantane/data/repositories/geocoding_cache_repository.dart';
 import 'package:quantane/features/trips/services/nominatim_geocoding_service.dart';
 

@@ -1,7 +1,11 @@
-﻿import 'dart:convert';
+// Dart imports:
+import 'dart:convert';
 import 'dart:io';
 
+// Package imports:
 import 'package:path_provider/path_provider.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class ActiveTripSessionRepository {

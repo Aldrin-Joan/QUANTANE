@@ -1,5 +1,6 @@
-import 'package:quantane/features/trips/trip_session_models.dart';
+// Project imports:
 import 'package:quantane/features/trips/trip_providers.dart';
+import 'package:quantane/features/trips/trip_session_models.dart';
 
 class TripTrackingState {
 

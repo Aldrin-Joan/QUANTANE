@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_providers.dart';

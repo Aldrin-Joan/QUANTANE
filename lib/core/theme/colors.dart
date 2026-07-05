@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
 
 class AppColors {
   // Backgrounds

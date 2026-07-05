@@ -1,6 +1,10 @@
-﻿import 'dart:math';
+// Dart imports:
+import 'dart:math';
 
+// Package imports:
 import 'package:geolocator/geolocator.dart';
+
+// Project imports:
 import 'package:quantane/domain/models/trip.dart';
 
 class TripPoint {

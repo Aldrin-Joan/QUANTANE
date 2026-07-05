@@ -1,6 +1,11 @@
-﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:go_router/go_router.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 
 class QuantaneBottomNav extends StatelessWidget {

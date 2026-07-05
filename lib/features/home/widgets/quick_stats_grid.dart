@@ -1,7 +1,12 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:flutter_lucide/flutter_lucide.dart';
+
+// Project imports:
 import 'package:quantane/domain/models/analytics_summary.dart';
 import 'package:quantane/features/shared/widgets/stat_tile.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 
 class QuickStatsGrid extends StatelessWidget {
 

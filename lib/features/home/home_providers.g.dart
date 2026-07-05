@@ -130,4 +130,4 @@ final class QuickStatsProvider
   }
 }
 
-String _$quickStatsHash() => r'3286fba932abe6ee8e0a0453b0535412fe144659';
+String _$quickStatsHash() => r'c65f0b17cf02ead363418ac0e2fc07e5512465fb';

@@ -1,12 +1,16 @@
-﻿import 'dart:async';
+// Dart imports:
+import 'dart:async';
 
+// Package imports:
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
 import 'package:quantane/data/repositories/fuel_repository.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/analytics_summary.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_providers.g.dart';
 

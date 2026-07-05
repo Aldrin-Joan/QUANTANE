@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/services/route_processing_service.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/widgets/trip_map_style.dart';

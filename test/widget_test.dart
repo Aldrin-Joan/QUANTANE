@@ -1,26 +1,32 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:io';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
+import 'package:quantane/data/repositories/active_trip_session_repository.dart';
+import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/analytics_summary.dart';
+import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/fuel/fuel_history_screen.dart';
 import 'package:quantane/features/fuel/fuel_providers.dart';
-import 'package:quantane/features/home/home_screen.dart';
 import 'package:quantane/features/home/home_providers.dart';
+import 'package:quantane/features/home/home_screen.dart';
+import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/trips/live_trip_screen.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
-import 'package:quantane/data/repositories/active_trip_session_repository.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
-import 'package:quantane/features/trips/trips_screen.dart';
-import 'package:quantane/features/trips/widgets/trip_history_card.dart';
-import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
-import 'package:quantane/data/repositories/trip_repository.dart';
-import 'package:quantane/features/trips/widgets/speed_gauge.dart';
 import 'package:quantane/features/trips/trip_tracking_state.dart';
+import 'package:quantane/features/trips/trips_screen.dart';
+import 'package:quantane/features/trips/widgets/speed_gauge.dart';
+import 'package:quantane/features/trips/widgets/trip_history_card.dart';
 
 class _FakeTripRepository implements TripRepository {
   Trip? insertedTrip;

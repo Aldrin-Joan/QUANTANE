@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:geolocator/geolocator.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class RouteSimplifier {

@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Project imports:
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/services/nominatim_geocoding_service.dart';
 import 'package:quantane/features/trips/services/route_processing_service.dart';

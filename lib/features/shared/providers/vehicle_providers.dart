@@ -1,7 +1,10 @@
-﻿import 'package:quantane/data/repositories/vehicle_repository.dart';
+// Package imports:
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
+import 'package:quantane/data/repositories/vehicle_repository.dart';
 import 'package:quantane/domain/models/vehicle.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vehicle_providers.g.dart';
 

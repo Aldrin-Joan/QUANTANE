@@ -1,9 +1,14 @@
+// Dart imports:
 import 'dart:io';
+
+// Package imports:
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:quantane/domain/models/trip.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
+import 'package:quantane/domain/models/trip.dart';
 
 part 'trip_repository.g.dart';
 

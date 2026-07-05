@@ -1,9 +1,14 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 
 part 'auth_service.g.dart';
 

@@ -1,10 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
+import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/trip_detail_screen.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
-import 'package:quantane/data/repositories/trip_repository.dart';
 
 class _FakeTripRepository implements TripRepository {
 

@@ -1,5 +1,10 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/home/insight_providers.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';

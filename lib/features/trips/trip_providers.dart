@@ -1,6 +1,13 @@
-﻿import 'dart:async';
+// Dart imports:
+import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
@@ -9,7 +16,6 @@ import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trip_tracking_service.dart';
 import 'package:quantane/features/trips/trip_tracking_state.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'trip_providers.g.dart';
 

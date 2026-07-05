@@ -1,6 +1,11 @@
-﻿import 'package:flutter/material.dart';
-import 'package:quantane/core/theme/colors.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_lucide/flutter_lucide.dart';
+
+// Project imports:
+import 'package:quantane/core/theme/colors.dart';
 
 class DeltaBadge extends StatelessWidget {
 

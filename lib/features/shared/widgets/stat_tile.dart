@@ -1,4 +1,7 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/shared/widgets/delta_badge.dart';
 

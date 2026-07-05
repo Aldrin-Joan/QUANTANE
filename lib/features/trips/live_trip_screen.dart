@@ -1,14 +1,20 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/trip_tracking_state.dart';
 import 'package:quantane/features/trips/widgets/speed_gauge.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 class LiveTripScreen extends ConsumerStatefulWidget {
   const LiveTripScreen({super.key});

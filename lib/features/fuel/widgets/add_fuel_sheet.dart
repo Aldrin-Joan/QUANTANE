@@ -1,5 +1,11 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/fuel_repository.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
@@ -7,7 +13,6 @@ import 'package:quantane/features/fuel/fuel_providers.dart';
 import 'package:quantane/features/home/home_providers.dart';
 import 'package:quantane/features/home/insight_providers.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
-import 'package:uuid/uuid.dart';
 
 class AddFuelSheet extends ConsumerStatefulWidget {
 

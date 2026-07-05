@@ -1,6 +1,10 @@
-﻿import 'dart:math';
+// Dart imports:
+import 'dart:math';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 
 enum SpeedDisplayMode { digital, analog }
@@ -126,7 +130,7 @@ class _AnalogSpeedGauge extends StatelessWidget {
       builder: (context, constraints) {
         final size = min(
           constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0,
-          320,
+          320.0,
         );
 
         return Column(

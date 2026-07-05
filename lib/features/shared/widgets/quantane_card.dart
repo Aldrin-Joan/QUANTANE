@@ -1,4 +1,7 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
 
 enum QuantaneCardVariant { flat, glass, colored }

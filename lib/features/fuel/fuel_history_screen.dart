@@ -1,12 +1,17 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:quantane/core/theme/colors.dart';
+import 'package:quantane/data/repositories/fuel_repository.dart';
 import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:quantane/features/fuel/fuel_providers.dart';
 import 'package:quantane/features/fuel/widgets/add_fuel_sheet.dart';
 import 'package:quantane/features/fuel/widgets/fuel_entry_card.dart';
-import 'package:quantane/data/repositories/fuel_repository.dart';
-import 'package:quantane/features/fuel/fuel_providers.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
 import 'package:quantane/features/shared/widgets/vehicle_selector_chip.dart';

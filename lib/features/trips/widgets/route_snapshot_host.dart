@@ -1,10 +1,16 @@
+// Dart imports:
 import 'dart:typed_data';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:screenshot/screenshot.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/services/route_processing_service.dart';
 import 'package:quantane/features/trips/widgets/trip_map_style.dart';
 import 'package:quantane/features/trips/widgets/trip_route_map.dart';
-import 'package:screenshot/screenshot.dart';
 
 final routeSnapshotHostKey = GlobalKey<RouteSnapshotHostState>();
 

@@ -1,10 +1,15 @@
-﻿import 'package:flutter/material.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:quantane/features/home/home_providers.dart';
 import 'package:quantane/features/home/widgets/hero_summary_card.dart';
+import 'package:quantane/features/home/widgets/insight_banner.dart';
 import 'package:quantane/features/home/widgets/quick_stats_grid.dart';
 import 'package:quantane/features/home/widgets/weekly_spend_chart.dart';
-import 'package:quantane/features/home/widgets/insight_banner.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
 import 'package:quantane/features/shared/widgets/vehicle_selector_chip.dart';
 

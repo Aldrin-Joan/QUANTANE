@@ -1,5 +1,8 @@
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 Position _position({

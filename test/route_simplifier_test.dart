@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:quantane/features/trips/services/route_simplifier.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 

@@ -1,3 +1,7 @@
+// Package imports:
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
 import 'package:quantane/data/repositories/geocoding_cache_repository.dart';
 import 'package:quantane/features/trips/services/nominatim_geocoding_service.dart';
 import 'package:quantane/features/trips/services/route_processing_service.dart';
@@ -5,7 +9,6 @@ import 'package:quantane/features/trips/services/route_simplifier.dart';
 import 'package:quantane/features/trips/services/route_snapshot_service.dart';
 import 'package:quantane/features/trips/services/trip_finalization_service.dart';
 import 'package:quantane/features/trips/widgets/route_snapshot_host.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'trip_finalization_providers.g.dart';
 

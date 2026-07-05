@@ -1,8 +1,11 @@
-﻿import 'package:quantane/data/repositories/fuel_repository.dart';
-import 'package:quantane/domain/models/fuel_entry.dart';
-import 'package:quantane/features/shared/utils/insight_engine.dart';
-import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
+// Package imports:
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
+import 'package:quantane/data/repositories/fuel_repository.dart';
+import 'package:quantane/domain/models/fuel_entry.dart';
+import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
+import 'package:quantane/features/shared/utils/insight_engine.dart';
 
 part 'insight_providers.g.dart';
 

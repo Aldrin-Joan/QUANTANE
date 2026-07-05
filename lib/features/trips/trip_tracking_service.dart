@@ -1,12 +1,18 @@
-﻿import 'dart:async';
+// Dart imports:
+import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:uuid/uuid.dart';
+
+// Project imports:
 import 'package:quantane/data/repositories/active_trip_session_repository.dart';
 import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
-import 'package:uuid/uuid.dart';
 
 typedef PositionStreamFactory =
     Stream<Position> Function({LocationSettings? locationSettings});

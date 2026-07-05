@@ -1,7 +1,10 @@
+// Package imports:
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quantane/domain/models/vehicle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
+import 'package:quantane/domain/models/vehicle.dart';
 
 part 'vehicle_repository.g.dart';
 

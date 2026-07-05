@@ -1,7 +1,10 @@
+// Package imports:
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quantane/domain/models/fuel_entry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Project imports:
+import 'package:quantane/domain/models/fuel_entry.dart';
 
 part 'fuel_repository.g.dart';
 
@@ -126,7 +129,7 @@ class FuelRepository {
         .where('date', isLessThanOrEqualTo: end.toUtc().toIso8601String())
         .get();
 
-    var total = 0;
+    var total = 0.0;
     for (final doc in snapshot.docs) {
       final cost = (doc.data()['fuelCost'] as num?)?.toDouble() ?? 0.0;
       total += cost;

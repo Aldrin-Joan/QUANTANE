@@ -1,6 +1,9 @@
-﻿import 'package:quantane/data/repositories/vehicle_repository.dart';
+// Package imports:
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import 'package:quantane/data/repositories/vehicle_repository.dart';
 
 part 'active_vehicle_provider.g.dart';
 
