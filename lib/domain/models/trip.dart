@@ -20,6 +20,7 @@ class Trip {
   final double maxLongitude;
   final String? routeSnapshotPath;
   final List<TripPoint> routePoints;
+  final DateTime? lastUpdated;
 
   Trip({
     required this.id,
@@ -38,6 +39,7 @@ class Trip {
     this.maxLongitude = 0,
     this.routeSnapshotPath,
     this.routePoints = const [],
+    this.lastUpdated,
   });
 
   Trip copyWith({
@@ -57,6 +59,7 @@ class Trip {
     double? maxLongitude,
     String? routeSnapshotPath,
     List<TripPoint>? routePoints,
+    DateTime? lastUpdated,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -75,6 +78,7 @@ class Trip {
       maxLongitude: maxLongitude ?? this.maxLongitude,
       routeSnapshotPath: routeSnapshotPath ?? this.routeSnapshotPath,
       routePoints: routePoints ?? this.routePoints,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
 
@@ -87,8 +91,8 @@ class Trip {
     return Trip(
       id: data.id,
       vehicleId: data.vehicleId,
-      startTime: DateTime.parse(data.startTime),
-      endTime: data.endTime != null ? DateTime.parse(data.endTime!) : null,
+      startTime: DateTime.parse(data.startTime).toUtc(),
+      endTime: data.endTime != null ? DateTime.parse(data.endTime!).toUtc() : null,
       distance: data.distance,
       avgSpeed: data.avgSpeed,
       maxSpeed: data.maxSpeed,
@@ -101,6 +105,7 @@ class Trip {
       maxLongitude: data.maxLongitude,
       routeSnapshotPath: data.routeSnapshotPath,
       routePoints: _decodeRoutePoints(data.routePointsJson),
+      lastUpdated: data.lastUpdated?.toUtc(),
     );
   }
 
@@ -122,5 +127,58 @@ class Trip {
     }
 
     return jsonEncode(points.map((point) => point.toJson()).toList());
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'vehicleId': vehicleId,
+      'startTime': startTime.toUtc().toIso8601String(),
+      'endTime': endTime?.toUtc().toIso8601String(),
+      'distance': distance,
+      'avgSpeed': avgSpeed,
+      'maxSpeed': maxSpeed,
+      'minSpeed': minSpeed,
+      'startAddress': startAddress,
+      'endAddress': endAddress,
+      'minLatitude': minLatitude,
+      'maxLatitude': maxLatitude,
+      'minLongitude': minLongitude,
+      'maxLongitude': maxLongitude,
+      'routeSnapshotPath': routeSnapshotPath,
+      'routePoints': routePoints.map((point) => point.toJson()).toList(),
+      'lastUpdated': lastUpdated?.toUtc().toIso8601String(),
+    };
+  }
+
+  factory Trip.fromJson(Map<String, dynamic> json) {
+    return Trip(
+      id: json['id'] as String,
+      vehicleId: json['vehicleId'] as String,
+      startTime: DateTime.parse(json['startTime'] as String).toUtc(),
+      endTime: json['endTime'] != null
+          ? DateTime.parse(json['endTime'] as String).toUtc()
+          : null,
+      distance: (json['distance'] as num).toDouble(),
+      avgSpeed: (json['avgSpeed'] as num?)?.toDouble(),
+      maxSpeed: (json['maxSpeed'] as num?)?.toDouble(),
+      minSpeed: (json['minSpeed'] as num?)?.toDouble(),
+      startAddress: json['startAddress'] as String?,
+      endAddress: json['endAddress'] as String?,
+      minLatitude: (json['minLatitude'] as num).toDouble(),
+      maxLatitude: (json['maxLatitude'] as num).toDouble(),
+      minLongitude: (json['minLongitude'] as num).toDouble(),
+      maxLongitude: (json['maxLongitude'] as num).toDouble(),
+      routeSnapshotPath: json['routeSnapshotPath'] as String?,
+      routePoints:
+          (json['routePoints'] as List<dynamic>?)
+              ?.cast<Map<String, Object?>>()
+              .map(TripPoint.fromJson)
+              .toList() ??
+          const [],
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.parse(json['lastUpdated'] as String).toUtc()
+          : null,
+    );
   }
 }

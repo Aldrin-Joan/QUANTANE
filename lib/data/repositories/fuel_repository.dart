@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
@@ -36,41 +37,87 @@ class FuelRepository {
         });
   }
 
-  Future<void> insert(FuelEntry entry) async {
-    await _db
-        .into(_db.fuelEntries)
-        .insert(
-          FuelEntriesCompanion.insert(
-            id: entry.id,
-            vehicleId: entry.vehicleId,
-            date: entry.date.toIso8601String(),
-            fuelCost: entry.fuelCost,
-            fuelLiters: entry.fuelLiters,
-            odometer: entry.odometer,
-            station: Value(entry.station),
-            notes: Value(entry.notes),
-          ),
+  Future<void> insert(FuelEntry entry, {bool syncToFirebase = true}) async {
+    final now = DateTime.now().toUtc();
+    final updatedEntry = entry.lastUpdated == null
+        ? entry.copyWith(lastUpdated: now, date: entry.date.toUtc())
+        : entry.copyWith(date: entry.date.toUtc(), lastUpdated: entry.lastUpdated?.toUtc());
+
+    await _db.transaction(() async {
+      await _db
+          .into(_db.fuelEntries)
+          .insert(
+            FuelEntriesCompanion.insert(
+              id: updatedEntry.id,
+              vehicleId: updatedEntry.vehicleId,
+              date: updatedEntry.date.toIso8601String(),
+              fuelCost: updatedEntry.fuelCost,
+              fuelLiters: updatedEntry.fuelLiters,
+              odometer: updatedEntry.odometer,
+              station: Value(updatedEntry.station),
+              notes: Value(updatedEntry.notes),
+              lastUpdated: Value(updatedEntry.lastUpdated),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+
+      if (syncToFirebase) {
+        await _db.queueSync(
+          action: 'INSERT',
+          entityType: 'fuel_entries',
+          entityId: updatedEntry.id,
+          payload: jsonEncode(updatedEntry.toJson()),
         );
+      }
+    });
   }
 
-  Future<void> update(FuelEntry entry) async {
-    await (_db.update(
-      _db.fuelEntries,
-    )..where((t) => t.id.equals(entry.id))).write(
-      FuelEntriesCompanion(
-        vehicleId: Value(entry.vehicleId),
-        date: Value(entry.date.toIso8601String()),
-        fuelCost: Value(entry.fuelCost),
-        fuelLiters: Value(entry.fuelLiters),
-        odometer: Value(entry.odometer),
-        station: Value(entry.station),
-        notes: Value(entry.notes),
-      ),
+  Future<void> update(FuelEntry entry, {bool syncToFirebase = true}) async {
+    final now = DateTime.now().toUtc();
+    final updatedEntry = entry.copyWith(
+      lastUpdated: now,
+      date: entry.date.toUtc(),
     );
+
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.fuelEntries,
+      )..where((t) => t.id.equals(updatedEntry.id))).write(
+        FuelEntriesCompanion(
+          vehicleId: Value(updatedEntry.vehicleId),
+          date: Value(updatedEntry.date.toIso8601String()),
+          fuelCost: Value(updatedEntry.fuelCost),
+          fuelLiters: Value(updatedEntry.fuelLiters),
+          odometer: Value(updatedEntry.odometer),
+          station: Value(updatedEntry.station),
+          notes: Value(updatedEntry.notes),
+          lastUpdated: Value(updatedEntry.lastUpdated),
+        ),
+      );
+
+      if (syncToFirebase) {
+        await _db.queueSync(
+          action: 'UPDATE',
+          entityType: 'fuel_entries',
+          entityId: updatedEntry.id,
+          payload: jsonEncode(updatedEntry.toJson()),
+        );
+      }
+    });
   }
 
-  Future<void> delete(String id) async {
-    await (_db.delete(_db.fuelEntries)..where((t) => t.id.equals(id))).go();
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {
+    await _db.transaction(() async {
+      await (_db.delete(_db.fuelEntries)..where((t) => t.id.equals(id))).go();
+
+      if (syncToFirebase) {
+        await _db.queueSync(
+          action: 'DELETE',
+          entityType: 'fuel_entries',
+          entityId: id,
+        );
+      }
+    });
   }
 
   Future<double> getMonthlySpend(String vehicleId, DateTime month) async {

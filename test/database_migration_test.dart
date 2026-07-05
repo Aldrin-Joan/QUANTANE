@@ -4,7 +4,7 @@ import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/repositories/geocoding_cache_repository.dart';
 
 void main() {
-  test('schema v3 exposes geocoding cache table', () async {
+  test('schema v4 exposes geocoding cache table', () async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());
     final cacheRepository = GeocodingCacheRepository(database);
 
@@ -20,7 +20,7 @@ void main() {
     );
 
     expect(cached, 'Anna Nagar, Chennai');
-    expect(database.schemaVersion, 3);
+    expect(database.schemaVersion, 4);
     await database.close();
   });
 }

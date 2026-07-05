@@ -27,7 +27,7 @@ class _FakeTripRepository implements TripRepository {
   String? deletedTripId;
 
   @override
-  Future<void> insert(Trip trip) async {
+  Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {
     insertedTrip = trip;
   }
 
@@ -41,7 +41,7 @@ class _FakeTripRepository implements TripRepository {
       insertedTrip?.id == id ? insertedTrip : null;
 
   @override
-  Future<void> delete(String id) async {
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {
     deletedTripId = id;
   }
 }

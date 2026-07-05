@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "662930071793",
+    "project_id": "quantane-app",
+    "storage_bucket": "quantane-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:662930071793:android:de88e5271e1877f9720950",
+        "android_client_info": {
+          "package_name": "com.quantane.app.quantane"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqMbUH_8hLhywNpOimjIxcIXFKJgZflHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

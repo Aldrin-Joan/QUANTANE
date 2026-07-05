@@ -1,4 +1,4 @@
-﻿import 'package:drift/drift.dart';
+import 'package:drift/drift.dart';
 
 @DataClassName('VehicleEntry')
 class Vehicles extends Table {
@@ -9,6 +9,7 @@ class Vehicles extends Table {
   RealColumn get tankCapacity => real().nullable()();
   RealColumn get initialOdometer => real().withDefault(const Constant(0.0))();
   TextColumn get createdAt => text()();
+  DateTimeColumn get lastUpdated => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

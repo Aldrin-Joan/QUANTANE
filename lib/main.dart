@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:quantane/firebase_options.dart';
 import 'package:quantane/core/theme/app_theme.dart';
 
 import 'package:quantane/core/router/app_router.dart';
@@ -9,6 +11,7 @@ import 'package:quantane/features/trips/widgets/route_snapshot_host.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FlutterForegroundTask.initCommunicationPort();
   runApp(const ProviderScope(child: QuantaneApp()));
 }

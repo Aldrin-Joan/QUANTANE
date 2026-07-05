@@ -74,12 +74,15 @@ class TripsScreen extends ConsumerWidget {
               } catch (_) {}
             }
 
-            final bool snapshotMissing = snapshotPath == null ||
+            final bool snapshotMissing =
+                snapshotPath == null ||
                 !File('${docDir.path}/$snapshotPath').existsSync();
 
             if (snapshotMissing && trip.routePoints.length >= 2) {
               try {
-                final processed = await routeProcessing.process(trip.routePoints);
+                final processed = await routeProcessing.process(
+                  trip.routePoints,
+                );
                 if (processed != null) {
                   final newPath = await snapshotWriter.writeSnapshot(
                     tripId: trip.id,

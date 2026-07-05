@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if the request matches the resource owner's user ID
+    isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Secure all collections under users/{userId}
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Vehicles subcollection rules
+      match /vehicles/{vehicleId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Fuel entries subcollection rules
+      match /fuel_entries/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Trips subcollection rules
+      match /trips/{tripId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Deletions tombstone collection rules (used for cross-device deletion sync)
+      match /deletions/{deletionId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

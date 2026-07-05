@@ -15,13 +15,13 @@ class _FakeTripRepository implements TripRepository {
   Future<Trip?> getById(String id) async => trip?.id == id ? trip : null;
 
   @override
-  Future<void> insert(Trip trip) async {}
+  Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {}
 
   @override
   Stream<List<Trip>> watchAll(String vehicleId) => Stream.value(const []);
 
   @override
-  Future<void> delete(String id) async {}
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {}
 }
 
 TripPoint _point(double lat, double lng) {

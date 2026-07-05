@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -74,36 +75,65 @@ class TripRepository {
     return row == null ? null : Trip.fromDrift(row);
   }
 
-  Future<void> insert(Trip trip) async {
-    await _db
-        .into(_db.trips)
-        .insert(
-          TripsCompanion.insert(
-            id: trip.id,
-            vehicleId: trip.vehicleId,
-            startTime: trip.startTime.toIso8601String(),
-            endTime: Value(trip.endTime?.toIso8601String()),
-            distance: Value(trip.distance),
-            avgSpeed: Value(trip.avgSpeed),
-            maxSpeed: Value(trip.maxSpeed),
-            minSpeed: Value(trip.minSpeed),
-            startAddress: Value(trip.startAddress),
-            endAddress: Value(trip.endAddress),
-            minLatitude: Value(trip.minLatitude),
-            maxLatitude: Value(trip.maxLatitude),
-            minLongitude: Value(trip.minLongitude),
-            maxLongitude: Value(trip.maxLongitude),
-            routeSnapshotPath: Value(trip.routeSnapshotPath),
-            routePointsJson: Value(Trip.encodeRoutePoints(trip.routePoints)),
-          ),
-          mode: InsertMode.insertOrReplace,
+  Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {
+    final now = DateTime.now().toUtc();
+    final updatedTrip = trip.lastUpdated == null
+        ? trip.copyWith(lastUpdated: now, startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc())
+        : trip.copyWith(startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc(), lastUpdated: trip.lastUpdated?.toUtc());
+
+    await _db.transaction(() async {
+      await _db
+          .into(_db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: updatedTrip.id,
+              vehicleId: updatedTrip.vehicleId,
+              startTime: updatedTrip.startTime.toIso8601String(),
+              endTime: Value(updatedTrip.endTime?.toIso8601String()),
+              distance: Value(updatedTrip.distance),
+              avgSpeed: Value(updatedTrip.avgSpeed),
+              maxSpeed: Value(updatedTrip.maxSpeed),
+              minSpeed: Value(updatedTrip.minSpeed),
+              startAddress: Value(updatedTrip.startAddress),
+              endAddress: Value(updatedTrip.endAddress),
+              minLatitude: Value(updatedTrip.minLatitude),
+              maxLatitude: Value(updatedTrip.maxLatitude),
+              minLongitude: Value(updatedTrip.minLongitude),
+              maxLongitude: Value(updatedTrip.maxLongitude),
+              routeSnapshotPath: Value(updatedTrip.routeSnapshotPath),
+              routePointsJson: Value(
+                Trip.encodeRoutePoints(updatedTrip.routePoints),
+              ),
+              lastUpdated: Value(updatedTrip.lastUpdated),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+
+      if (syncToFirebase) {
+        await _db.queueSync(
+          action: 'INSERT',
+          entityType: 'trips',
+          entityId: updatedTrip.id,
+          payload: jsonEncode(updatedTrip.toJson()),
         );
+      }
+    });
   }
 
-  Future<void> delete(String id) async {
-    final existing = await getById(id);
-    await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
-    await TripSnapshotStorage.deleteSnapshot(existing?.routeSnapshotPath);
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {
+    await _db.transaction(() async {
+      final existing = await getById(id);
+      await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
+      await TripSnapshotStorage.deleteSnapshot(existing?.routeSnapshotPath);
+
+      if (syncToFirebase) {
+        await _db.queueSync(
+          action: 'DELETE',
+          entityType: 'trips',
+          entityId: id,
+        );
+      }
+    });
   }
 }
 

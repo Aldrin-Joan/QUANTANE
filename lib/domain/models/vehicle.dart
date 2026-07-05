@@ -1,4 +1,4 @@
-﻿import 'package:quantane/data/database/app_database.dart';
+import 'package:quantane/data/database/app_database.dart';
 
 enum VehicleType { bike, car, truck }
 
@@ -12,6 +12,7 @@ class Vehicle {
   final double? tankCapacity;
   final double initialOdometer;
   final DateTime createdAt;
+  final DateTime? lastUpdated;
 
   Vehicle({
     required this.id,
@@ -21,7 +22,30 @@ class Vehicle {
     this.tankCapacity,
     required this.initialOdometer,
     required this.createdAt,
+    this.lastUpdated,
   });
+
+  Vehicle copyWith({
+    String? id,
+    String? name,
+    VehicleType? type,
+    FuelType? fuelType,
+    double? tankCapacity,
+    double? initialOdometer,
+    DateTime? createdAt,
+    DateTime? lastUpdated,
+  }) {
+    return Vehicle(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      fuelType: fuelType ?? this.fuelType,
+      tankCapacity: tankCapacity ?? this.tankCapacity,
+      initialOdometer: initialOdometer ?? this.initialOdometer,
+      createdAt: createdAt ?? this.createdAt,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
 
   factory Vehicle.fromDrift(VehicleEntry entry) {
     return Vehicle(
@@ -31,7 +55,36 @@ class Vehicle {
       fuelType: FuelType.values.firstWhere((e) => e.name == entry.fuelType),
       tankCapacity: entry.tankCapacity,
       initialOdometer: entry.initialOdometer,
-      createdAt: DateTime.parse(entry.createdAt),
+      createdAt: DateTime.parse(entry.createdAt).toUtc(),
+      lastUpdated: entry.lastUpdated?.toUtc(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type.name,
+      'fuelType': fuelType.name,
+      'tankCapacity': tankCapacity,
+      'initialOdometer': initialOdometer,
+      'createdAt': createdAt.toUtc().toIso8601String(),
+      'lastUpdated': lastUpdated?.toUtc().toIso8601String(),
+    };
+  }
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type: VehicleType.values.firstWhere((e) => e.name == json['type']),
+      fuelType: FuelType.values.firstWhere((e) => e.name == json['fuelType']),
+      tankCapacity: (json['tankCapacity'] as num?)?.toDouble(),
+      initialOdometer: (json['initialOdometer'] as num).toDouble(),
+      createdAt: DateTime.parse(json['createdAt'] as String).toUtc(),
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.parse(json['lastUpdated'] as String).toUtc()
+          : null,
     );
   }
 }

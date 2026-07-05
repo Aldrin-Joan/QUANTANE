@@ -1,4 +1,4 @@
-﻿import 'package:drift/drift.dart';
+import 'package:drift/drift.dart';
 import 'package:quantane/data/database/tables/vehicles_table.dart';
 
 @DataClassName('TripData')
@@ -20,6 +20,7 @@ class Trips extends Table {
   RealColumn get maxLongitude => real().withDefault(const Constant(0.0))();
   TextColumn get routeSnapshotPath => text().nullable()();
   TextColumn get routePointsJson => text().nullable()();
+  DateTimeColumn get lastUpdated => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

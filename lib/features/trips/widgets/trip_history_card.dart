@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
