@@ -4,6 +4,7 @@ import 'dart:async';
 // Package imports:
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -62,11 +63,20 @@ class VoiceController extends _$VoiceController {
     state = state.copyWith(isConnecting: true, clearError: true);
 
     try {
+      // 0. Request Microphone Permission
+      final status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        throw Exception(
+          'Microphone permission is required to join voice chat.',
+        );
+      }
+
       final supabase = ref.read(supabaseClientProvider);
 
       // 1. Fetch voice room token from Supabase Edge Function
       final customUrl = dotenv.get('SUPERBASE_LIVE_TOKEN', fallback: '');
-      final functionName = customUrl.isNotEmpty && Uri.parse(customUrl).pathSegments.isNotEmpty
+      final functionName =
+          customUrl.isNotEmpty && Uri.parse(customUrl).pathSegments.isNotEmpty
           ? Uri.parse(customUrl).pathSegments.last
           : 'livekit-token-generator';
 

@@ -1,6 +1,7 @@
 // Package imports:
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:quantane/features/group_ride/data/datasources/supabase_provider.dart';
@@ -13,12 +14,35 @@ part 'group_ride_controllers.g.dart';
 
 @riverpod
 class ActiveGroupId extends _$ActiveGroupId {
-  @override
-  String? build() => null;
+  static const _storageKey = 'active_group_ride_id';
 
-  void select(String? id) {
+  @override
+  String? build() {
+    _loadPersisted();
+    return null;
+  }
+
+  Future<void> _loadPersisted() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final id = prefs.getString(_storageKey);
+      if (id != null && state == null) {
+        state = id;
+      }
+    } catch (_) {}
+  }
+
+  Future<void> select(String? id) async {
     if (state != id) {
       state = id;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (id == null) {
+          await prefs.remove(_storageKey);
+        } else {
+          await prefs.setString(_storageKey, id);
+        }
+      } catch (_) {}
     }
   }
 }

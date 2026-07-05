@@ -1,99 +1,133 @@
-# Quantane
+# Quantane — Premium Vehicle Analytics & Collaborative Group Ride
 
-Quantane is a premium, offline-first vehicle analytics and fuel intelligence app built with Flutter. It helps riders and drivers track fuel expenses, mileage efficiency, trip performance, speed analytics, and vehicle costs through dashboards, real-time GPS tracking, and data visualizations. The product is designed around a dark-first, glassmorphism-inspired interface with a strong focus on data clarity and fast, private local storage.
+Quantane is a high-performance, offline-first vehicle analytics and real-time collaborative riding platform built with Flutter. Optimized for high concurrency, low latency, and modular scalability, it combines local-first fuel intelligence dashboards with real-time GPS telemetry broadcasting, live Map views, and WebRTC voice communication.
 
-## Product Vision
+The application follows a **dark-first premium fintech aesthetic** utilizing glassmorphic UI layers, smooth marker animations, and robust background services.
 
-Quantane turns everyday driving data into actionable insights while staying fully functional without an internet connection. The app is optimized for the Indian context with rupee-first currency handling, kilometer-based distance tracking, and fuel station workflows that match local usage patterns.
+---
 
-## Design Direction
+## 🧭 System Architecture & Design Patterns
 
-The UI follows a dark-first premium fintech aesthetic:
+Quantane is designed using **Feature-First Clean Architecture**, separating code into distinct layers (Data, Domain, Presentation) to enforce strict dependency injection, predictability, and complete unit-test coverage.
 
-- Backgrounds use near-black blue-tinted surfaces.
-- Cards use layered glassmorphism with subtle borders and shadows.
-- Typography emphasizes large, scannable numeric values.
-- Motion is reserved for meaningful state changes.
-- Spacing is generous to keep dense data readable.
-
-Primary design tokens from the spec include:
-
-- Background: `#0B0F14`
-- Card surface: `#121821`
-- Primary blue: `#3B82F6`
-- Success green: `#22C55E`
-- Warning amber: `#F59E0B`
-- Danger red: `#EF4444`
-- Primary text: `#F1F5F9`
-- Secondary text: `#94A3B8`
-
-## Core Stack
-
-The implementation plan centers on:
-
-- Flutter and Dart
-- Riverpod for state management
-- go_router for navigation
-- drift and SQLite for offline persistence
-- fl_chart for analytics visualizations
-- geolocator for live trip tracking
-- shared_preferences for lightweight local settings
-
-## Planned Feature Areas
-
-The app is organized into these major areas:
-
-- Home dashboard with fuel spend, mileage, quick stats, weekly charts, and recent activity
-- Fuel management with history, add/edit flows, and mileage calculations
-- Trip tracking with live GPS, speed monitoring, and trip summaries
-- Analytics with weekly, monthly, and yearly views
-- Vehicle management with active vehicle selection and local persistence
-- Smart insights for mileage, spend, and usage trends
-- Settings for currency, distance units, export, and data reset
-
-## Architecture Overview
-
-The implementation plan uses a layered structure:
-
-- `lib/core` for theme, routing, and shared utilities
-- `lib/data` for drift tables, database wiring, and repositories
-- `lib/domain` for models and analytics aggregates
-- `lib/features` for screen-level UI and feature-specific widgets
-
-The data layer is designed around local-first repositories so the app can compute mileage, cost per kilometer, monthly spend, and activity feeds without requiring a backend.
-
-## Roadmap
-
-The current plan is split into phases:
-
-1. Project bootstrap and dependency setup
-2. Data layer and offline persistence
-3. Core UI shell and shared widgets
-4. Home dashboard
-5. Fuel management
-6. Trip tracking
-7. Analytics
-8. Vehicle management
-9. Smart insights
-10. Settings
-11. Polish, testing, and release preparation
-
-## Status
-
-This repository currently contains the Flutter app scaffold and supporting Android project files. The README now reflects the intended product direction and implementation scope described in the design, implementation plan, and task tracker.
-
-## References
-
-- [Design specification](Docs/design%20(1).md)
-- [Implementation plan](Docs/implementation_plan.md)
-- [Task tracker](Docs/task.md)
-
-
-```bash
-flutter emulators --launch Medium_Phone_API_35
+```
+lib/
+├── core/                         # Router configurations, Theme engine, Core utilities
+├── data/                         # Drift SQLite database, shared repositories
+├── domain/                       # Core Entities, shared models
+└── features/                     # Feature-specific modules
+    ├── auth/                     # Firebase Auth bridge
+    ├── home/                     # Analytics dashboard, Charts, Spends metrics
+    ├── fuel/                     # Fuel tracking, mileage logs, math utilities
+    ├── trips/                    # Live GPS tracking, speedometer, geocoding
+    └── group_ride/               # COLLABORATIVE SYSTEM (Location, Chat, Voice WebRTC)
+        ├── data/                 # Supabase realtime data providers & outbox repos
+        ├── domain/               # Session, member, message, and telemetry models
+        └── presentation/         # Animated Map, dynamic chat, voice states UI
 ```
 
+---
 
-```bash
-flutter run
+## 🔄 Live Systems Flow & Concurrency
+
+### 1. Collaborative Group Ride Synchronization
+Real-time coordinates are broadcasted directly client-to-client using a lightweight websocket channel, bypassing SQL database write bottlenecks to minimize server cost and latency.
+
+```mermaid
+sequenceDiagram
+    participant C1 as Rider 1 (Client)
+    participant SB as Supabase Broadcast (WebSocket)
+    participant C2 as Rider 2 (Client)
+    
+    C1->>C1: Filter GPS jitter (Geolocator)
+    C1->>SB: Publish coordinates, speed, battery, & status
+    SB-->>C2: Broadcast rider telemetry packet
+    C2->>C2: Animate rider avatar marker on OpenStreetMap
 ```
+
+### 2. Offline-First Outbox Synchronization & Event Bus
+To prevent chat messages from vanishing when Supabase Realtime replication is disabled, we utilize an in-memory repository event bus to trigger local UI stream refreshes immediately after background uploads complete.
+
+```mermaid
+flowchart TD
+    A[User types message] --> B[Write message to local JSON queue]
+    B --> C[Render message immediately in UI as 'pending']
+    C --> D{Network online?}
+    D -- No --> E[Wait for connection recovery]
+    D -- Yes --> F[Sync message to Supabase DB]
+    F --> G[Remove message from local queue]
+    G --> H[Emit group update on messageUpdatesController]
+    H --> I[Stream reloads from DB -> Render message as 'sent']
+```
+
+---
+
+## ⚡ Core Features
+
+*   📊 **Home Dashboard Analytics**: Renders dynamic spending feeds and mileage efficiency tracking using [fl_chart](https://pub.dev/packages/fl_chart).
+*   ⛽ **Fuel Intelligence**: Records logs and calculates weighted mileage estimates with full currency customization.
+*   📍 **Real-time GPS Tracking**: Tracks vehicle movement, aggregates trip history, and generates map snapshots.
+*   👥 **Collaborative Group Rides**:
+    *   **Live Map**: Renders live rider location avatars and speeds on OpenStreetMap with smooth marker animations.
+    *   **Offline-First Text Chat**: Outbox queuing with local caching that syncs automatically when connections recover.
+    *   **Low-Latency WebRTC Voice**: Full-duplex audio channels utilizing a custom [LiveKit SFU](https://livekit.io/) token generator.
+
+---
+
+## 🛠️ Technology Stack
+
+*   **Framework**: Flutter & Dart (Strict compile-safety & formatting rules)
+*   **State Management**: Riverpod (Generators, async streams, clean dependency injection)
+*   **Database**: Drift / SQLite (Local persistence) & Supabase (Real-time collaborative data sync)
+*   **Voice SFU**: LiveKit Client (WebRTC audio channels)
+*   **Map Rendering**: flutter_map (OpenStreetMap tile layers)
+
+---
+
+## 🚀 Getting Started & Local Development
+
+### 1. Environment Configurations
+Create a `.env` file in the root directory:
+```env
+FIREBASE_API_KEY=your_firebase_api_key
+FIREBASE_APP_ID=your_firebase_app_id
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_storage_bucket
+SUPERBASE_URL=https://your-supabase-project.supabase.co
+SUPERBASE_KEY=your-supabase-anon-key
+SUPERBASE_LIVE_TOKEN=https://your-supabase-project.supabase.co/functions/v1/livekit-token-generator
+```
+
+### 2. Supabase Setup
+Apply RLS permissions to your tables:
+```sql
+ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable all access for all users" ON groups FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all access for all users" ON group_members FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all access for all users" ON group_messages FOR ALL USING (true) WITH CHECK (true);
+```
+
+### 3. Deno Edge Function Deployment
+Deploy the LiveKit WebRTC Access Token generator:
+```bash
+supabase login
+supabase secrets set LIVEKIT_API_KEY=your_livekit_key LIVEKIT_API_SECRET=your_livekit_secret
+supabase functions deploy livekit-token-generator
+```
+
+---
+
+## 🧪 Testing & Code Quality
+
+The codebase enforces strict code quality and formatting metrics through static analysis rules:
+
+*   **Static Analysis**: `flutter analyze` (Zero warnings/hints permitted)
+*   **Formatting**: `dart format .`
+*   **Unit & Widget Testing**: Run the complete test suite verifying location filters, calculations, and sync logic:
+    ```bash
+    flutter test
+    ```
