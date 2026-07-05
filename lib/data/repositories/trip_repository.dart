@@ -100,9 +100,12 @@ class TripRepository {
 
     return col
         .where('vehicleId', isEqualTo: vehicleId)
-        .orderBy('startTime', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Trip.fromJson(doc.data())).toList());
+        .map((snapshot) {
+          final trips = snapshot.docs.map((doc) => Trip.fromJson(doc.data())).toList();
+          trips.sort((a, b) => b.startTime.compareTo(a.startTime));
+          return trips;
+        });
   }
 
   Future<Trip?> getById(String id) async {
