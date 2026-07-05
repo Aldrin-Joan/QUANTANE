@@ -260,12 +260,16 @@ class SettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    if (auth.user?.isAnonymous ?? false)
+                    if (auth.user?.isAnonymous ?? false) ...[
+                      TextButton(
+                        onPressed: () => context.push('/auth'),
+                        child: const Text('Sign In'),
+                      ),
                       TextButton(
                         onPressed: () => context.push('/auth?upgrade=true'),
                         child: const Text('Upgrade'),
-                      )
-                    else
+                      ),
+                    ] else
                       TextButton(
                         onPressed: () =>
                             ref.read(authServiceProvider.notifier).logout(),

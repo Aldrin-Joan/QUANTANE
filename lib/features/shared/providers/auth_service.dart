@@ -2,6 +2,7 @@
 import 'dart:async';
 
 // Package imports:
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,7 +14,6 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 part 'auth_service.g.dart';
 
 class AuthState {
-
   AuthState({
     this.user,
     this.isSyncEnabled = true,
@@ -58,16 +58,35 @@ class AuthService extends _$AuthService {
   }
 
   Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isSyncEnabled = prefs.getBool(_syncKey) ?? true;
+
+    try {
+      if (isSyncEnabled) {
+        await FirebaseFirestore.instance.enableNetwork();
+      } else {
+        await FirebaseFirestore.instance.disableNetwork();
+      }
+    } catch (_) {}
+
     _authSubscription?.cancel();
     _authSubscription = _auth.authStateChanges().listen((User? user) async {
-      state = AuthState(
-        user: user,
-      );
+      final freshPrefs = await SharedPreferences.getInstance();
+      final currentSyncEnabled = freshPrefs.getBool(_syncKey) ?? true;
 
-      // Enforce guest anonymous login if no user is signed in
-      if (user == null) {
-        await enableSync();
+      var currentUser = user;
+      if (currentUser == null) {
+        try {
+          final credential = await _auth.signInAnonymously();
+          currentUser = credential.user;
+        } catch (_) {}
       }
+
+      state = AuthState(
+        user: currentUser,
+        isSyncEnabled: currentSyncEnabled,
+        isLoading: false,
+      );
     });
   }
 
@@ -76,28 +95,41 @@ class AuthService extends _$AuthService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_syncKey, true);
+      try {
+        await FirebaseFirestore.instance.enableNetwork();
+      } catch (_) {}
 
-      var currentUser = _auth.currentUser;
-      if (currentUser == null) {
-        final credential = await _auth.signInAnonymously();
-        currentUser = credential.user;
-      }
-
-      state = AuthState(
-        user: currentUser,
+      state = state.copyWith(
+        isSyncEnabled: true,
+        isLoading: false,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to enable sync: ${e}',
+        errorMessage: 'Failed to enable sync: $e',
       );
     }
   }
 
   Future<void> disableSync() async {
-    // Going fully offline/disabled sync is deprecated in online-first.
-    // Instead, disableSync signs out of any registered account, reverting back to anonymous guest.
-    await logout();
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_syncKey, false);
+      try {
+        await FirebaseFirestore.instance.disableNetwork();
+      } catch (_) {}
+
+      state = state.copyWith(
+        isSyncEnabled: false,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to disable sync: $e',
+      );
+    }
   }
 
   Future<void> linkEmail(String email, String password) async {
@@ -135,7 +167,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Linking account failed: ${e}',
+        errorMessage: 'Linking account failed: $e',
       );
       rethrow;
     }
@@ -174,7 +206,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Google Sign-in failed: ${e}',
+        errorMessage: 'Google Sign-in failed: $e',
       );
       rethrow;
     }
@@ -220,7 +252,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Linking Google account failed: ${e}',
+        errorMessage: 'Linking Google account failed: $e',
       );
       rethrow;
     }
@@ -250,7 +282,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Sign-in failed: ${e}',
+        errorMessage: 'Sign-in failed: $e',
       );
       rethrow;
     }
@@ -280,7 +312,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Registration failed: ${e}',
+        errorMessage: 'Registration failed: $e',
       );
       rethrow;
     }
@@ -291,11 +323,10 @@ class AuthService extends _$AuthService {
     try {
       await _clearLocalDatabaseAndPreferences();
       await _auth.signOut();
-      state = AuthState(isSyncEnabled: true);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Logout failed: ${e}',
+        errorMessage: 'Logout failed: $e',
       );
     }
   }
