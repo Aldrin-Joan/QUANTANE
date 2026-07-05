@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Project imports:
 import 'package:quantane/core/router/app_router.dart';
@@ -15,11 +16,19 @@ import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/widgets/route_snapshot_host.dart';
 import 'package:quantane/firebase_options.dart';
 
+// import 'package:firebase_auth/firebase_auth.dart';
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
+  await Supabase.initialize(
+    url: dotenv.get('SUPERBASE_URL'),
+    anonKey: dotenv.get('SUPERBASE_KEY'),
+  );
+
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,

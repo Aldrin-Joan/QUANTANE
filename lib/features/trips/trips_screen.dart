@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
+import 'package:quantane/features/group_ride/presentation/screens/group_ride_screen.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 import 'package:quantane/features/shared/widgets/section_header.dart';
@@ -24,187 +25,237 @@ import 'package:quantane/features/trips/trip_permissions.dart';
 import 'package:quantane/features/trips/trip_providers.dart';
 import 'package:quantane/features/trips/widgets/trip_history_card.dart';
 
-class TripsScreen extends ConsumerWidget {
+class TripsScreen extends ConsumerStatefulWidget {
   const TripsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripsScreen> createState() => _TripsScreenState();
+}
+
+class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final activeVehicleId = ref.watch(activeVehicleProvider);
     final permissionsAsync = ref.watch(tripPermissionsProvider);
     final permissions = permissionsAsync.value ?? TripPermissionState.loading();
     final tripHistoryAsync = ref.watch(tripHistoryProvider);
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(tripPermissionsProvider);
+      body: Column(
+        children: [
+          Container(
+            color: AppColors.cardColor,
+            padding: const EdgeInsets.only(top: 48),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primaryColor,
+              indicatorSize: TabBarIndicatorSize.tab,
+              tabs: const [
+                Tab(text: 'My Trips'),
+                Tab(text: 'Group Ride'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(tripPermissionsProvider);
 
-          final trips = tripHistoryAsync.value ?? [];
-          final tripRepo = ref.read(tripRepositoryProvider);
-          final geocoder = ref.read(nominatimGeocodingServiceProvider);
-          final routeProcessing = ref.read(routeProcessingServiceProvider);
-          final snapshotWriter = ref.read(routeSnapshotWriterProvider);
-          final docDir = await getApplicationDocumentsDirectory();
+                    final trips = tripHistoryAsync.value ?? [];
+                    final tripRepo = ref.read(tripRepositoryProvider);
+                    final geocoder = ref.read(nominatimGeocodingServiceProvider);
+                    final routeProcessing = ref.read(routeProcessingServiceProvider);
+                    final snapshotWriter = ref.read(routeSnapshotWriterProvider);
+                    final docDir = await getApplicationDocumentsDirectory();
 
-          for (final trip in trips) {
-            var updated = false;
-            var startAddress = trip.startAddress;
-            var endAddress = trip.endAddress;
-            var snapshotPath = trip.routeSnapshotPath;
+                    for (final trip in trips) {
+                      var updated = false;
+                      var startAddress = trip.startAddress;
+                      var endAddress = trip.endAddress;
+                      var snapshotPath = trip.routeSnapshotPath;
 
-            if ((startAddress == null || startAddress == 'Unknown location') &&
-                trip.routePoints.isNotEmpty) {
-              try {
-                final resolved = await geocoder.reverseGeocode(
-                  latitude: trip.routePoints.first.latitude,
-                  longitude: trip.routePoints.first.longitude,
-                );
-                if (resolved != null && resolved.isNotEmpty) {
-                  startAddress = resolved;
-                  updated = true;
-                }
-              } catch (_) {}
-            }
-
-            if ((endAddress == null || endAddress == 'Unknown location') &&
-                trip.routePoints.isNotEmpty) {
-              try {
-                final resolved = await geocoder.reverseGeocode(
-                  latitude: trip.routePoints.last.latitude,
-                  longitude: trip.routePoints.last.longitude,
-                );
-                if (resolved != null && resolved.isNotEmpty) {
-                  endAddress = resolved;
-                  updated = true;
-                }
-              } catch (_) {}
-            }
-
-            final snapshotMissing =
-                snapshotPath == null ||
-                !File('${docDir.path}/$snapshotPath').existsSync();
-
-            if (snapshotMissing && trip.routePoints.length >= 2) {
-              try {
-                final processed = await routeProcessing.process(
-                  trip.routePoints,
-                );
-                if (processed != null) {
-                  final newPath = await snapshotWriter.writeSnapshot(
-                    tripId: trip.id,
-                    route: processed,
-                  );
-                  if (newPath != null) {
-                    snapshotPath = newPath;
-                    updated = true;
-                  }
-                }
-              } catch (_) {}
-            }
-
-            if (updated) {
-              final newTrip = trip.copyWith(
-                startAddress: startAddress,
-                endAddress: endAddress,
-                routeSnapshotPath: snapshotPath,
-              );
-              await tripRepo.insert(newTrip);
-            }
-          }
-        },
-        child: CustomScrollView(
-          slivers: [
-            const SliverAppBar(floating: true, title: Text('Trips')),
-            if (permissions.isRefreshing)
-              const SliverPadding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-                sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
-              )
-            else if (permissions.hasBlockingLocationIssue ||
-                permissions.shouldWarnAboutNotifications)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                sliver: SliverToBoxAdapter(
-                  child: _PermissionStack(
-                    permissions: permissions,
-                    onFixLocation: () async {
-                      final locationStatus = permissions.location.status;
-                      if (locationStatus == TripPermissionStatus.denied) {
-                        await ref
-                            .read(tripPermissionsControllerProvider)
-                            .requestLocationAccess();
-                        return;
+                      if ((startAddress == null || startAddress == 'Unknown location') &&
+                          trip.routePoints.isNotEmpty) {
+                        try {
+                          final resolved = await geocoder.reverseGeocode(
+                            latitude: trip.routePoints.first.latitude,
+                            longitude: trip.routePoints.first.longitude,
+                          );
+                          if (resolved != null && resolved.isNotEmpty) {
+                            startAddress = resolved;
+                            updated = true;
+                          }
+                        } catch (_) {}
                       }
 
-                      if (locationStatus ==
-                          TripPermissionStatus.serviceDisabled) {
-                        await ref
-                            .read(tripPermissionsControllerProvider)
-                            .openLocationSettings();
-                        return;
+                      if ((endAddress == null || endAddress == 'Unknown location') &&
+                          trip.routePoints.isNotEmpty) {
+                        try {
+                          final resolved = await geocoder.reverseGeocode(
+                            latitude: trip.routePoints.last.latitude,
+                            longitude: trip.routePoints.last.longitude,
+                          );
+                          if (resolved != null && resolved.isNotEmpty) {
+                            endAddress = resolved;
+                            updated = true;
+                          }
+                        } catch (_) {}
                       }
 
-                      await ref
-                          .read(tripPermissionsControllerProvider)
-                          .openAppSettings();
-                    },
-                    onEnableNotifications: () async {
-                      await ref
-                          .read(tripPermissionsControllerProvider)
-                          .requestNotificationAccess();
-                    },
+                      final snapshotMissing =
+                          snapshotPath == null ||
+                          !File('${docDir.path}/$snapshotPath').existsSync();
+
+                      if (snapshotMissing && trip.routePoints.length >= 2) {
+                        try {
+                          final processed = await routeProcessing.process(
+                            trip.routePoints,
+                          );
+                          if (processed != null) {
+                            final newPath = await snapshotWriter.writeSnapshot(
+                              tripId: trip.id,
+                              route: processed,
+                            );
+                            if (newPath != null) {
+                              snapshotPath = newPath;
+                              updated = true;
+                            }
+                          }
+                        } catch (_) {}
+                      }
+
+                      if (updated) {
+                        final newTrip = trip.copyWith(
+                          startAddress: startAddress,
+                          endAddress: endAddress,
+                          routeSnapshotPath: snapshotPath,
+                        );
+                        await tripRepo.insert(newTrip);
+                      }
+                    }
+                  },
+                  child: CustomScrollView(
+                    slivers: [
+                      if (permissions.isRefreshing)
+                        const SliverPadding(
+                          padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
+                        )
+                      else if (permissions.hasBlockingLocationIssue ||
+                          permissions.shouldWarnAboutNotifications)
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _PermissionStack(
+                              permissions: permissions,
+                              onFixLocation: () async {
+                                final locationStatus = permissions.location.status;
+                                if (locationStatus == TripPermissionStatus.denied) {
+                                  await ref
+                                      .read(tripPermissionsControllerProvider)
+                                      .requestLocationAccess();
+                                  return;
+                                }
+
+                                if (locationStatus ==
+                                    TripPermissionStatus.serviceDisabled) {
+                                  await ref
+                                      .read(tripPermissionsControllerProvider)
+                                      .openLocationSettings();
+                                  return;
+                                }
+
+                                await ref
+                                    .read(tripPermissionsControllerProvider)
+                                    .openAppSettings();
+                              },
+                              onEnableNotifications: () async {
+                                await ref
+                                    .read(tripPermissionsControllerProvider)
+                                    .requestNotificationAccess();
+                              },
+                            ),
+                          ),
+                        ),
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        sliver: SliverToBoxAdapter(
+                          child: _TripsHero(
+                            activeVehicleId: activeVehicleId,
+                            tripsAsync: tripHistoryAsync,
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
+                      _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
+                    ],
                   ),
                 ),
-              ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              sliver: SliverToBoxAdapter(
-                child: _TripsHero(
-                  activeVehicleId: activeVehicleId,
-                  tripsAsync: tripHistoryAsync,
-                ),
-              ),
+                const GroupRideScreen(),
+              ],
             ),
-            const SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
-            _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
-          ],
-        ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: null,
-        onPressed:
-            permissions.canStartTrip ||
-                ref.read(tripTrackingProvider).session != null
-            ? () {
-                final trackingState = ref.read(tripTrackingProvider);
-                if (trackingState.session != null) {
-                  context.push('/live-trip');
-                  return;
-                }
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              heroTag: null,
+              onPressed:
+                  permissions.canStartTrip ||
+                      ref.read(tripTrackingProvider).session != null
+                  ? () {
+                      final trackingState = ref.read(tripTrackingProvider);
+                      if (trackingState.session != null) {
+                        context.push('/live-trip');
+                        return;
+                      }
 
-                if (activeVehicleId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Please add and select a vehicle first in Settings.',
-                      ),
-                    ),
-                  );
-                  return;
-                }
+                      if (activeVehicleId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Please add and select a vehicle first in Settings.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
 
-                _startTrip(context, ref, activeVehicleId);
-              }
-            : null,
-        tooltip: permissions.canStartTrip
-            ? 'Start Trip'
-            : permissions.blockingLocationMessage ?? 'Location required',
-        child: Icon(
-          ref.watch(tripTrackingProvider).session != null
-              ? LucideIcons.eye
-              : LucideIcons.route,
-        ),
-      ),
+                      _startTrip(context, ref, activeVehicleId);
+                    }
+                  : null,
+              tooltip: permissions.canStartTrip
+                  ? 'Start Trip'
+                  : permissions.blockingLocationMessage ?? 'Location required',
+              child: Icon(
+                ref.watch(tripTrackingProvider).session != null
+                    ? LucideIcons.eye
+                    : LucideIcons.route,
+              ),
+            )
+          : null,
     );
   }
 

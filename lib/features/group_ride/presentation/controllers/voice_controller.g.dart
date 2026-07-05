@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_service.dart';
+part of 'voice_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'auth_service.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(AuthService)
-final authServiceProvider = AuthServiceProvider._();
+@ProviderFor(VoiceController)
+final voiceControllerProvider = VoiceControllerProvider._();
 
-final class AuthServiceProvider
-    extends $NotifierProvider<AuthService, AuthState> {
-  AuthServiceProvider._()
+final class VoiceControllerProvider
+    extends $NotifierProvider<VoiceController, VoiceState> {
+  VoiceControllerProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'authServiceProvider',
+        name: r'voiceControllerProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$authServiceHash();
+  String debugGetCreateSourceHash() => _$voiceControllerHash();
 
   @$internal
   @override
-  AuthService create() => AuthService();
+  VoiceController create() => VoiceController();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AuthState value) {
+  Override overrideWithValue(VoiceState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AuthState>(value),
+      providerOverride: $SyncValueProvider<VoiceState>(value),
     );
   }
 }
 
-String _$authServiceHash() => r'e7e6bbd350e103efdfd8fe98247a4e8387ab642b';
+String _$voiceControllerHash() => r'69b2bfb43fe8aeb2b13069e17a2bf6b73dfa9619';
 
-abstract class _$AuthService extends $Notifier<AuthState> {
-  AuthState build();
+abstract class _$VoiceController extends $Notifier<VoiceState> {
+  VoiceState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AuthState, AuthState>;
+    final ref = this.ref as $Ref<VoiceState, VoiceState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AuthState, AuthState>,
-              AuthState,
+              AnyNotifier<VoiceState, VoiceState>,
+              VoiceState,
               Object?,
               Object?
             >;
