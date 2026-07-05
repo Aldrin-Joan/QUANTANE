@@ -10,7 +10,6 @@ import 'package:quantane/core/theme/colors.dart';
 enum SpeedDisplayMode { digital, analog }
 
 class SpeedGauge extends StatelessWidget {
-
   const SpeedGauge({
     super.key,
     required this.speed,
@@ -52,7 +51,6 @@ class SpeedGauge extends StatelessWidget {
 }
 
 class _DigitalSpeedGauge extends StatelessWidget {
-
   const _DigitalSpeedGauge({
     super.key,
     required this.speed,
@@ -111,7 +109,6 @@ class _DigitalSpeedGauge extends StatelessWidget {
 }
 
 class _AnalogSpeedGauge extends StatelessWidget {
-
   const _AnalogSpeedGauge({
     super.key,
     required this.speed,
@@ -173,7 +170,6 @@ class _AnalogSpeedGauge extends StatelessWidget {
 }
 
 class _SpeedWarningBanner extends StatelessWidget {
-
   const _SpeedWarningBanner({required this.message, required this.color});
   final String message;
   final Color color;
@@ -220,7 +216,6 @@ String? _speedWarning(double speed) {
 }
 
 class _SpeedGaugePainter extends CustomPainter {
-
   _SpeedGaugePainter({
     required this.speed,
     required this.maxSpeed,
@@ -274,7 +269,6 @@ class _SpeedGaugePainter extends CustomPainter {
 }
 
 class _AnalogSpeedGaugePainter extends CustomPainter {
-
   _AnalogSpeedGaugePainter({
     required this.speed,
     required this.maxSpeed,

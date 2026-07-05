@@ -32,7 +32,8 @@ class TripsScreen extends ConsumerStatefulWidget {
   ConsumerState<TripsScreen> createState() => _TripsScreenState();
 }
 
-class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProviderStateMixin {
+class _TripsScreenState extends ConsumerState<TripsScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -85,9 +86,15 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
 
                     final trips = tripHistoryAsync.value ?? [];
                     final tripRepo = ref.read(tripRepositoryProvider);
-                    final geocoder = ref.read(nominatimGeocodingServiceProvider);
-                    final routeProcessing = ref.read(routeProcessingServiceProvider);
-                    final snapshotWriter = ref.read(routeSnapshotWriterProvider);
+                    final geocoder = ref.read(
+                      nominatimGeocodingServiceProvider,
+                    );
+                    final routeProcessing = ref.read(
+                      routeProcessingServiceProvider,
+                    );
+                    final snapshotWriter = ref.read(
+                      routeSnapshotWriterProvider,
+                    );
                     final docDir = await getApplicationDocumentsDirectory();
 
                     for (final trip in trips) {
@@ -96,7 +103,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                       var endAddress = trip.endAddress;
                       var snapshotPath = trip.routeSnapshotPath;
 
-                      if ((startAddress == null || startAddress == 'Unknown location') &&
+                      if ((startAddress == null ||
+                              startAddress == 'Unknown location') &&
                           trip.routePoints.isNotEmpty) {
                         try {
                           final resolved = await geocoder.reverseGeocode(
@@ -110,7 +118,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                         } catch (_) {}
                       }
 
-                      if ((endAddress == null || endAddress == 'Unknown location') &&
+                      if ((endAddress == null ||
+                              endAddress == 'Unknown location') &&
                           trip.routePoints.isNotEmpty) {
                         try {
                           final resolved = await geocoder.reverseGeocode(
@@ -161,7 +170,9 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                       if (permissions.isRefreshing)
                         const SliverPadding(
                           padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
+                          sliver: SliverToBoxAdapter(
+                            child: _PermissionCard.loading(),
+                          ),
                         )
                       else if (permissions.hasBlockingLocationIssue ||
                           permissions.shouldWarnAboutNotifications)
@@ -171,8 +182,10 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                             child: _PermissionStack(
                               permissions: permissions,
                               onFixLocation: () async {
-                                final locationStatus = permissions.location.status;
-                                if (locationStatus == TripPermissionStatus.denied) {
+                                final locationStatus =
+                                    permissions.location.status;
+                                if (locationStatus ==
+                                    TripPermissionStatus.denied) {
                                   await ref
                                       .read(tripPermissionsControllerProvider)
                                       .requestLocationAccess();
@@ -208,8 +221,15 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                           ),
                         ),
                       ),
-                      const SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
-                      _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
+                      const SliverToBoxAdapter(
+                        child: SectionHeader(title: 'Recent Trips'),
+                      ),
+                      _buildTripSliver(
+                        context,
+                        ref,
+                        activeVehicleId,
+                        tripHistoryAsync,
+                      ),
                     ],
                   ),
                 ),
@@ -360,7 +380,6 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
 }
 
 class _PermissionStack extends StatelessWidget {
-
   const _PermissionStack({
     required this.permissions,
     required this.onFixLocation,
@@ -405,7 +424,6 @@ class _PermissionStack extends StatelessWidget {
 }
 
 class _PermissionCard extends StatelessWidget {
-
   const _PermissionCard({
     required this.icon,
     required this.title,
@@ -487,7 +505,6 @@ class _PermissionCard extends StatelessWidget {
 }
 
 class _TripsHero extends StatelessWidget {
-
   const _TripsHero({required this.activeVehicleId, required this.tripsAsync});
   final String? activeVehicleId;
   final AsyncValue<List<Trip>> tripsAsync;
@@ -679,7 +696,6 @@ class _TripsHero extends StatelessWidget {
 }
 
 class _TripsHeroStat extends StatelessWidget {
-
   const _TripsHeroStat({
     required this.icon,
     required this.label,
@@ -726,7 +742,6 @@ class _TripsHeroStat extends StatelessWidget {
 }
 
 class _TripsEmptyState extends StatelessWidget {
-
   const _TripsEmptyState({
     required this.icon,
     required this.title,

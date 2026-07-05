@@ -338,7 +338,6 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
 }
 
 class _ModeButton extends StatelessWidget {
-
   const _ModeButton({
     required this.label,
     required this.selected,

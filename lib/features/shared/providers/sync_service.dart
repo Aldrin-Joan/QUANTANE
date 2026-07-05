@@ -10,7 +10,6 @@ part 'sync_service.g.dart';
 enum SyncStateStatus { idle, syncing, success, error }
 
 class SyncProgress {
-
   SyncProgress({
     required this.status,
     this.lastSyncTime,
@@ -43,8 +42,11 @@ class SyncService extends _$SyncService {
 
   @override
   SyncProgress build() {
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
-      final hasConnection = results.isNotEmpty && results.first != ConnectivityResult.none;
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
+      final hasConnection =
+          results.isNotEmpty && results.first != ConnectivityResult.none;
       if (hasConnection) {
         state = SyncProgress(
           status: SyncStateStatus.success,

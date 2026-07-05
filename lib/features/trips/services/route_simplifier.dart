@@ -34,7 +34,6 @@ class RouteSimplifier {
 }
 
 class _SimplifyRequest {
-
   const _SimplifyRequest(this.points, this.epsilonMeters);
   final List<TripPoint> points;
   final double epsilonMeters;

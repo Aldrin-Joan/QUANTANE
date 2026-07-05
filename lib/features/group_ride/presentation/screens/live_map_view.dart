@@ -29,7 +29,8 @@ class LiveMapView extends ConsumerStatefulWidget {
   ConsumerState<LiveMapView> createState() => _LiveMapViewState();
 }
 
-class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderStateMixin {
+class _LiveMapViewState extends ConsumerState<LiveMapView>
+    with TickerProviderStateMixin {
   late final AnimatedMapController _mapController;
   final Map<String, RiderTelemetry> _telemetries = {};
   Position? _myPosition;
@@ -57,11 +58,17 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
     super.dispose();
   }
 
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const p = 0.017453292519943295;
-    final a = 0.5 - cos((lat2 - lat1) * p) / 2 +
-          cos(lat1 * p) * cos(lat2 * p) *
-          (1 - cos((lon2 - lon1) * p)) / 2;
+    final a =
+        0.5 -
+        cos((lat2 - lat1) * p) / 2 +
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
@@ -74,14 +81,17 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<RiderTelemetry>>(groupTelemetryProvider(widget.group.id), (previous, next) {
-      final telemetry = next.value;
-      if (telemetry != null && mounted) {
-        setState(() {
-          _telemetries[telemetry.riderId] = telemetry;
-        });
-      }
-    });
+    ref.listen<AsyncValue<RiderTelemetry>>(
+      groupTelemetryProvider(widget.group.id),
+      (previous, next) {
+        final telemetry = next.value;
+        if (telemetry != null && mounted) {
+          setState(() {
+            _telemetries[telemetry.riderId] = telemetry;
+          });
+        }
+      },
+    );
 
     final activeRiders = _telemetries.values.toList();
     final center = _myPosition != null
@@ -106,7 +116,10 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                 // Me Marker
                 if (_myPosition != null)
                   Marker(
-                    point: LatLng(_myPosition!.latitude, _myPosition!.longitude),
+                    point: LatLng(
+                      _myPosition!.latitude,
+                      _myPosition!.longitude,
+                    ),
                     width: 45,
                     height: 45,
                     child: Container(
@@ -116,14 +129,20 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                         border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryColor.withValues(alpha: 0.4),
+                            color: AppColors.primaryColor.withValues(
+                              alpha: 0.4,
+                            ),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),
                         ],
                       ),
                       child: const Center(
-                        child: Icon(LucideIcons.navigation, size: 18, color: Colors.white),
+                        child: Icon(
+                          LucideIcons.navigation,
+                          size: 18,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -151,28 +170,41 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                               border: Border.all(color: Colors.white, width: 2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accentColor.withValues(alpha: 0.4),
+                                  color: AppColors.accentColor.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   blurRadius: 8,
                                   spreadRadius: 2,
                                 ),
                               ],
                             ),
                             child: const Center(
-                              child: Icon(LucideIcons.user, size: 18, color: Colors.white),
+                              child: Icon(
+                                LucideIcons.user,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           Positioned(
                             top: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 telemetry.speed.toStringAsFixed(0),
-                                style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -192,23 +224,66 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
           right: 16,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              GestureDetector(
+                onTap: () {
+                  if (_myPosition != null) {
+                    _mapController.animateTo(
+                      dest: LatLng(
+                        _myPosition!.latitude,
+                        _myPosition!.longitude,
+                      ),
+                      zoom: 15.0,
+                    );
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.95),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    LucideIcons.locate,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
               if (activeRiders.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.cardColor.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.satellite, size: 16, color: AppColors.textSecondary),
+                      Icon(
+                        LucideIcons.satellite,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Waiting for other riders...',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -239,18 +314,29 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                         },
                         child: Container(
                           margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.cardColor.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: AppColors.accentColor.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: AppColors.accentColor.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           child: Row(
                             children: [
                               const CircleAvatar(
                                 radius: 12,
                                 backgroundColor: AppColors.accentColor,
-                                child: Icon(LucideIcons.user, size: 12, color: Colors.white),
+                                child: Icon(
+                                  LucideIcons.user,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Column(
@@ -259,11 +345,18 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                                 children: [
                                   Text(
                                     'Rider ${rider.riderId.substring(0, min(4, rider.riderId.length))}',
-                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   Text(
                                     '${dist.toStringAsFixed(1)} km · ${rider.speed.toStringAsFixed(0)} km/h',
-                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 10,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -321,12 +414,18 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                         children: [
                           Text(
                             'Rider ${rider.riderId.substring(0, min(6, rider.riderId.length))}',
-                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
                             rider.status.toUpperCase(),
                             style: TextStyle(
-                              color: rider.status == 'moving' ? AppColors.accentColor : AppColors.warningColor,
+                              color: rider.status == 'moving'
+                                  ? AppColors.accentColor
+                                  : AppColors.warningColor,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -337,7 +436,10 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(LucideIcons.x, color: AppColors.textSecondary),
+                    icon: const Icon(
+                      LucideIcons.x,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -346,8 +448,14 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatTile('Distance', '${dist.toStringAsFixed(1)} KM'),
-                  _buildStatTile('Current Speed', '${rider.speed.toStringAsFixed(0)} KM/H'),
-                  _buildStatTile('Heading', '${rider.heading.toStringAsFixed(0)}°'),
+                  _buildStatTile(
+                    'Current Speed',
+                    '${rider.speed.toStringAsFixed(0)} KM/H',
+                  ),
+                  _buildStatTile(
+                    'Heading',
+                    '${rider.heading.toStringAsFixed(0)}°',
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -384,7 +492,11 @@ class _LiveMapViewState extends ConsumerState<LiveMapView> with TickerProviderSt
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );

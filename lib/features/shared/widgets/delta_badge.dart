@@ -8,7 +8,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:quantane/core/theme/colors.dart';
 
 class DeltaBadge extends StatelessWidget {
-
   const DeltaBadge({super.key, required this.value, this.isPercentage = true});
   final double value;
   final bool isPercentage;

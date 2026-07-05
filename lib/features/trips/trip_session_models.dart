@@ -8,7 +8,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/trip.dart';
 
 class TripPoint {
-
   const TripPoint({
     required this.latitude,
     required this.longitude,
@@ -57,7 +56,6 @@ class TripPoint {
 }
 
 class TripState {
-
   const TripState({
     required this.sessionId,
     required this.vehicleId,

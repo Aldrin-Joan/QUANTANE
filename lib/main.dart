@@ -18,7 +18,6 @@ import 'package:quantane/firebase_options.dart';
 
 // import 'package:firebase_auth/firebase_auth.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');

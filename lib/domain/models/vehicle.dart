@@ -3,7 +3,6 @@ enum VehicleType { bike, car, truck }
 enum FuelType { petrol, diesel, ev, cng }
 
 class Vehicle {
-
   Vehicle({
     required this.id,
     required this.name,

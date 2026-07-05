@@ -11,7 +11,6 @@ import 'package:quantane/features/shared/widgets/delta_badge.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 
 class FuelEntryCard extends StatelessWidget {
-
   const FuelEntryCard({
     super.key,
     required this.entry,

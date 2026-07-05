@@ -12,7 +12,6 @@ import 'package:quantane/features/trips/trip_detail_screen.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class _FakeTripRepository implements TripRepository {
-
   _FakeTripRepository(this.trip);
   final Trip? trip;
 

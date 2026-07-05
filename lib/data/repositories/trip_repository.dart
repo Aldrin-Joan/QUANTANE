@@ -58,12 +58,11 @@ class TripSnapshotStorage {
 }
 
 class TripRepository {
-
   TripRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+  }) : _firestore = firestore,
+       _auth = auth;
   final FirebaseFirestore? _firestore;
   final FirebaseAuth? _auth;
 
@@ -98,14 +97,15 @@ class TripRepository {
     final col = _collection;
     if (col == null) return Stream.value(const []);
 
-    return col
-        .where('vehicleId', isEqualTo: vehicleId)
-        .snapshots()
-        .map((snapshot) {
-          final trips = snapshot.docs.map((doc) => Trip.fromJson(doc.data())).toList();
-          trips.sort((a, b) => b.startTime.compareTo(a.startTime));
-          return trips;
-        });
+    return col.where('vehicleId', isEqualTo: vehicleId).snapshots().map((
+      snapshot,
+    ) {
+      final trips = snapshot.docs
+          .map((doc) => Trip.fromJson(doc.data()))
+          .toList();
+      trips.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return trips;
+    });
   }
 
   Future<Trip?> getById(String id) async {
@@ -122,10 +122,20 @@ class TripRepository {
 
     final now = DateTime.now().toUtc();
     final updatedTrip = trip.lastUpdated == null
-        ? trip.copyWith(lastUpdated: now, startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc())
-        : trip.copyWith(startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc(), lastUpdated: trip.lastUpdated?.toUtc());
+        ? trip.copyWith(
+            lastUpdated: now,
+            startTime: trip.startTime.toUtc(),
+            endTime: trip.endTime?.toUtc(),
+          )
+        : trip.copyWith(
+            startTime: trip.startTime.toUtc(),
+            endTime: trip.endTime?.toUtc(),
+            lastUpdated: trip.lastUpdated?.toUtc(),
+          );
 
-    await col.doc(updatedTrip.id).set(
+    await col
+        .doc(updatedTrip.id)
+        .set(
           updatedTrip.toJson(),
           SetOptions(merge: true),
         );

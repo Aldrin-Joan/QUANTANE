@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Project imports:
 import 'package:quantane/features/group_ride/data/datasources/supabase_provider.dart';
@@ -62,10 +63,15 @@ class VoiceController extends _$VoiceController {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      
+
       // 1. Fetch voice room token from Supabase Edge Function
+      final customUrl = dotenv.get('SUPERBASE_LIVE_TOKEN', fallback: '');
+      final functionName = customUrl.isNotEmpty && Uri.parse(customUrl).pathSegments.isNotEmpty
+          ? Uri.parse(customUrl).pathSegments.last
+          : 'livekit-token-generator';
+
       final response = await supabase.functions.invoke(
-        'livekit-token-generator',
+        functionName,
         body: {'groupId': groupId},
       );
 
@@ -74,7 +80,10 @@ class VoiceController extends _$VoiceController {
         throw Exception('Failed to obtain Voice Room Token from backend.');
       }
 
-      final livekitUrl = dotenv.get('LIVEKIT_URL', fallback: 'wss://quantane.livekit.cloud');
+      final livekitUrl = dotenv.get(
+        'LIVEKIT_URL',
+        fallback: 'wss://quantane.livekit.cloud',
+      );
 
       // 2. Initialize and connect LiveKit Room
       final room = Room();
@@ -95,7 +104,14 @@ class VoiceController extends _$VoiceController {
       listener.on<RoomDisconnectedEvent>((event) {
         state = VoiceState();
       });
-
+    } on FunctionException catch (e) {
+      final errorMessage = e.status == 404
+          ? 'Failed to join voice session: Edge Function "livekit-token-generator" was not found (404).\n\nPlease deploy it using the Supabase CLI: "supabase functions deploy livekit-token-generator".'
+          : 'Failed to join voice session: FunctionException (${e.status}) ${e.details ?? e.reasonPhrase}';
+      state = state.copyWith(
+        isConnecting: false,
+        error: errorMessage,
+      );
     } catch (e) {
       state = state.copyWith(
         isConnecting: false,

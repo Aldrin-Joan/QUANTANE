@@ -160,7 +160,6 @@ class FuelHistoryScreen extends ConsumerWidget {
 }
 
 class _FuelHero extends StatelessWidget {
-
   const _FuelHero({required this.tracksAsync});
   final AsyncValue<List<FuelEntry>> tracksAsync;
 
@@ -332,7 +331,6 @@ double _totalDistanceFromEntries(List<FuelEntry> entries) {
 }
 
 class _FuelHeroStat extends StatelessWidget {
-
   const _FuelHeroStat({
     required this.icon,
     required this.label,

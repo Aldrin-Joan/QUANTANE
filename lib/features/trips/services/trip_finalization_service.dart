@@ -9,7 +9,6 @@ import 'package:quantane/features/trips/services/route_snapshot_service.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class TripFinalizationService {
-
   TripFinalizationService({
     required RouteProcessingService routeProcessingService,
     required ReverseGeocodingService geocodingService,

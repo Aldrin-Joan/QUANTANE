@@ -15,7 +15,6 @@ import 'package:quantane/features/home/insight_providers.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 
 class AddFuelSheet extends ConsumerStatefulWidget {
-
   const AddFuelSheet({super.key, this.existingEntry});
   final FuelEntry? existingEntry;
 

@@ -20,7 +20,8 @@ class GroupRideSession {
       inviteCode: json['inviteCode'] as String,
       isPrivate: json['isPrivate'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String).toUtc(),
-      members: (json['members'] as List<dynamic>?)
+      members:
+          (json['members'] as List<dynamic>?)
               ?.map((m) => GroupMember.fromJson(m as Map<String, dynamic>))
               .toList() ??
           const [],

@@ -9,7 +9,6 @@ import 'package:quantane/domain/models/analytics_summary.dart';
 import 'package:quantane/features/shared/widgets/stat_tile.dart';
 
 class QuickStatsGrid extends StatelessWidget {
-
   const QuickStatsGrid({super.key, required this.stats});
   final QuickStats stats;
 

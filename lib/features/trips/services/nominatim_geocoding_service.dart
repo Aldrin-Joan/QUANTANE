@@ -15,7 +15,6 @@ abstract class ReverseGeocodingService {
 }
 
 class NominatimGeocodingService implements ReverseGeocodingService {
-
   NominatimGeocodingService({
     required GeocodingCacheRepository cacheRepository,
     http.Client? client,

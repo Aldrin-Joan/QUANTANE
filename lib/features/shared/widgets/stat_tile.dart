@@ -6,7 +6,6 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/shared/widgets/delta_badge.dart';
 
 class StatTile extends StatelessWidget {
-
   const StatTile({
     super.key,
     required this.icon,

@@ -15,7 +15,6 @@ abstract class RouteSnapshotWriter {
 }
 
 class RouteSnapshotService implements RouteSnapshotWriter {
-
   RouteSnapshotService({GlobalKey<RouteSnapshotHostState>? hostKey})
     : hostKey = hostKey ?? routeSnapshotHostKey;
   final GlobalKey<RouteSnapshotHostState> hostKey;
@@ -56,7 +55,6 @@ class RouteSnapshotService implements RouteSnapshotWriter {
 }
 
 class FakeRouteSnapshotWriter implements RouteSnapshotWriter {
-
   FakeRouteSnapshotWriter({this.onWrite});
   final Future<String?> Function({
     required String tripId,

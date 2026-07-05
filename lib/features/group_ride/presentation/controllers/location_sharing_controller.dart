@@ -31,7 +31,8 @@ class LocationSharingController extends _$LocationSharingController {
 
     // 1. Join Supabase Broadcast channel
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
     final repo = ref.read(locationSharingRepositoryProvider);
@@ -45,8 +46,9 @@ class LocationSharingController extends _$LocationSharingController {
       distanceFilter: 5, // Send every 5 meters
     );
 
-    _positionSub = Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen(_broadcast);
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen(_broadcast);
   }
 
   void stopSharing() {
@@ -59,7 +61,8 @@ class LocationSharingController extends _$LocationSharingController {
   void _broadcast(Position pos) {
     final groupId = _activeGroupId;
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (groupId == null || userId == null) return;
 
     final speedKmh = pos.speed * 3.6;
@@ -72,7 +75,8 @@ class LocationSharingController extends _$LocationSharingController {
       speed: speedKmh,
       heading: pos.heading,
       accuracy: pos.accuracy,
-      batteryLevel: 100, // Fallback battery level since battery_plus is not in pubspec
+      batteryLevel:
+          100, // Fallback battery level since battery_plus is not in pubspec
       status: status,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );

@@ -43,13 +43,16 @@ class _ChatViewState extends ConsumerState<ChatView> {
     if (text.isEmpty) return;
 
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
     _messageController.clear();
 
     final chatRepo = ref.read(groupChatRepositoryProvider);
-    final displayName = authState.user?.displayName ?? 'Rider ${userId.substring(0, min(4, userId.length))}';
+    final displayName =
+        authState.user?.displayName ??
+        'Rider ${userId.substring(0, min(4, userId.length))}';
 
     try {
       await chatRepo.sendMessage(widget.group.id, userId, displayName, text);
@@ -73,7 +76,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(groupChatMessagesProvider(widget.group.id));
     final authState = ref.watch(authServiceProvider);
-    final currentUserId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     return Column(
       children: [
@@ -85,7 +89,11 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.message_square, size: 48, color: AppColors.textSecondary),
+                      Icon(
+                        LucideIcons.message_square,
+                        size: 48,
+                        color: AppColors.textSecondary,
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'No messages yet.\nSay hello to start the ride chat!',
@@ -98,11 +106,16 @@ class _ChatViewState extends ConsumerState<ChatView> {
               }
 
               // Scroll to bottom whenever messages are loaded
-              WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => _scrollToBottom(),
+              );
 
               return ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final message = messages[index];
@@ -127,13 +140,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   Widget _buildMessageBubble(GroupChatMessage message, bool isMe) {
     final timeStr = DateFormat('hh:mm a').format(message.createdAt.toLocal());
-    final statusColor = message.status == 'pending' ? Colors.grey : AppColors.accentColor;
+    final statusColor = message.status == 'pending'
+        ? Colors.grey
+        : AppColors.accentColor;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isMe ? AppColors.primaryColor : AppColors.cardColor,
@@ -167,7 +184,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
               ),
             Text(
               message.content,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 4),
             Row(
@@ -176,16 +196,21 @@ class _ChatViewState extends ConsumerState<ChatView> {
               children: [
                 Text(
                   timeStr,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 10,
+                  ),
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),
                   Icon(
-                    message.status == 'pending' ? LucideIcons.clock : LucideIcons.check,
+                    message.status == 'pending'
+                        ? LucideIcons.clock
+                        : LucideIcons.check,
                     size: 11,
                     color: statusColor,
                   ),
-                ]
+                ],
               ],
             ),
           ],
@@ -211,16 +236,24 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 decoration: BoxDecoration(
                   color: AppColors.cardColor,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
                 ),
                 child: TextField(
                   controller: _messageController,
                   textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
                   decoration: const InputDecoration(
                     hintText: 'Type a message...',
                     hintStyle: TextStyle(color: AppColors.textSecondary),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     border: InputBorder.none,
                   ),
                 ),
@@ -235,7 +268,11 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   color: AppColors.primaryColor,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.send, color: Colors.white, size: 18),
+                child: const Icon(
+                  LucideIcons.send,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ],

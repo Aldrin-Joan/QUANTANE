@@ -6,7 +6,6 @@ import 'package:quantane/features/trips/services/route_simplifier.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class RouteBoundingBox {
-
   const RouteBoundingBox({
     required this.minLatitude,
     required this.maxLatitude,
@@ -28,7 +27,6 @@ class RouteBoundingBox {
 }
 
 class ProcessedRoute {
-
   const ProcessedRoute({
     required this.simplifiedPoints,
     required this.boundingBox,
@@ -50,7 +48,6 @@ class ProcessedRoute {
 }
 
 class RouteProcessingService {
-
   RouteProcessingService({RouteSimplifier? simplifier})
     : _simplifier = simplifier ?? RouteSimplifier();
   final RouteSimplifier _simplifier;

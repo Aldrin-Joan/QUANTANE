@@ -11,7 +11,6 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
-
   const AuthScreen({
     super.key,
     required this.isUpgrade,
@@ -122,7 +121,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           message,
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
-        backgroundColor: isError ? AppColors.dangerColor : AppColors.accentColor,
+        backgroundColor: isError
+            ? AppColors.dangerColor
+            : AppColors.accentColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
@@ -216,8 +217,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                       widget.isUpgrade
                           ? 'Save your guest database to a secure cloud account'
                           : (_isLoginMode
-                              ? 'Enter your credentials to access your cloud sync'
-                              : 'Create an account to synchronize vehicles & analytics'),
+                                ? 'Enter your credentials to access your cloud sync'
+                                : 'Create an account to synchronize vehicles & analytics'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 13,
@@ -366,8 +367,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                                         widget.isUpgrade
                                             ? 'Link Account & Sync'
                                             : (_isLoginMode
-                                                ? 'Sign In'
-                                                : 'Register Account'),
+                                                  ? 'Sign In'
+                                                  : 'Register Account'),
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,

@@ -18,7 +18,11 @@ class LocationSharingRepository {
   Stream<RiderTelemetry> get telemetryStream => _telemetryController.stream;
   Stream<List<String>> get presenceStream => _presenceController.stream;
 
-  void startSharing(String groupId, String userId, Map<String, dynamic> initialPresence) {
+  void startSharing(
+    String groupId,
+    String userId,
+    Map<String, dynamic> initialPresence,
+  ) {
     stopSharing();
 
     _channel = _client.channel('room:group_ride:$groupId');

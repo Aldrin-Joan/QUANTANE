@@ -24,7 +24,9 @@ class FakeTripRepository implements TripRepository {
 
   @override
   Stream<List<Trip>> watchAll(String vehicleId) {
-    return Stream.value(_trips.values.where((t) => t.vehicleId == vehicleId).toList());
+    return Stream.value(
+      _trips.values.where((t) => t.vehicleId == vehicleId).toList(),
+    );
   }
 }
 

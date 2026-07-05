@@ -11,7 +11,6 @@ import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/widgets/trip_map_style.dart';
 
 class TripRouteMap extends StatefulWidget {
-
   const TripRouteMap({
     super.key,
     required this.routePoints,
@@ -164,7 +163,6 @@ class _TripRouteMapState extends State<TripRouteMap> {
 }
 
 class _RouteMarker extends StatelessWidget {
-
   const _RouteMarker({required this.color});
   final Color color;
 
@@ -205,7 +203,6 @@ class _AttributionLabel extends StatelessWidget {
 }
 
 class _RouteUnavailable extends StatelessWidget {
-
   const _RouteUnavailable({this.height});
   final double? height;
 

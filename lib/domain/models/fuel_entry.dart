@@ -1,5 +1,4 @@
 class FuelEntry {
-
   FuelEntry({
     required this.id,
     required this.vehicleId,

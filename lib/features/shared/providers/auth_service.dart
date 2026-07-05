@@ -148,7 +148,8 @@ class AuthService extends _$AuthService {
         final authResult = await user.linkWithCredential(credential);
         state = state.copyWith(user: authResult.user, isLoading: false);
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
+        if (e.code == 'email-already-in-use' ||
+            e.code == 'credential-already-in-use') {
           // Fallback: Sign in directly to merge or load existing cloud data
           final authResult = await _auth.signInWithEmailAndPassword(
             email: email,
@@ -177,7 +178,8 @@ class AuthService extends _$AuthService {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final currentUserBefore = _auth.currentUser;
-      final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
+      final isGuest =
+          currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
         await _clearLocalDatabaseAndPreferences();
@@ -236,7 +238,8 @@ class AuthService extends _$AuthService {
         final authResult = await user.linkWithCredential(credential);
         state = state.copyWith(user: authResult.user, isLoading: false);
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
+        if (e.code == 'email-already-in-use' ||
+            e.code == 'credential-already-in-use') {
           // Fallback: Sign in directly to load existing cloud data
           final authResult = await _auth.signInWithCredential(credential);
           final prefs = await SharedPreferences.getInstance();
@@ -262,7 +265,8 @@ class AuthService extends _$AuthService {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final currentUserBefore = _auth.currentUser;
-      final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
+      final isGuest =
+          currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
         await _clearLocalDatabaseAndPreferences();
@@ -292,7 +296,8 @@ class AuthService extends _$AuthService {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final currentUserBefore = _auth.currentUser;
-      final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
+      final isGuest =
+          currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
         await _clearLocalDatabaseAndPreferences();

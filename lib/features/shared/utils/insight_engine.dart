@@ -1,5 +1,4 @@
-﻿class Insight {
-
+class Insight {
   Insight({
     required this.title,
     required this.description,

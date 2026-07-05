@@ -26,12 +26,17 @@ class GroupRideRepository {
     final inviteCode = _generateInviteCode();
 
     // 1. Insert Group
-    final groupData = await _client.from('groups').insert({
-      'name': name,
-      'owner_id': userId,
-      'invite_code': inviteCode,
-      'encryption_salt': _generateInviteCode(), // simplified salt for coding structure
-    }).select().single();
+    final groupData = await _client
+        .from('groups')
+        .insert({
+          'name': name,
+          'owner_id': userId,
+          'invite_code': inviteCode,
+          'encryption_salt':
+              _generateInviteCode(), // simplified salt for coding structure
+        })
+        .select()
+        .single();
 
     final groupId = groupData['id'] as String;
 
@@ -55,16 +60,19 @@ class GroupRideRepository {
           role: 'owner',
           joinedAt: DateTime.now(),
           isOnline: true,
-        )
+        ),
       ],
     );
   }
 
   Future<void> deleteGroup(String groupId) async {
     // Soft delete by setting deleted_at (or hard delete if preferred, here soft delete)
-    await _client.from('groups').update({
-      'deleted_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', groupId);
+    await _client
+        .from('groups')
+        .update({
+          'deleted_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', groupId);
   }
 
   Future<GroupRideSession> joinGroup(String inviteCode, String userId) async {
@@ -129,7 +137,10 @@ class GroupRideRepository {
     return response.map((data) {
       return GroupMember(
         userId: data['user_id'] as String,
-        displayName: (data['user_id'] as String).substring(0, min(6, (data['user_id'] as String).length)), // fallback identifier
+        displayName: (data['user_id'] as String).substring(
+          0,
+          min(6, (data['user_id'] as String).length),
+        ), // fallback identifier
         role: data['role'] as String? ?? 'member',
         joinedAt: DateTime.parse(data['joined_at'] as String),
         isOnline: false,
@@ -141,7 +152,7 @@ class GroupRideRepository {
     // Watches the group_members table and maps it to group list
     // In supabase_flutter, we can query it and listen to realtime updates.
     // For production-grade, we fetch and merge realtime streams.
-    
+
     final controller = StreamController<List<GroupRideSession>>();
 
     Future<void> fetchAndEmit() async {
@@ -157,15 +168,17 @@ class GroupRideRepository {
           if (gMap != null && gMap['deleted_at'] == null) {
             final groupId = gMap['id'] as String;
             final members = await getGroupMembers(groupId);
-            groups.add(GroupRideSession(
-              id: groupId,
-              name: gMap['name'] as String,
-              ownerId: gMap['owner_id'] as String,
-              inviteCode: gMap['invite_code'] as String,
-              createdAt: DateTime.parse(gMap['created_at'] as String),
-              isPrivate: gMap['is_private'] as bool? ?? false,
-              members: members,
-            ));
+            groups.add(
+              GroupRideSession(
+                id: groupId,
+                name: gMap['name'] as String,
+                ownerId: gMap['owner_id'] as String,
+                inviteCode: gMap['invite_code'] as String,
+                createdAt: DateTime.parse(gMap['created_at'] as String),
+                isPrivate: gMap['is_private'] as bool? ?? false,
+                members: members,
+              ),
+            );
           }
         }
         if (!controller.isClosed) {

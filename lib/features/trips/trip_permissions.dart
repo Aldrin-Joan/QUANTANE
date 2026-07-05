@@ -20,7 +20,6 @@ enum TripPermissionStatus {
 }
 
 class TripLocationPermission {
-
   const TripLocationPermission(this.status);
   final TripPermissionStatus status;
 
@@ -66,7 +65,6 @@ class TripLocationPermission {
 }
 
 class TripNotificationPermission {
-
   const TripNotificationPermission(this.status);
   final TripPermissionStatus status;
 
@@ -110,7 +108,6 @@ class TripNotificationPermission {
 }
 
 class TripPermissionState {
-
   const TripPermissionState({
     required this.location,
     required this.notification,

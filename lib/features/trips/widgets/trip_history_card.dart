@@ -13,7 +13,6 @@ import 'package:quantane/features/trips/trip_formatters.dart';
 import 'package:quantane/features/trips/widgets/trip_route_map.dart';
 
 class TripHistoryCard extends StatelessWidget {
-
   const TripHistoryCard({
     super.key,
     required this.trip,
@@ -147,7 +146,6 @@ class TripHistoryCard extends StatelessWidget {
 }
 
 class _RoutePreview extends StatelessWidget {
-
   const _RoutePreview({required this.trip});
   final Trip trip;
 

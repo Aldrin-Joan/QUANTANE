@@ -9,12 +9,11 @@ import 'package:quantane/domain/models/vehicle.dart';
 part 'vehicle_repository.g.dart';
 
 class VehicleRepository {
-
   VehicleRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+  }) : _firestore = firestore,
+       _auth = auth;
   final FirebaseFirestore? _firestore;
   final FirebaseAuth? _auth;
 
@@ -51,7 +50,10 @@ class VehicleRepository {
     return col
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Vehicle.fromJson(doc.data())).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Vehicle.fromJson(doc.data())).toList(),
+        );
   }
 
   Future<Vehicle?> getById(String id) async {
@@ -65,13 +67,21 @@ class VehicleRepository {
   Future<void> insert(Vehicle vehicle, {bool syncToFirebase = true}) async {
     final col = _collection;
     if (col == null) return;
-    
+
     final now = DateTime.now().toUtc();
     final updatedVehicle = vehicle.lastUpdated == null
-        ? vehicle.copyWith(lastUpdated: now, createdAt: vehicle.createdAt.toUtc())
-        : vehicle.copyWith(createdAt: vehicle.createdAt.toUtc(), lastUpdated: vehicle.lastUpdated?.toUtc());
+        ? vehicle.copyWith(
+            lastUpdated: now,
+            createdAt: vehicle.createdAt.toUtc(),
+          )
+        : vehicle.copyWith(
+            createdAt: vehicle.createdAt.toUtc(),
+            lastUpdated: vehicle.lastUpdated?.toUtc(),
+          );
 
-    await col.doc(updatedVehicle.id).set(
+    await col
+        .doc(updatedVehicle.id)
+        .set(
           updatedVehicle.toJson(),
           SetOptions(merge: true),
         );
@@ -87,7 +97,9 @@ class VehicleRepository {
       createdAt: vehicle.createdAt.toUtc(),
     );
 
-    await col.doc(updatedVehicle.id).set(
+    await col
+        .doc(updatedVehicle.id)
+        .set(
           updatedVehicle.toJson(),
           SetOptions(merge: true),
         );
@@ -103,18 +115,30 @@ class VehicleRepository {
     final uid = _currentUid;
     final fs = _firestoreInstance;
     if (uid == null || fs == null) return;
-    
-    final vehicles = await fs.collection('users').doc(uid).collection('vehicles').get();
+
+    final vehicles = await fs
+        .collection('users')
+        .doc(uid)
+        .collection('vehicles')
+        .get();
     for (final doc in vehicles.docs) {
       await doc.reference.delete();
     }
-    
-    final fuel = await fs.collection('users').doc(uid).collection('fuel_entries').get();
+
+    final fuel = await fs
+        .collection('users')
+        .doc(uid)
+        .collection('fuel_entries')
+        .get();
     for (final doc in fuel.docs) {
       await doc.reference.delete();
     }
-    
-    final trips = await fs.collection('users').doc(uid).collection('trips').get();
+
+    final trips = await fs
+        .collection('users')
+        .doc(uid)
+        .collection('trips')
+        .get();
     for (final doc in trips.docs) {
       await doc.reference.delete();
     }

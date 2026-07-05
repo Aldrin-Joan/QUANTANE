@@ -22,11 +22,15 @@ class GroupChatRepository {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isOnline = true;
   final _pendingMessagesController = StreamController<void>.broadcast();
+  final _messageUpdatesController = StreamController<String>.broadcast();
 
   void _initConnectivityListener() {
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
       final wasOnline = _isOnline;
-      _isOnline = results.isNotEmpty && results.first != ConnectivityResult.none;
+      _isOnline =
+          results.isNotEmpty && results.first != ConnectivityResult.none;
       if (_isOnline && !wasOnline) {
         _syncPendingMessages();
       }
@@ -36,6 +40,7 @@ class GroupChatRepository {
   void dispose() {
     _connectivitySubscription?.cancel();
     _pendingMessagesController.close();
+    _messageUpdatesController.close();
   }
 
   Future<File> _getOutboxFile() async {
@@ -52,7 +57,11 @@ class GroupChatRepository {
       final file = await _getOutboxFile();
       final content = await file.readAsString();
       final list = jsonDecode(content) as List<dynamic>;
-      return list.map((json) => GroupChatMessage.fromJson(json as Map<String, dynamic>)).toList();
+      return list
+          .map(
+            (json) => GroupChatMessage.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } catch (_) {
       return [];
     }
@@ -74,6 +83,8 @@ class GroupChatRepository {
     if (pending.isEmpty) return;
 
     final remaining = List<GroupChatMessage>.from(pending);
+    final syncedGroupIds = <String>{};
+
     for (final msg in pending) {
       try {
         await _client.from('group_messages').insert({
@@ -85,10 +96,14 @@ class GroupChatRepository {
           'created_at': msg.createdAt.toIso8601String(),
         });
         remaining.removeWhere((item) => item.offlineId == msg.offlineId);
+        syncedGroupIds.add(msg.groupId);
       } catch (e) {
         // If unique constraint violation, remove it from queue as it is already on server
-        if (e.toString().contains('duplicate key') || e.toString().contains('409') || e.toString().contains('23505')) {
+        if (e.toString().contains('duplicate key') ||
+            e.toString().contains('409') ||
+            e.toString().contains('23505')) {
           remaining.removeWhere((item) => item.offlineId == msg.offlineId);
+          syncedGroupIds.add(msg.groupId);
         } else {
           // General connection failure, pause sync
           break;
@@ -96,9 +111,17 @@ class GroupChatRepository {
       }
     }
     await _savePendingMessages(remaining);
+    for (final groupId in syncedGroupIds) {
+      _messageUpdatesController.add(groupId);
+    }
   }
 
-  Future<GroupChatMessage> sendMessage(String groupId, String senderId, String senderName, String content) async {
+  Future<GroupChatMessage> sendMessage(
+    String groupId,
+    String senderId,
+    String senderName,
+    String content,
+  ) async {
     final offlineId = _uuid.v4();
     final message = GroupChatMessage(
       id: offlineId, // local temporary ID
@@ -136,7 +159,8 @@ class GroupChatRepository {
         id: data['id'] as String,
         groupId: data['group_id'] as String,
         senderId: data['sender_id'] as String,
-        senderName: 'Rider', // Fallback, will show dynamic in UI or join with profile
+        senderName:
+            'Rider', // Fallback, will show dynamic in UI or join with profile
         content: data['content'] as String,
         messageType: data['message_type'] as String? ?? 'text',
         createdAt: DateTime.parse(data['created_at'] as String),
@@ -152,7 +176,9 @@ class GroupChatRepository {
 
     Future<void> emitMerged() async {
       final pending = await _loadPendingMessages();
-      final pendingForGroup = pending.where((m) => m.groupId == groupId).toList();
+      final pendingForGroup = pending
+          .where((m) => m.groupId == groupId)
+          .toList();
       final merged = [...serverMessages, ...pendingForGroup];
       // Sort by creation time
       merged.sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -179,6 +205,13 @@ class GroupChatRepository {
       emitMerged();
     });
 
+    // Listen to message updates/syncs
+    final syncSubscription = _messageUpdatesController.stream.listen((id) {
+      if (id == groupId) {
+        refreshServer();
+      }
+    });
+
     // Listen to realtime Postgres changes in group_messages table
     final supabaseSubscription = _client
         .channel('public:group_messages:$groupId')
@@ -199,6 +232,7 @@ class GroupChatRepository {
 
     controller.onCancel = () {
       pendingSubscription.cancel();
+      syncSubscription.cancel();
       supabaseSubscription.unsubscribe();
       controller.close();
     };

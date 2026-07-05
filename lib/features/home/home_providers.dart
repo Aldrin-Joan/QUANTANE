@@ -15,7 +15,6 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 part 'home_providers.g.dart';
 
 class HomeMetricsSnapshot {
-
   const HomeMetricsSnapshot({required this.fuelEntries, required this.trips});
   final List<FuelEntry> fuelEntries;
   final List<Trip> trips;

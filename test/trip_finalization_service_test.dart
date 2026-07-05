@@ -9,7 +9,6 @@ import 'package:quantane/features/trips/services/trip_finalization_service.dart'
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class _FakeGeocodingService implements ReverseGeocodingService {
-
   _FakeGeocodingService(this.addresses);
   final Map<String, String> addresses;
 

@@ -9,12 +9,11 @@ import 'package:quantane/domain/models/fuel_entry.dart';
 part 'fuel_repository.g.dart';
 
 class FuelRepository {
-
   FuelRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+  }) : _firestore = firestore,
+       _auth = auth;
   final FirebaseFirestore? _firestore;
   final FirebaseAuth? _auth;
 
@@ -48,33 +47,34 @@ class FuelRepository {
   Stream<List<FuelEntry>> watchAll(String vehicleId) {
     final col = _collection;
     if (col == null) return Stream.value(const []);
-    
-    return col
-        .where('vehicleId', isEqualTo: vehicleId)
-        .snapshots()
-        .map((snapshot) {
-          final entries = snapshot.docs.map((doc) => FuelEntry.fromJson(doc.data())).toList();
-          
-          // Sort chronologically by date and odometer to calculate previousOdometer
-          final sortedEntries = List<FuelEntry>.from(entries)
-            ..sort((a, b) {
-              final dateCompare = a.date.compareTo(b.date);
-              if (dateCompare != 0) return dateCompare;
-              return a.odometer.compareTo(b.odometer);
-            });
 
-          final entryMap = <String, FuelEntry>{};
-          for (var i = 0; i < sortedEntries.length; i++) {
-            final current = sortedEntries[i];
-            final previousOdometer = i > 0 ? sortedEntries[i - 1].odometer : null;
-            entryMap[current.id] = current.calculateMetrics(previousOdometer);
-          }
+    return col.where('vehicleId', isEqualTo: vehicleId).snapshots().map((
+      snapshot,
+    ) {
+      final entries = snapshot.docs
+          .map((doc) => FuelEntry.fromJson(doc.data()))
+          .toList();
 
-          // Return entries in descending order of date (newest first)
-          final result = entries.map((e) => entryMap[e.id]!).toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
-          return result;
+      // Sort chronologically by date and odometer to calculate previousOdometer
+      final sortedEntries = List<FuelEntry>.from(entries)
+        ..sort((a, b) {
+          final dateCompare = a.date.compareTo(b.date);
+          if (dateCompare != 0) return dateCompare;
+          return a.odometer.compareTo(b.odometer);
         });
+
+      final entryMap = <String, FuelEntry>{};
+      for (var i = 0; i < sortedEntries.length; i++) {
+        final current = sortedEntries[i];
+        final previousOdometer = i > 0 ? sortedEntries[i - 1].odometer : null;
+        entryMap[current.id] = current.calculateMetrics(previousOdometer);
+      }
+
+      // Return entries in descending order of date (newest first)
+      final result = entries.map((e) => entryMap[e.id]!).toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+      return result;
+    });
   }
 
   Future<void> insert(FuelEntry entry, {bool syncToFirebase = true}) async {
@@ -84,9 +84,14 @@ class FuelRepository {
     final now = DateTime.now().toUtc();
     final updatedEntry = entry.lastUpdated == null
         ? entry.copyWith(lastUpdated: now, date: entry.date.toUtc())
-        : entry.copyWith(date: entry.date.toUtc(), lastUpdated: entry.lastUpdated?.toUtc());
+        : entry.copyWith(
+            date: entry.date.toUtc(),
+            lastUpdated: entry.lastUpdated?.toUtc(),
+          );
 
-    await col.doc(updatedEntry.id).set(
+    await col
+        .doc(updatedEntry.id)
+        .set(
           updatedEntry.toJson(),
           SetOptions(merge: true),
         );
@@ -102,7 +107,9 @@ class FuelRepository {
       date: entry.date.toUtc(),
     );
 
-    await col.doc(updatedEntry.id).set(
+    await col
+        .doc(updatedEntry.id)
+        .set(
           updatedEntry.toJson(),
           SetOptions(merge: true),
         );
@@ -159,16 +166,22 @@ class FuelRepository {
       if (dateStr == null) continue;
 
       final date = DateTime.parse(dateStr).toLocal();
-      final dateKey = DateTime(date.year, date.month, date.day).toIso8601String();
+      final dateKey = DateTime(
+        date.year,
+        date.month,
+        date.day,
+      ).toIso8601String();
       final cost = (data['fuelCost'] as num?)?.toDouble() ?? 0.0;
       spendMap[dateKey] = (spendMap[dateKey] ?? 0.0) + cost;
     }
 
     final sortedList = spendMap.entries
-        .map((e) => {
-              'date': DateTime.parse(e.key).millisecondsSinceEpoch.toDouble(),
-              'cost': e.value,
-            })
+        .map(
+          (e) => {
+            'date': DateTime.parse(e.key).millisecondsSinceEpoch.toDouble(),
+            'cost': e.value,
+          },
+        )
         .toList();
     sortedList.sort((a, b) => a['date']!.compareTo(b['date']!));
     return sortedList;

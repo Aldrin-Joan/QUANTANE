@@ -1,5 +1,4 @@
-﻿class HomeSummary {
-
+class HomeSummary {
   HomeSummary({
     required this.totalSpendMonth,
     required this.totalDistanceMonth,
@@ -11,7 +10,6 @@
 }
 
 class QuickStats {
-
   QuickStats({
     required this.avgMileage,
     this.avgMileageDeltaPercent,
@@ -27,7 +25,6 @@ class QuickStats {
 }
 
 class DailySpend {
-
   DailySpend({required this.date, required this.amount});
   final DateTime date;
   final double amount;

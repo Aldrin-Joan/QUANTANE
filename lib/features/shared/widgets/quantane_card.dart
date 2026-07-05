@@ -7,7 +7,6 @@ import 'package:quantane/core/theme/colors.dart';
 enum QuantaneCardVariant { flat, glass, colored }
 
 class QuantaneCard extends StatelessWidget {
-
   const QuantaneCard({
     super.key,
     required this.child,

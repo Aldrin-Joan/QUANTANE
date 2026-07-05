@@ -2,7 +2,6 @@
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class Trip {
-
   Trip({
     required this.id,
     required this.vehicleId,
@@ -115,7 +114,6 @@ class Trip {
 
   bool get hasBoundingBox =>
       minLatitude != maxLatitude || minLongitude != maxLongitude;
-
 
   Map<String, dynamic> toJson() {
     return {

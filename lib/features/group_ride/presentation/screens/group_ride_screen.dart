@@ -59,11 +59,14 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
     setState(() => _isLoading = true);
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be signed in to create a group.')),
+        const SnackBar(
+          content: Text('You must be signed in to create a group.'),
+        ),
       );
       setState(() => _isLoading = false);
       return;
@@ -73,7 +76,9 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
       final repo = ref.read(groupRideRepositoryProvider);
       final group = await repo.createGroup(name, userId);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
-      ref.read(locationSharingControllerProvider.notifier).startSharing(group.id);
+      ref
+          .read(locationSharingControllerProvider.notifier)
+          .startSharing(group.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -91,7 +96,8 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
     setState(() => _isLoading = true);
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,7 +111,9 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
       final repo = ref.read(groupRideRepositoryProvider);
       final group = await repo.joinGroup(code, userId);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
-      ref.read(locationSharingControllerProvider.notifier).startSharing(group.id);
+      ref
+          .read(locationSharingControllerProvider.notifier)
+          .startSharing(group.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,18 +144,30 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                   color: AppColors.primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.users, size: 64, color: AppColors.primaryColor),
+                child: const Icon(
+                  LucideIcons.users,
+                  size: 64,
+                  color: AppColors.primaryColor,
+                ),
               ),
               const SizedBox(height: 32),
               const Text(
                 'Group Ride',
-                style: TextStyle(fontSize: 28, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 28,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
                 'Coordinate routes, track speeds, share locations, and voice chat with your crew in real-time.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 48),
               QuantaneCard(
@@ -156,15 +176,24 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                   children: [
                     const Text(
                       'Create a New Crew',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _groupNameController,
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Enter group name...',
-                        hintStyle: const TextStyle(color: AppColors.textSecondary),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
                         filled: true,
                         fillColor: AppColors.bgColor,
                         border: OutlineInputBorder(
@@ -180,7 +209,9 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                         backgroundColor: AppColors.primaryColor,
                         foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(45),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: const Text('Create Group'),
                     ),
@@ -194,15 +225,24 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                   children: [
                     const Text(
                       'Join via Invite Code',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _inviteCodeController,
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Enter 6-digit Invite Code...',
-                        hintStyle: const TextStyle(color: AppColors.textSecondary),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
                         filled: true,
                         fillColor: AppColors.bgColor,
                         border: OutlineInputBorder(
@@ -218,7 +258,9 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                         backgroundColor: AppColors.accentColor,
                         foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(45),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: const Text('Join Group'),
                     ),
@@ -242,7 +284,8 @@ class _GroupLobby extends ConsumerStatefulWidget {
   ConsumerState<_GroupLobby> createState() => _GroupLobbyState();
 }
 
-class _GroupLobbyState extends ConsumerState<_GroupLobby> with SingleTickerProviderStateMixin {
+class _GroupLobbyState extends ConsumerState<_GroupLobby>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -259,13 +302,14 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby> with SingleTickerProvi
 
   Future<void> _leaveGroup() async {
     final authState = ref.read(authServiceProvider);
-    final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+    final userId =
+        authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
     final repo = ref.read(groupRideRepositoryProvider);
     ref.read(locationSharingControllerProvider.notifier).stopSharing();
     ref.read(voiceControllerProvider.notifier).leaveVoice();
-    
+
     try {
       await repo.leaveGroup(widget.group.id, userId);
       ref.read(activeGroupIdProvider.notifier).select(null);
@@ -321,24 +365,41 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby> with SingleTickerProvi
                   widget.group.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 20, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
                   onTap: () {
-                    Clipboard.setData(ClipboardData(text: widget.group.inviteCode));
+                    Clipboard.setData(
+                      ClipboardData(text: widget.group.inviteCode),
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invite code copied to clipboard!'), duration: Duration(seconds: 1)),
+                      const SnackBar(
+                        content: Text('Invite code copied to clipboard!'),
+                        duration: Duration(seconds: 1),
+                      ),
                     );
                   },
                   child: Row(
                     children: [
                       Text(
                         'ID: ${widget.group.inviteCode}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.accentColor, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.accentColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(LucideIcons.copy, size: 10, color: AppColors.accentColor),
+                      const Icon(
+                        LucideIcons.copy,
+                        size: 10,
+                        color: AppColors.accentColor,
+                      ),
                     ],
                   ),
                 ),
@@ -382,13 +443,19 @@ class _VoiceTab extends ConsumerWidget {
               child: Icon(
                 voiceState.isConnected ? LucideIcons.phone : LucideIcons.phone,
                 size: 64,
-                color: voiceState.isConnected ? AppColors.accentColor : AppColors.textSecondary,
+                color: voiceState.isConnected
+                    ? AppColors.accentColor
+                    : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
             Text(
               voiceState.isConnected ? 'Voice Connected' : 'Voice Disconnected',
-              style: const TextStyle(fontSize: 20, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -396,27 +463,40 @@ class _VoiceTab extends ConsumerWidget {
                   ? 'Talk with other riders in the crew. Low-latency WebRTC routing active.'
                   : 'Join the voice channel to discuss navigation and riding conditions.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 48),
             if (!voiceState.isConnected)
               ElevatedButton.icon(
                 onPressed: voiceState.isConnecting
                     ? null
-                    : () => ref.read(voiceControllerProvider.notifier).joinVoice(group.id),
+                    : () => ref
+                          .read(voiceControllerProvider.notifier)
+                          .joinVoice(group.id),
                 icon: voiceState.isConnecting
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(LucideIcons.phone),
-                label: Text(voiceState.isConnecting ? 'Connecting...' : 'Join Voice Chat'),
+                label: Text(
+                  voiceState.isConnecting ? 'Connecting...' : 'Join Voice Chat',
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               )
             else ...[
@@ -424,7 +504,8 @@ class _VoiceTab extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   GestureDetector(
-                    onTap: () => ref.read(voiceControllerProvider.notifier).toggleMute(),
+                    onTap: () =>
+                        ref.read(voiceControllerProvider.notifier).toggleMute(),
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -433,18 +514,25 @@ class _VoiceTab extends ConsumerWidget {
                             : AppColors.cardColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: voiceState.isMuted ? AppColors.dangerColor : Colors.white.withValues(alpha: 0.1),
+                          color: voiceState.isMuted
+                              ? AppColors.dangerColor
+                              : Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Icon(
-                        voiceState.isMuted ? LucideIcons.mic_off : LucideIcons.mic,
-                        color: voiceState.isMuted ? AppColors.dangerColor : Colors.white,
+                        voiceState.isMuted
+                            ? LucideIcons.mic_off
+                            : LucideIcons.mic,
+                        color: voiceState.isMuted
+                            ? AppColors.dangerColor
+                            : Colors.white,
                         size: 28,
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => ref.read(voiceControllerProvider.notifier).leaveVoice(),
+                    onTap: () =>
+                        ref.read(voiceControllerProvider.notifier).leaveVoice(),
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: const BoxDecoration(
@@ -465,7 +553,10 @@ class _VoiceTab extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 voiceState.error!,
-                style: const TextStyle(color: AppColors.dangerColor, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.dangerColor,
+                  fontSize: 12,
+                ),
               ),
             ],
           ],

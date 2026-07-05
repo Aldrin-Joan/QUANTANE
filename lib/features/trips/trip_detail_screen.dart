@@ -15,7 +15,6 @@ import 'package:quantane/features/trips/trip_formatters.dart';
 import 'package:quantane/features/trips/widgets/trip_route_map.dart';
 
 class TripDetailScreen extends ConsumerWidget {
-
   const TripDetailScreen({super.key, required this.tripId});
   final String tripId;
 
@@ -51,7 +50,6 @@ class TripDetailScreen extends ConsumerWidget {
 }
 
 class _TripDetailBody extends StatelessWidget {
-
   const _TripDetailBody({required this.trip});
   final Trip trip;
 
@@ -142,7 +140,6 @@ class _TripDetailBody extends StatelessWidget {
 }
 
 class _LocationRow extends StatelessWidget {
-
   const _LocationRow({
     required this.label,
     required this.value,
@@ -196,7 +193,6 @@ class _LocationRow extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-
   const _StatRow({required this.label, required this.value});
   final String label;
   final String value;

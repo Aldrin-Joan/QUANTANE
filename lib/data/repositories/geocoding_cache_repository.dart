@@ -9,7 +9,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'geocoding_cache_repository.g.dart';
 
 class GeocodingCacheRepository {
-
   GeocodingCacheRepository() {
     _initFuture = _initCache();
   }

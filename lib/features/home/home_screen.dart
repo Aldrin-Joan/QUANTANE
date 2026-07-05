@@ -37,13 +37,19 @@ class HomeScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
-              if (summary != null) HeroSummaryCard(summary: summary) else const SizedBox(),
+              if (summary != null)
+                HeroSummaryCard(summary: summary)
+              else
+                const SizedBox(),
               const SectionHeader(title: 'Quick Stats'),
-              if (stats != null) QuickStatsGrid(stats: stats) else const _EmptySectionCard(
-                      title: 'Quick Stats',
-                      message:
-                          'No stats yet. Add trips and fuel entries to see mileage, distance, speed, and cost summaries.',
-                    ),
+              if (stats != null)
+                QuickStatsGrid(stats: stats)
+              else
+                const _EmptySectionCard(
+                  title: 'Quick Stats',
+                  message:
+                      'No stats yet. Add trips and fuel entries to see mileage, distance, speed, and cost summaries.',
+                ),
               const SectionHeader(title: 'Smart Insights'),
               const InsightBanner(),
               const SectionHeader(title: 'Mileage & Speed'),
@@ -58,7 +64,6 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _EmptySectionCard extends StatelessWidget {
-
   const _EmptySectionCard({required this.title, required this.message});
   final String title;
   final String message;

@@ -206,7 +206,6 @@ class _SpeedMileageCarouselState extends ConsumerState<SpeedMileageCarousel> {
 }
 
 class _MetricCard extends StatelessWidget {
-
   const _MetricCard({
     super.key,
     required this.title,
@@ -369,18 +368,10 @@ class _MetricCard extends StatelessWidget {
                                         drawVerticalLine: false,
                                       ),
                                       titlesData: const FlTitlesData(
-                                        rightTitles: AxisTitles(
-                                          
-                                        ),
-                                        topTitles: AxisTitles(
-                                          
-                                        ),
-                                        leftTitles: AxisTitles(
-                                          
-                                        ),
-                                        bottomTitles: AxisTitles(
-                                          
-                                        ),
+                                        rightTitles: AxisTitles(),
+                                        topTitles: AxisTitles(),
+                                        leftTitles: AxisTitles(),
+                                        bottomTitles: AxisTitles(),
                                       ),
                                       borderData: FlBorderData(show: false),
                                       lineTouchData: const LineTouchData(
@@ -499,7 +490,6 @@ class _MetricCard extends StatelessWidget {
 }
 
 class _EmptyMetricState extends StatelessWidget {
-
   const _EmptyMetricState({
     required this.title,
     required this.description,
@@ -616,14 +606,12 @@ class _EmptyMetricState extends StatelessWidget {
 }
 
 class _MetricPoint {
-
   const _MetricPoint({required this.label, required this.value});
   final String label;
   final double value;
 }
 
 class _MetricSeries {
-
   const _MetricSeries({
     required this.points,
     required this.average,
