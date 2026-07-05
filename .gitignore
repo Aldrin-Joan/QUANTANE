@@ -12,6 +12,7 @@
 temp/
 .swiftpm/
 migrate_working_dir/
+.env
 
 # IntelliJ / Android Studio related
 *.iml

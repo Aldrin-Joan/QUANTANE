@@ -3,6 +3,7 @@
 
 // Package imports:
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
@@ -55,11 +56,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDqMbUH_8hLhywNpOimjIxcIXFKJgZflHE',
-    appId: '1:662930071793:android:de88e5271e1877f9720950',
-    messagingSenderId: '662930071793',
-    projectId: 'quantane-app',
-    storageBucket: 'quantane-app.firebasestorage.app',
-  );
+  static FirebaseOptions get android => FirebaseOptions(
+        apiKey: dotenv.get('FIREBASE_API_KEY', fallback: ''),
+        appId: dotenv.get('FIREBASE_APP_ID', fallback: ''),
+        messagingSenderId: dotenv.get('FIREBASE_MESSAGING_SENDER_ID', fallback: ''),
+        projectId: dotenv.get('FIREBASE_PROJECT_ID', fallback: ''),
+        storageBucket: dotenv.get('FIREBASE_STORAGE_BUCKET', fallback: ''),
+      );
 }
