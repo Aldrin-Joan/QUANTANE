@@ -137,8 +137,7 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () =>
-                            _showLoginSignUpDialog(context, ref, isLogin: true),
+                        onPressed: () => context.push('/auth'),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.primaryColor),
                         ),
@@ -258,7 +257,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     if (auth.user?.isAnonymous == true)
                       TextButton(
-                        onPressed: () => _showLinkAccountDialog(context, ref),
+                        onPressed: () => context.push('/auth?upgrade=true'),
                         child: const Text('Upgrade'),
                       )
                     else
@@ -289,11 +288,13 @@ class SettingsScreen extends ConsumerWidget {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  value: true,
+                  value: auth.isSyncEnabled,
                   activeTrackColor: AppColors.primaryMuted,
                   activeThumbColor: AppColors.primaryColor,
                   onChanged: (val) {
-                    if (!val) {
+                    if (val) {
+                      ref.read(authServiceProvider.notifier).enableSync();
+                    } else {
                       ref.read(authServiceProvider.notifier).disableSync();
                     }
                   },
@@ -372,249 +373,6 @@ class SettingsScreen extends ConsumerWidget {
         ),
         ...children,
       ],
-    );
-  }
-
-  void _showLinkAccountDialog(BuildContext context, WidgetRef ref) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppColors.cardElevated,
-              title: const Text(
-                'Upgrade Guest Account',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email Address',
-                        labelStyle: TextStyle(color: AppColors.textSecondary),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.dividerColor),
-                        ),
-                      ),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      validator: (val) {
-                        if (val == null || val.isEmpty || !val.contains('@')) {
-                          return 'Enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password (min 6 chars)',
-                        labelStyle: TextStyle(color: AppColors.textSecondary),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.dividerColor),
-                        ),
-                      ),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      validator: (val) {
-                        if (val == null || val.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      try {
-                        await ref
-                            .read(authServiceProvider.notifier)
-                            .linkEmail(
-                              emailController.text.trim(),
-                              passwordController.text,
-                            );
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Account successfully upgraded!'),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              backgroundColor: AppColors.dangerColor,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  child: const Text('Link Account'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showLoginSignUpDialog(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool isLogin,
-  }) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool localIsLogin = isLogin;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppColors.cardElevated,
-              title: Text(
-                localIsLogin ? 'Sign In' : 'Create Account',
-                style: const TextStyle(color: AppColors.textPrimary),
-              ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email Address',
-                        labelStyle: TextStyle(color: AppColors.textSecondary),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.dividerColor),
-                        ),
-                      ),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      validator: (val) {
-                        if (val == null || val.isEmpty || !val.contains('@')) {
-                          return 'Enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: TextStyle(color: AppColors.textSecondary),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.dividerColor),
-                        ),
-                      ),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      validator: (val) {
-                        if (val == null || val.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          localIsLogin = !localIsLogin;
-                        });
-                      },
-                      child: Text(
-                        localIsLogin
-                            ? 'Don\'t have an account? Sign Up'
-                            : 'Already have an account? Sign In',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      try {
-                        if (localIsLogin) {
-                          await ref
-                              .read(authServiceProvider.notifier)
-                              .signInWithEmail(
-                                emailController.text.trim(),
-                                passwordController.text,
-                              );
-                        } else {
-                          await ref
-                              .read(authServiceProvider.notifier)
-                              .signUpWithEmail(
-                                emailController.text.trim(),
-                                passwordController.text,
-                              );
-                        }
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                localIsLogin
-                                    ? 'Logged in successfully!'
-                                    : 'Account registered successfully!',
-                              ),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              backgroundColor: AppColors.dangerColor,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  child: Text(localIsLogin ? 'Login' : 'Register'),
-                ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 

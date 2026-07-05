@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:drift/drift.dart';
 import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/database/database_provider.dart';
@@ -48,11 +48,15 @@ class SyncProgress {
 }
 
 @Riverpod(keepAlive: true)
-class SyncService extends _$SyncService {
+class SyncService extends _$SyncService with WidgetsBindingObserver {
   late final FirebaseFirestore _firestore;
   late final AppDatabase _db;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<List<SyncQueueEntry>>? _syncQueueSubscription;
+  Timer? _debounceTimer;
+  Timer? _periodicSyncTimer;
   bool _isSyncing = false;
+  int _lastQueueCount = 0;
 
   @override
   SyncProgress build() {
@@ -63,12 +67,18 @@ class SyncService extends _$SyncService {
 
     ref.onDispose(() {
       _connectivitySubscription?.cancel();
+      _syncQueueSubscription?.cancel();
+      _debounceTimer?.cancel();
+      _periodicSyncTimer?.cancel();
+      WidgetsBinding.instance.removeObserver(this);
     });
 
     return SyncProgress(status: SyncStateStatus.idle);
   }
 
   Future<void> _init() async {
+    WidgetsBinding.instance.addObserver(this);
+
     // Watch connectivity to trigger sync on reconnection
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
       results,
@@ -88,8 +98,36 @@ class SyncService extends _$SyncService {
       }
     });
 
+    // Reactive local mutation sync (when queue size increases)
+    _syncQueueSubscription = _db.select(_db.syncQueue).watch().listen((items) {
+      final newCount = items.length;
+      if (newCount > _lastQueueCount && !_isSyncing) {
+        _debounceTimer?.cancel();
+        _debounceTimer = Timer(const Duration(seconds: 2), () {
+          syncNow();
+        });
+      }
+      _lastQueueCount = newCount;
+    });
+
+    // Periodic sync timer (every 5 minutes)
+    _periodicSyncTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      if (ref.read(authServiceProvider).isSyncEnabled) {
+        syncNow();
+      }
+    });
+
     // Check initially for pending operations count
     _updatePendingCount();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (ref.read(authServiceProvider).isSyncEnabled) {
+        syncNow();
+      }
+    }
   }
 
   Future<void> _updatePendingCount() async {
@@ -271,7 +309,11 @@ class SyncService extends _$SyncService {
     final prefs = await SharedPreferences.getInstance();
     final lastSyncTimePrefKey = 'last_sync_timestamp_$uid';
     final lastSyncMs = prefs.getInt(lastSyncTimePrefKey) ?? 0;
-    final lastSyncTime = DateTime.fromMillisecondsSinceEpoch(lastSyncMs);
+    
+    // Apply a safety buffer of 5 minutes to account for clock skew/drift between devices and Firestore server
+    final lastSyncTime = lastSyncMs > 0
+        ? DateTime.fromMillisecondsSinceEpoch(lastSyncMs).subtract(const Duration(minutes: 5))
+        : DateTime.fromMillisecondsSinceEpoch(0);
 
     final newSyncTime = DateTime.now();
 

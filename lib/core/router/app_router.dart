@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quantane/features/home/home_screen.dart';
 import 'package:quantane/features/fuel/fuel_history_screen.dart';
@@ -7,6 +7,7 @@ import 'package:quantane/features/trips/trip_detail_screen.dart';
 import 'package:quantane/features/settings/settings_screen.dart';
 import 'package:quantane/features/vehicles/vehicles_screen.dart';
 import 'package:quantane/features/trips/live_trip_screen.dart';
+import 'package:quantane/features/auth/auth_screen.dart';
 import 'package:quantane/features/shared/widgets/quantane_bottom_nav.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -91,6 +92,14 @@ GoRouter router(Ref ref) {
         builder: (context, state) {
           final tripId = state.pathParameters['tripId']!;
           return TripDetailScreen(tripId: tripId);
+        },
+      ),
+      GoRoute(
+        path: '/auth',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final isUpgrade = state.uri.queryParameters['upgrade'] == 'true';
+          return AuthScreen(isUpgrade: isUpgrade);
         },
       ),
     ],

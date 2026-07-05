@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -127,13 +128,132 @@ class AuthService extends _$AuthService {
         email: email,
         password: password,
       );
-      final authResult = await user.linkWithCredential(credential);
+      try {
+        final authResult = await user.linkWithCredential(credential);
+        state = state.copyWith(user: authResult.user, isLoading: false);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
+          // Fallback: Sign in directly and merge guest data
+          final authResult = await _auth.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_syncKey, true);
 
-      state = state.copyWith(user: authResult.user, isLoading: false);
+          state = AuthState(
+            user: authResult.user,
+            isSyncEnabled: true,
+            isLoading: false,
+          );
+
+          // Trigger initial migration of guest data to the existing account
+          await _triggerInitialBulkUpload();
+        } else {
+          rethrow;
+        }
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Linking account failed: ${e.toString()}',
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final currentUserBefore = _auth.currentUser;
+      final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
+
+      if (!isGuest) {
+        // Clear local database to isolate user accounts, preventing data contamination
+        await _clearLocalDatabaseAndPreferences();
+      }
+
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        state = state.copyWith(isLoading: false);
+        return; // User cancelled
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final authResult = await _auth.signInWithCredential(credential);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_syncKey, true);
+
+      state = AuthState(
+        user: authResult.user,
+        isSyncEnabled: true,
+        isLoading: false,
+      );
+
+      // Merge guest data into the newly logged in account
+      if (isGuest) {
+        await _triggerInitialBulkUpload();
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Google Sign-in failed: ${e.toString()}',
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> linkGoogle() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No logged-in guest account found to link.');
+      }
+
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        state = state.copyWith(isLoading: false);
+        return; // User cancelled
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      try {
+        final authResult = await user.linkWithCredential(credential);
+        state = state.copyWith(user: authResult.user, isLoading: false);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
+          // Fallback: Sign in directly and merge guest data
+          final authResult = await _auth.signInWithCredential(credential);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_syncKey, true);
+
+          state = AuthState(
+            user: authResult.user,
+            isSyncEnabled: true,
+            isLoading: false,
+          );
+
+          await _triggerInitialBulkUpload();
+        } else {
+          rethrow;
+        }
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Linking Google account failed: ${e.toString()}',
       );
       rethrow;
     }
@@ -232,6 +352,13 @@ class AuthService extends _$AuthService {
   }
 
   Future<void> _clearLocalDatabaseAndPreferences() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('last_sync_timestamp_$uid');
+      await prefs.remove('last_sync_time_$uid');
+    }
+
     final db = ref.read(appDatabaseProvider);
     await db.clearAllData();
     await ref.read(activeVehicleProvider.notifier).clear();
