@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quantane/core/theme/colors.dart';
@@ -21,14 +21,14 @@ class FuelHistoryScreen extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(floating: true, title: const Text('Fuel Log')),
+          const SliverAppBar(floating: true, title: Text('Fuel Log')),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             sliver: SliverToBoxAdapter(
               child: _FuelHero(tracksAsync: historyAsync),
             ),
           ),
-          SliverToBoxAdapter(child: SectionHeader(title: 'Fuel Entries')),
+          const SliverToBoxAdapter(child: SectionHeader(title: 'Fuel Entries')),
           historyAsync.when(
             data: (entries) {
               if (entries.isEmpty) {
@@ -71,7 +71,7 @@ class FuelHistoryScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet(
+          showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
             builder: (context) => const AddFuelSheet(),
@@ -155,9 +155,9 @@ class FuelHistoryScreen extends ConsumerWidget {
 }
 
 class _FuelHero extends StatelessWidget {
-  final AsyncValue<List<FuelEntry>> tracksAsync;
 
   const _FuelHero({required this.tracksAsync});
+  final AsyncValue<List<FuelEntry>> tracksAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -273,10 +273,10 @@ class _FuelHero extends StatelessWidget {
           ),
         );
       },
-      loading: () => QuantaneCard(
+      loading: () => const QuantaneCard(
         variant: QuantaneCardVariant.colored,
-        padding: const EdgeInsets.all(20),
-        child: const SizedBox(
+        padding: EdgeInsets.all(20),
+        child: SizedBox(
           height: 108,
           child: Center(child: CircularProgressIndicator(color: Colors.white)),
         ),
@@ -317,25 +317,25 @@ class _FuelHero extends StatelessWidget {
 
 double _totalDistanceFromEntries(List<FuelEntry> entries) {
   if (entries.isEmpty) {
-    return 0.0;
+    return 0;
   }
 
   return entries.fold<double>(
-    0.0,
+    0,
     (sum, entry) => sum + ((entry.mileage ?? 0.0) * entry.fuelLiters),
   );
 }
 
 class _FuelHeroStat extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
 
   const _FuelHeroStat({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {

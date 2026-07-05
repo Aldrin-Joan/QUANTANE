@@ -7,9 +7,9 @@ import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 
 class _FakeTripRepository implements TripRepository {
-  final Trip? trip;
 
   _FakeTripRepository(this.trip);
+  final Trip? trip;
 
   @override
   Future<Trip?> getById(String id) async => trip?.id == id ? trip : null;
@@ -65,7 +65,7 @@ void main() {
         overrides: [
           tripRepositoryProvider.overrideWithValue(_FakeTripRepository(trip)),
         ],
-        child: MaterialApp(home: TripDetailScreen(tripId: 'trip-1')),
+        child: const MaterialApp(home: TripDetailScreen(tripId: 'trip-1')),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,7 +95,7 @@ void main() {
         overrides: [
           tripRepositoryProvider.overrideWithValue(_FakeTripRepository(trip)),
         ],
-        child: MaterialApp(home: TripDetailScreen(tripId: 'legacy-trip')),
+        child: const MaterialApp(home: TripDetailScreen(tripId: 'legacy-trip')),
       ),
     );
     await tester.pumpAndSettle();

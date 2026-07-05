@@ -1,12 +1,33 @@
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
+import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/services/nominatim_geocoding_service.dart';
 import 'package:quantane/features/trips/services/route_processing_service.dart';
 import 'package:quantane/features/trips/services/route_snapshot_service.dart';
 import 'package:quantane/features/trips/services/trip_finalization_service.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
+
+class FakeTripRepository implements TripRepository {
+  final Map<String, Trip> _trips = {};
+
+  @override
+  Future<Trip?> getById(String id) async => _trips[id];
+
+  @override
+  Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {
+    _trips[trip.id] = trip;
+  }
+
+  @override
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {
+    _trips.remove(id);
+  }
+
+  @override
+  Stream<List<Trip>> watchAll(String vehicleId) {
+    return Stream.value(_trips.values.where((t) => t.vehicleId == vehicleId).toList());
+  }
+}
 
 class _IntegrationGeocoder implements ReverseGeocodingService {
   @override
@@ -36,8 +57,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('trip finalization persists enriched trip into sqlite', () async {
-    final database = AppDatabase.forTesting(NativeDatabase.memory());
-    final repository = TripRepository(database);
+    final repository = FakeTripRepository();
     final service = TripFinalizationService(
       routeProcessingService: RouteProcessingService(),
       geocodingService: _IntegrationGeocoder(),
@@ -71,13 +91,10 @@ void main() {
     expect(loaded.endAddress, 'T Nagar, Chennai');
     expect(loaded.maxLatitude, greaterThan(loaded.minLatitude));
     expect(loaded.routeSnapshotPath, isNotNull);
-
-    await database.close();
   });
 
   test('geocoding failure still persists trip record', () async {
-    final database = AppDatabase.forTesting(NativeDatabase.memory());
-    final repository = TripRepository(database);
+    final repository = FakeTripRepository();
     final service = TripFinalizationService(
       routeProcessingService: RouteProcessingService(),
       geocodingService: _FailingIntegrationGeocoder(),
@@ -104,8 +121,6 @@ void main() {
     expect(loaded!.distance, 6.2);
     expect(loaded.startAddress, isNull);
     expect(loaded.routePoints.length, greaterThanOrEqualTo(2));
-
-    await database.close();
   });
 }
 

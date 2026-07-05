@@ -10,9 +10,9 @@ import 'package:quantane/features/shared/providers/active_vehicle_provider.dart'
 import 'package:uuid/uuid.dart';
 
 class AddFuelSheet extends ConsumerStatefulWidget {
-  final FuelEntry? existingEntry;
 
   const AddFuelSheet({super.key, this.existingEntry});
+  final FuelEntry? existingEntry;
 
   @override
   ConsumerState<AddFuelSheet> createState() => _AddFuelSheetState();
@@ -51,7 +51,7 @@ class _AddFuelSheetState extends ConsumerState<AddFuelSheet> {
     super.dispose();
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     final vehicleId = ref.read(activeVehicleProvider);

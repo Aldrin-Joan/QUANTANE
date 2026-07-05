@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:quantane/features/home/home_screen.dart';
-import 'package:quantane/features/fuel/fuel_history_screen.dart';
-import 'package:quantane/features/trips/trips_screen.dart';
-import 'package:quantane/features/trips/trip_detail_screen.dart';
-import 'package:quantane/features/settings/settings_screen.dart';
-import 'package:quantane/features/vehicles/vehicles_screen.dart';
-import 'package:quantane/features/trips/live_trip_screen.dart';
 import 'package:quantane/features/auth/auth_screen.dart';
+import 'package:quantane/features/fuel/fuel_history_screen.dart';
+import 'package:quantane/features/home/home_screen.dart';
+import 'package:quantane/features/settings/settings_screen.dart';
 import 'package:quantane/features/shared/widgets/quantane_bottom_nav.dart';
+import 'package:quantane/features/trips/live_trip_screen.dart';
+import 'package:quantane/features/trips/trip_detail_screen.dart';
+import 'package:quantane/features/trips/trips_screen.dart';
+import 'package:quantane/features/vehicles/vehicles_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_router.g.dart';

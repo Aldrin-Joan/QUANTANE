@@ -18,7 +18,7 @@ Future<List<Insight>> insights(Ref ref) async {
   final currentMonthEntries = _entriesForMonth(fuelEntries, now);
   final previousMonthEntries = _entriesForMonth(
     fuelEntries,
-    DateTime(now.year, now.month - 1, 1),
+    DateTime(now.year, now.month - 1),
   );
 
   final currentMileage = _averageMileageFromFuelEntries(currentMonthEntries);
@@ -34,7 +34,7 @@ Future<List<Insight>> insights(Ref ref) async {
 
 double _totalDistanceFromFuelEntries(List<FuelEntry> entries) {
   if (entries.length < 2) {
-    return 0.0;
+    return 0;
   }
 
   final ordered = [...entries]
@@ -59,9 +59,9 @@ double _averageMileageFromFuelEntries(List<FuelEntry> entries) {
 }
 
 double _totalLitersFromFuelEntries(List<FuelEntry> entries) {
-  return entries.fold<double>(0.0, (sum, entry) => sum + entry.fuelLiters);
+  return entries.fold<double>(0, (sum, entry) => sum + entry.fuelLiters);
 }
 
 double _totalSpendFromFuelEntries(List<FuelEntry> entries) {
-  return entries.fold<double>(0.0, (sum, entry) => sum + entry.fuelCost);
+  return entries.fold<double>(0, (sum, entry) => sum + entry.fuelCost);
 }

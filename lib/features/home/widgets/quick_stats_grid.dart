@@ -4,9 +4,9 @@ import 'package:quantane/features/shared/widgets/stat_tile.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class QuickStatsGrid extends StatelessWidget {
-  final QuickStats stats;
 
   const QuickStatsGrid({super.key, required this.stats});
+  final QuickStats stats;
 
   @override
   Widget build(BuildContext context) {

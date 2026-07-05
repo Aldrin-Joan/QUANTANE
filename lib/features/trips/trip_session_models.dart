@@ -4,12 +4,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:quantane/domain/models/trip.dart';
 
 class TripPoint {
-  final double latitude;
-  final double longitude;
-  final DateTime timestamp;
-  final double speedKmh;
-  final double accuracyMeters;
-  final double? heading;
 
   const TripPoint({
     required this.latitude,
@@ -31,15 +25,6 @@ class TripPoint {
     );
   }
 
-  Map<String, Object?> toJson() => {
-    'latitude': latitude,
-    'longitude': longitude,
-    'timestamp': timestamp.toIso8601String(),
-    'speedKmh': speedKmh,
-    'accuracyMeters': accuracyMeters,
-    'heading': heading,
-  };
-
   factory TripPoint.fromJson(Map<String, Object?> json) {
     return TripPoint(
       latitude: (json['latitude'] as num).toDouble(),
@@ -50,18 +35,24 @@ class TripPoint {
       heading: (json['heading'] as num?)?.toDouble(),
     );
   }
+  final double latitude;
+  final double longitude;
+  final DateTime timestamp;
+  final double speedKmh;
+  final double accuracyMeters;
+  final double? heading;
+
+  Map<String, Object?> toJson() => {
+    'latitude': latitude,
+    'longitude': longitude,
+    'timestamp': timestamp.toIso8601String(),
+    'speedKmh': speedKmh,
+    'accuracyMeters': accuracyMeters,
+    'heading': heading,
+  };
 }
 
 class TripState {
-  final String sessionId;
-  final String vehicleId;
-  final DateTime startTime;
-  final DateTime updatedAt;
-  final double currentSpeed;
-  final double maxSpeed;
-  final double distance;
-  final DateTime? endTime;
-  final List<TripPoint> positions;
 
   const TripState({
     required this.sessionId,
@@ -74,6 +65,34 @@ class TripState {
     required this.positions,
     this.endTime,
   });
+
+  factory TripState.fromJson(Map<String, Object?> json) {
+    return TripState(
+      sessionId: json['sessionId'] as String,
+      vehicleId: json['vehicleId'] as String,
+      startTime: DateTime.parse(json['startTime'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      currentSpeed: (json['currentSpeed'] as num).toDouble(),
+      maxSpeed: (json['maxSpeed'] as num).toDouble(),
+      distance: (json['distance'] as num).toDouble(),
+      endTime: json['endTime'] == null
+          ? null
+          : DateTime.parse(json['endTime'] as String),
+      positions: (json['positions'] as List<dynamic>)
+          .cast<Map<String, Object?>>()
+          .map(TripPoint.fromJson)
+          .toList(growable: false),
+    );
+  }
+  final String sessionId;
+  final String vehicleId;
+  final DateTime startTime;
+  final DateTime updatedAt;
+  final double currentSpeed;
+  final double maxSpeed;
+  final double distance;
+  final DateTime? endTime;
+  final List<TripPoint> positions;
 
   bool get isActive => endTime == null;
 
@@ -128,39 +147,20 @@ class TripState {
     'endTime': endTime?.toIso8601String(),
     'positions': positions.map((point) => point.toJson()).toList(),
   };
-
-  factory TripState.fromJson(Map<String, Object?> json) {
-    return TripState(
-      sessionId: json['sessionId'] as String,
-      vehicleId: json['vehicleId'] as String,
-      startTime: DateTime.parse(json['startTime'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      currentSpeed: (json['currentSpeed'] as num).toDouble(),
-      maxSpeed: (json['maxSpeed'] as num).toDouble(),
-      distance: (json['distance'] as num).toDouble(),
-      endTime: json['endTime'] == null
-          ? null
-          : DateTime.parse(json['endTime'] as String),
-      positions: (json['positions'] as List<dynamic>)
-          .cast<Map<String, Object?>>()
-          .map(TripPoint.fromJson)
-          .toList(growable: false),
-    );
-  }
 }
 
 class TripMetricsCalculator {
   /// GPS horizontal accuracy must be better than this (lower is better).
-  static const double maxAccuracyMeters = 30.0;
+  static const double maxAccuracyMeters = 30;
 
   /// Minimum distance between points to consider it a "move".
-  static const double minUsefulStepMeters = 3.0;
+  static const double minUsefulStepMeters = 3;
 
   /// Minimum derived speed needed before we trust a motion reading.
-  static const double minReliableSpeedKmh = 3.0;
+  static const double minReliableSpeedKmh = 3;
 
   /// Maximum speed for a road vehicle (km/h). Anything above is likely noise.
-  static const double maxRealisticSpeedKmh = 250.0;
+  static const double maxRealisticSpeedKmh = 250;
 
   TripState update(TripState current, Position position) {
     // 1. Accuracy Filter: Discard noisy GPS points immediately.
@@ -235,7 +235,7 @@ class TripMetricsCalculator {
     required TripPoint? previousPoint,
   }) {
     if (position.isMocked) {
-      return 0.0;
+      return 0;
     }
 
     final reportedSpeed = position.speed.isFinite && position.speed > 0
@@ -245,7 +245,7 @@ class TripMetricsCalculator {
     // Require actual position movement before accepting a speed reading.
     // GPS speed alone is noisy at trip start and while the device is idle.
     if (previousPoint == null || derivedSpeed < minReliableSpeedKmh) {
-      return 0.0;
+      return 0;
     }
 
     final speedAccuracy =
@@ -270,14 +270,14 @@ class TripMetricsCalculator {
 
   double _deriveSpeedKmh({required Position position, TripPoint? previous}) {
     if (previous == null) {
-      return 0.0;
+      return 0;
     }
 
     final elapsedSeconds =
         position.timestamp.difference(previous.timestamp).inMilliseconds /
         1000.0;
     if (elapsedSeconds <= 0) {
-      return 0.0;
+      return 0;
     }
 
     final distanceMeters = Geolocator.distanceBetween(
@@ -288,7 +288,7 @@ class TripMetricsCalculator {
     );
 
     if (distanceMeters < minUsefulStepMeters) {
-      return 0.0;
+      return 0;
     }
 
     return (distanceMeters / elapsedSeconds) * 3.6;
@@ -301,7 +301,7 @@ double _averageSpeedKmh({
 }) {
   final hours = duration.inSeconds / 3600.0;
   if (hours <= 0) {
-    return 0.0;
+    return 0;
   }
 
   return distanceKm / hours;

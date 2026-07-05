@@ -3,10 +3,6 @@ import 'package:quantane/features/trips/services/route_simplifier.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class RouteBoundingBox {
-  final double minLatitude;
-  final double maxLatitude;
-  final double minLongitude;
-  final double maxLongitude;
 
   const RouteBoundingBox({
     required this.minLatitude,
@@ -14,6 +10,10 @@ class RouteBoundingBox {
     required this.minLongitude,
     required this.maxLongitude,
   });
+  final double minLatitude;
+  final double maxLatitude;
+  final double minLongitude;
+  final double maxLongitude;
 
   bool get isValid =>
       minLatitude != maxLatitude || minLongitude != maxLongitude;
@@ -25,13 +25,13 @@ class RouteBoundingBox {
 }
 
 class ProcessedRoute {
-  final List<TripPoint> simplifiedPoints;
-  final RouteBoundingBox boundingBox;
 
   const ProcessedRoute({
     required this.simplifiedPoints,
     required this.boundingBox,
   });
+  final List<TripPoint> simplifiedPoints;
+  final RouteBoundingBox boundingBox;
 
   bool get hasRenderableRoute => simplifiedPoints.length >= 2;
 
@@ -47,10 +47,10 @@ class ProcessedRoute {
 }
 
 class RouteProcessingService {
-  final RouteSimplifier _simplifier;
 
   RouteProcessingService({RouteSimplifier? simplifier})
     : _simplifier = simplifier ?? RouteSimplifier();
+  final RouteSimplifier _simplifier;
 
   Future<ProcessedRoute?> process(List<TripPoint> points) async {
     if (points.length < 2) {

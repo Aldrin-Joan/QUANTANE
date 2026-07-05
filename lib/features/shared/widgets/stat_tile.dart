@@ -1,13 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:quantane/core/theme/colors.dart';
-import 'delta_badge.dart';
+import 'package:quantane/features/shared/widgets/delta_badge.dart';
 
 class StatTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final double? delta;
-  final Color? iconColor;
 
   const StatTile({
     super.key,
@@ -17,6 +12,11 @@ class StatTile extends StatelessWidget {
     this.delta,
     this.iconColor,
   });
+  final IconData icon;
+  final String label;
+  final String value;
+  final double? delta;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {

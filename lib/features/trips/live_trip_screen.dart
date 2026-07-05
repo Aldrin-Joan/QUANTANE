@@ -59,13 +59,11 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
       case AppLifecycleState.resumed:
         _startDurationTicker();
         setState(() {});
-        break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
         _stopDurationTicker();
-        break;
     }
   }
 
@@ -130,19 +128,15 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
         case TripTrackingStatus.bootstrapping:
           message = 'Restoring session...';
           subMessage = 'Checking for active trips.';
-          break;
         case TripTrackingStatus.waitingForLocation:
           message = 'Waiting for GPS signal...';
           subMessage = 'Check location permissions and route playback.';
-          break;
         case TripTrackingStatus.idle:
           message = 'Trip stopped';
           subMessage = 'Redirecting to history.';
-          break;
         case TripTrackingStatus.live:
           message = 'Starting trip...';
           subMessage = 'Preparing trip tracking.';
-          break;
       }
 
       return Center(
@@ -216,7 +210,6 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SpeedGauge(
               speed: state.currentSpeed,
-              maxSpeed: 200,
               mode: _displayMode,
             ),
           ),
@@ -339,15 +332,15 @@ class _LiveTripScreenState extends ConsumerState<LiveTripScreen>
 }
 
 class _ModeButton extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
 
   const _ModeButton({
     required this.label,
     required this.selected,
     required this.onTap,
   });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -11,10 +11,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'home_providers.g.dart';
 
 class HomeMetricsSnapshot {
-  final List<FuelEntry> fuelEntries;
-  final List<Trip> trips;
 
   const HomeMetricsSnapshot({required this.fuelEntries, required this.trips});
+  final List<FuelEntry> fuelEntries;
+  final List<Trip> trips;
 }
 
 @riverpod
@@ -106,7 +106,7 @@ QuickStats? quickStats(Ref ref) {
       final currentFuelEntries = _entriesForMonthOrAll(fuelEntries, now);
       final previousFuelEntries = _entriesForMonth(
         fuelEntries,
-        DateTime(now.year, now.month - 1, 1),
+        DateTime(now.year, now.month - 1),
       );
       final validFuelEntries = _validEntries(currentFuelEntries);
       final fuelDistance = _totalDistanceFromFuelEntries(validFuelEntries);
@@ -136,7 +136,7 @@ QuickStats? quickStats(Ref ref) {
 
 double _totalDistanceFromFuelEntries(List<FuelEntry> entries) {
   return entries.fold<double>(
-    0.0,
+    0,
     (sum, entry) => sum + ((entry.mileage ?? 0.0) * entry.fuelLiters),
   );
 }
@@ -166,42 +166,42 @@ double _averageMileageFromFuelEntries(List<FuelEntry> entries) {
 }
 
 double _totalDistanceFromTrips(List<Trip> trips) {
-  return trips.fold<double>(0.0, (sum, trip) => sum + trip.distance);
+  return trips.fold<double>(0, (sum, trip) => sum + trip.distance);
 }
 
 double _averageTripSpeed(List<Trip> trips) {
   final validTrips = trips.where((trip) => trip.endTime != null).toList();
   if (validTrips.isEmpty) {
-    return 0.0;
+    return 0;
   }
 
   final totalDistance = validTrips.fold<double>(
-    0.0,
+    0,
     (sum, trip) => sum + trip.distance,
   );
-  final totalHours = validTrips.fold<double>(0.0, (sum, trip) {
+  final totalHours = validTrips.fold<double>(0, (sum, trip) {
     final duration =
         trip.endTime!.difference(trip.startTime).inSeconds / 3600.0;
     return sum + (duration > 0 ? duration : 0.0);
   });
 
   if (totalHours <= 0) {
-    return 0.0;
+    return 0;
   }
 
   return totalDistance / totalHours;
 }
 
 double _totalLitersFromFuelEntries(List<FuelEntry> entries) {
-  return entries.fold<double>(0.0, (sum, entry) => sum + entry.fuelLiters);
+  return entries.fold<double>(0, (sum, entry) => sum + entry.fuelLiters);
 }
 
 double _totalSpendFromFuelEntries(List<FuelEntry> entries) {
-  return entries.fold<double>(0.0, (sum, entry) => sum + entry.fuelCost);
+  return entries.fold<double>(0, (sum, entry) => sum + entry.fuelCost);
 }
 
 double _monthlySpendFromFuelEntries(List<FuelEntry> entries, DateTime now) {
-  return entries.fold<double>(0.0, (sum, entry) {
+  return entries.fold<double>(0, (sum, entry) {
     final sameMonth =
         entry.date.year == now.year && entry.date.month == now.month;
     return sameMonth ? sum + entry.fuelCost : sum;

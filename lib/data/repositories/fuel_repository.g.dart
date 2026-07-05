@@ -48,4 +48,4 @@ final class FuelRepositoryProvider
   }
 }
 
-String _$fuelRepositoryHash() => r'f2e2268c523a965cda98b96a9955600cbc0a046e';
+String _$fuelRepositoryHash() => r'a324c9e5679f2921f2d634e467e1bbbc8ae7634f';

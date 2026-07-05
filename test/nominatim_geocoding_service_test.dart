@@ -1,25 +1,16 @@
 import 'dart:convert';
-
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/repositories/geocoding_cache_repository.dart';
 import 'package:quantane/features/trips/services/nominatim_geocoding_service.dart';
 
 void main() {
   group('NominatimGeocodingService', () {
-    late AppDatabase database;
     late GeocodingCacheRepository cacheRepository;
 
     setUp(() {
-      database = AppDatabase.forTesting(NativeDatabase.memory());
-      cacheRepository = GeocodingCacheRepository(database);
-    });
-
-    tearDown(() async {
-      await database.close();
+      cacheRepository = GeocodingCacheRepository();
     });
 
     test('parses neighbourhood and city from response', () async {

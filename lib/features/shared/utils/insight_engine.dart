@@ -1,13 +1,13 @@
 ﻿class Insight {
-  final String title;
-  final String description;
-  final String emoji;
 
   Insight({
     required this.title,
     required this.description,
     required this.emoji,
   });
+  final String title;
+  final String description;
+  final String emoji;
 }
 
 class InsightEngine {

@@ -11,15 +11,6 @@ abstract class ReverseGeocodingService {
 }
 
 class NominatimGeocodingService implements ReverseGeocodingService {
-  static const String userAgent = 'Quantane/1.0 (vehicle trip tracker)';
-  static const Duration requestTimeout = Duration(seconds: 10);
-  static const Duration throttleDelay = Duration(seconds: 1);
-
-  final GeocodingCacheRepository _cacheRepository;
-  final http.Client _client;
-  final Uri Function(double latitude, double longitude)
-  _reverseGeocodeUriBuilder;
-  DateTime? _lastRequestAt;
 
   NominatimGeocodingService({
     required GeocodingCacheRepository cacheRepository,
@@ -33,6 +24,15 @@ class NominatimGeocodingService implements ReverseGeocodingService {
              'https://nominatim.openstreetmap.org/reverse'
              '?format=jsonv2&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1',
            ));
+  static const String userAgent = 'Quantane/1.0 (vehicle trip tracker)';
+  static const Duration requestTimeout = Duration(seconds: 10);
+  static const Duration throttleDelay = Duration(seconds: 1);
+
+  final GeocodingCacheRepository _cacheRepository;
+  final http.Client _client;
+  final Uri Function(double latitude, double longitude)
+  _reverseGeocodeUriBuilder;
+  DateTime? _lastRequestAt;
 
   @override
   Future<String?> reverseGeocode({

@@ -6,9 +6,6 @@ import 'package:quantane/features/trips/services/route_snapshot_service.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class TripFinalizationService {
-  final RouteProcessingService _routeProcessingService;
-  final ReverseGeocodingService _geocodingService;
-  final RouteSnapshotWriter _snapshotWriter;
 
   TripFinalizationService({
     required RouteProcessingService routeProcessingService,
@@ -17,6 +14,9 @@ class TripFinalizationService {
   }) : _routeProcessingService = routeProcessingService,
        _geocodingService = geocodingService,
        _snapshotWriter = snapshotWriter;
+  final RouteProcessingService _routeProcessingService;
+  final ReverseGeocodingService _geocodingService;
+  final RouteSnapshotWriter _snapshotWriter;
 
   Future<Trip> finalize(TripState session) async {
     final baseTrip = session.toTrip();
@@ -37,8 +37,8 @@ class TripFinalizationService {
     }
 
     final bbox = processedRoute.boundingBox;
-    var startAddress = await _safeReverseGeocode(processedRoute.startPoint);
-    var endAddress = await _safeReverseGeocode(processedRoute.endPoint);
+    final startAddress = await _safeReverseGeocode(processedRoute.startPoint);
+    final endAddress = await _safeReverseGeocode(processedRoute.endPoint);
 
     final snapshotPath = await _safeGenerateSnapshot(
       tripId: session.sessionId,

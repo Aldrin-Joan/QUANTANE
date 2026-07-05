@@ -1,17 +1,4 @@
-import 'package:quantane/data/database/app_database.dart';
-
 class FuelEntry {
-  final String id;
-  final String vehicleId;
-  final DateTime date;
-  final double fuelCost;
-  final double fuelLiters;
-  final double odometer;
-  final String? station;
-  final String? notes;
-  final double? mileage; // Computed
-  final double? costPerKm; // Computed
-  final DateTime? lastUpdated;
 
   FuelEntry({
     required this.id,
@@ -26,6 +13,33 @@ class FuelEntry {
     this.costPerKm,
     this.lastUpdated,
   });
+
+  factory FuelEntry.fromJson(Map<String, dynamic> json) {
+    return FuelEntry(
+      id: json['id'] as String,
+      vehicleId: json['vehicleId'] as String,
+      date: DateTime.parse(json['date'] as String).toUtc(),
+      fuelCost: (json['fuelCost'] as num).toDouble(),
+      fuelLiters: (json['fuelLiters'] as num).toDouble(),
+      odometer: (json['odometer'] as num).toDouble(),
+      station: json['station'] as String?,
+      notes: json['notes'] as String?,
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.parse(json['lastUpdated'] as String).toUtc()
+          : null,
+    );
+  }
+  final String id;
+  final String vehicleId;
+  final DateTime date;
+  final double fuelCost;
+  final double fuelLiters;
+  final double odometer;
+  final String? station;
+  final String? notes;
+  final double? mileage; // Computed
+  final double? costPerKm; // Computed
+  final DateTime? lastUpdated;
 
   FuelEntry copyWith({
     String? id,
@@ -55,30 +69,21 @@ class FuelEntry {
     );
   }
 
-  factory FuelEntry.fromDrift(FuelEntryData data, {double? previousOdometer}) {
-    double? mileage;
-    double? costPerKm;
+  FuelEntry calculateMetrics(double? previousOdometer) {
+    double? calculatedMileage;
+    double? calculatedCostPerKm;
 
-    if (previousOdometer != null && data.odometer > previousOdometer) {
-      final distance = data.odometer - previousOdometer;
-      if (distance > 0 && data.fuelLiters > 0) {
-        mileage = distance / data.fuelLiters;
-        costPerKm = data.fuelCost / distance;
+    if (previousOdometer != null && odometer > previousOdometer) {
+      final distance = odometer - previousOdometer;
+      if (distance > 0 && fuelLiters > 0) {
+        calculatedMileage = distance / fuelLiters;
+        calculatedCostPerKm = fuelCost / distance;
       }
     }
 
-    return FuelEntry(
-      id: data.id,
-      vehicleId: data.vehicleId,
-      date: DateTime.parse(data.date).toUtc(),
-      fuelCost: data.fuelCost,
-      fuelLiters: data.fuelLiters,
-      odometer: data.odometer,
-      station: data.station,
-      notes: data.notes,
-      mileage: mileage,
-      costPerKm: costPerKm,
-      lastUpdated: data.lastUpdated?.toUtc(),
+    return copyWith(
+      mileage: calculatedMileage,
+      costPerKm: calculatedCostPerKm,
     );
   }
 
@@ -94,21 +99,5 @@ class FuelEntry {
       'notes': notes,
       'lastUpdated': lastUpdated?.toUtc().toIso8601String(),
     };
-  }
-
-  factory FuelEntry.fromJson(Map<String, dynamic> json) {
-    return FuelEntry(
-      id: json['id'] as String,
-      vehicleId: json['vehicleId'] as String,
-      date: DateTime.parse(json['date'] as String).toUtc(),
-      fuelCost: (json['fuelCost'] as num).toDouble(),
-      fuelLiters: (json['fuelLiters'] as num).toDouble(),
-      odometer: (json['odometer'] as num).toDouble(),
-      station: json['station'] as String?,
-      notes: json['notes'] as String?,
-      lastUpdated: json['lastUpdated'] != null
-          ? DateTime.parse(json['lastUpdated'] as String).toUtc()
-          : null,
-    );
   }
 }

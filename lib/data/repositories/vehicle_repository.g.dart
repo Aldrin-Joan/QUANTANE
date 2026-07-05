@@ -54,4 +54,4 @@ final class VehicleRepositoryProvider
   }
 }
 
-String _$vehicleRepositoryHash() => r'fa6a9cf8f9e0877ac09a732bbddf8f86597c894e';
+String _$vehicleRepositoryHash() => r'7d557a42bdea69e8e9989cf3b05949fbad622b4b';

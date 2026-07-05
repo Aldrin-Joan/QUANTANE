@@ -3,7 +3,7 @@ import 'package:quantane/features/trips/trip_permissions.dart';
 
 void main() {
   test('location denied is blocking while notification denied is advisory', () {
-    final state = TripPermissionState(
+    const state = TripPermissionState(
       location: const TripLocationPermission(TripPermissionStatus.denied),
       notification: const TripNotificationPermission(
         TripPermissionStatus.denied,
@@ -19,7 +19,7 @@ void main() {
   });
 
   test('gps disabled blocks trip start', () {
-    final state = TripPermissionState(
+    const state = TripPermissionState(
       location: const TripLocationPermission(
         TripPermissionStatus.serviceDisabled,
       ),
@@ -38,7 +38,7 @@ void main() {
   });
 
   test('notification denied remains non-blocking', () {
-    final state = TripPermissionState(
+    const state = TripPermissionState(
       location: const TripLocationPermission(TripPermissionStatus.granted),
       notification: const TripNotificationPermission(
         TripPermissionStatus.denied,
@@ -52,7 +52,7 @@ void main() {
   });
 
   test('granted location allows trip start', () {
-    final state = TripPermissionState(
+    const state = TripPermissionState(
       location: const TripLocationPermission(TripPermissionStatus.granted),
       notification: const TripNotificationPermission(
         TripPermissionStatus.granted,

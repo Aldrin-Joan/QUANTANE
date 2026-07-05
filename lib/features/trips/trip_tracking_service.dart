@@ -40,7 +40,7 @@ class TripTrackingService {
       return;
     }
 
-    if (kIsWeb || bool.fromEnvironment('FLUTTER_TEST')) {
+    if (kIsWeb || const bool.fromEnvironment('FLUTTER_TEST')) {
       _initialized = true;
       await restorePersistedSession();
       return;
@@ -55,14 +55,9 @@ class TripTrackingService {
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: false,
-        playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
         eventAction: ForegroundTaskEventAction.repeat(1000),
-        autoRunOnBoot: false,
-        autoRunOnMyPackageReplaced: false,
-        allowWakeLock: true,
-        allowWifiLock: false,
       ),
     );
 
@@ -173,7 +168,6 @@ class TripTrackingService {
       serviceId: 2042,
       notificationTitle: 'Trip tracking',
       notificationText: '${session.currentSpeed.toStringAsFixed(0)} km/h',
-      notificationIcon: null,
       notificationButtons: const [
         NotificationButton(id: _tripStopEvent, text: 'Stop Trip'),
         NotificationButton(id: _tripSpeedEvent, text: '0 km/h'),

@@ -5,11 +5,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class ActiveTripSessionRepository {
-  static const String _fileName = 'active_trip_session.json';
-  final Future<Directory> Function()? _directoryResolver;
 
   ActiveTripSessionRepository({Future<Directory> Function()? directoryResolver})
     : _directoryResolver = directoryResolver;
+  static const String _fileName = 'active_trip_session.json';
+  final Future<Directory> Function()? _directoryResolver;
 
   Future<File> _sessionFile() async {
     final directory = _directoryResolver == null

@@ -8,14 +8,14 @@ import 'package:quantane/features/trips/trip_formatters.dart';
 import 'package:quantane/features/trips/widgets/trip_route_map.dart';
 
 class TripHistoryCard extends StatelessWidget {
-  final Trip trip;
-  final Future<void> Function() onDelete;
 
   const TripHistoryCard({
     super.key,
     required this.trip,
     required this.onDelete,
   });
+  final Trip trip;
+  final Future<void> Function() onDelete;
 
   Future<void> _confirmDelete(BuildContext context) async {
     final shouldDelete = await showModalBottomSheet<bool>(
@@ -67,7 +67,7 @@ class TripHistoryCard extends StatelessWidget {
       },
     );
 
-    if (shouldDelete == true) {
+    if (shouldDelete ?? false) {
       await onDelete();
     }
   }
@@ -142,9 +142,9 @@ class TripHistoryCard extends StatelessWidget {
 }
 
 class _RoutePreview extends StatelessWidget {
-  final Trip trip;
 
   const _RoutePreview({required this.trip});
+  final Trip trip;
 
   @override
   Widget build(BuildContext context) {

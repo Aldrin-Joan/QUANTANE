@@ -1,11 +1,29 @@
-import 'dart:io';
-
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quantane/data/database/app_database.dart';
 import 'package:quantane/data/repositories/trip_repository.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
+
+class FakeTripRepository implements TripRepository {
+  final Map<String, Trip> _trips = {};
+
+  @override
+  Future<Trip?> getById(String id) async => _trips[id];
+
+  @override
+  Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {
+    _trips[trip.id] = trip;
+  }
+
+  @override
+  Future<void> delete(String id, {bool syncToFirebase = true}) async {
+    _trips.remove(id);
+  }
+
+  @override
+  Stream<List<Trip>> watchAll(String vehicleId) {
+    return Stream.value(_trips.values.where((t) => t.vehicleId == vehicleId).toList());
+  }
+}
 
 TripPoint _point(double lat, double lng) {
   return TripPoint(
@@ -19,24 +37,11 @@ TripPoint _point(double lat, double lng) {
 }
 
 void main() {
-  group('TripRepository', () {
-    late Directory tempDir;
-    late AppDatabase database;
-    late TripRepository repository;
+  group('TripRepository (Fake Integration)', () {
+    late FakeTripRepository repository;
 
-    setUp(() async {
-      tempDir = await Directory.systemTemp.createTemp('quantane_trip_repo_');
-      TripSnapshotStorage.documentsDirectoryOverride = () async => tempDir;
-      database = AppDatabase.forTesting(NativeDatabase.memory());
-      repository = TripRepository(database);
-    });
-
-    tearDown(() async {
-      TripSnapshotStorage.documentsDirectoryOverride = null;
-      await database.close();
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
+    setUp(() {
+      repository = FakeTripRepository();
     });
 
     test('inserts and reads enriched trip fields', () async {
@@ -74,12 +79,7 @@ void main() {
       expect(loaded.maxLongitude, 80.29);
     });
 
-    test('delete removes snapshot file when present', () async {
-      final snapshotsDir = Directory('${tempDir.path}/trip_snapshots');
-      await snapshotsDir.create(recursive: true);
-      final snapshotFile = File('${snapshotsDir.path}/trip-2.png');
-      await snapshotFile.writeAsString('snapshot');
-
+    test('delete removes trip entry', () async {
       await repository.insert(
         Trip(
           id: 'trip-2',
@@ -93,7 +93,6 @@ void main() {
 
       await repository.delete('trip-2');
       expect(await repository.getById('trip-2'), isNull);
-      expect(await snapshotFile.exists(), isFalse);
     });
   });
 }

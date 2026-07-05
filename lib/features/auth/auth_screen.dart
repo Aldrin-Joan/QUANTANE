@@ -6,12 +6,12 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
-  final bool isUpgrade;
 
   const AuthScreen({
     super.key,
     required this.isUpgrade,
   });
+  final bool isUpgrade;
 
   @override
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
@@ -182,7 +182,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -229,7 +229,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: Colors.white.withOpacity(0.08),
-                          width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -388,14 +387,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                           ),
                         ),
                         const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
                             'OR CONTINUE WITH',
                             style: TextStyle(
                               color: AppColors.textTertiary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
@@ -456,7 +455,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                         onPressed: authState.isLoading ? null : _toggleMode,
                         child: Text(
                           _isLoginMode
-                              ? 'Don\'t have an account? Sign Up'
+                              ? "Don't have an account? Sign Up"
                               : 'Already have an account? Sign In',
                           style: const TextStyle(
                             color: AppColors.primaryColor,

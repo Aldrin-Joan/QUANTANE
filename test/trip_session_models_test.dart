@@ -27,7 +27,7 @@ Position _position({
 }
 
 TripState _initialState() {
-  final now = DateTime(2026, 6, 14, 11, 0, 0);
+  final now = DateTime(2026, 6, 14, 11, 0);
   return TripState(
     sessionId: 'session-1',
     vehicleId: 'vehicle-1',
@@ -50,7 +50,7 @@ void main() {
       timestamp: DateTime(2026, 6, 14, 11, 0, 1),
       accuracy: 5,
       speed: 2.5,
-      speedAccuracy: 4.0,
+      speedAccuracy: 4,
     );
 
     final updated = calculator.update(state, position);
@@ -62,7 +62,7 @@ void main() {
 
   test('moving positions still produce a filtered speed', () {
     final calculator = TripMetricsCalculator();
-    final now = DateTime(2026, 6, 14, 11, 0, 0);
+    final now = DateTime(2026, 6, 14, 11, 0);
     final state = TripState(
       sessionId: 'session-1',
       vehicleId: 'vehicle-1',
@@ -73,7 +73,7 @@ void main() {
       distance: 0,
       positions: [
         TripPoint(
-          latitude: 11.00000,
+          latitude: 11,
           longitude: 76.98000,
           timestamp: now,
           speedKmh: 0,
@@ -89,7 +89,7 @@ void main() {
       timestamp: now.add(const Duration(seconds: 5)),
       accuracy: 5,
       speed: 9.1 / 3.6,
-      speedAccuracy: 1.0,
+      speedAccuracy: 1,
     );
 
     final updated = calculator.update(state, position);

@@ -1,113 +1,124 @@
-import 'dart:convert';
-import 'package:drift/drift.dart';
-import 'package:quantane/data/database/app_database.dart';
-import 'package:quantane/data/database/database_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quantane/domain/models/vehicle.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'vehicle_repository.g.dart';
 
 class VehicleRepository {
-  final AppDatabase _db;
 
-  VehicleRepository(this._db);
+  VehicleRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore,
+        _auth = auth;
+  final FirebaseFirestore? _firestore;
+  final FirebaseAuth? _auth;
+
+  FirebaseFirestore? get _firestoreInstance {
+    if (_firestore != null) return _firestore;
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FirebaseAuth? get _authInstance {
+    if (_auth != null) return _auth;
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? get _currentUid => _authInstance?.currentUser?.uid;
+
+  CollectionReference<Map<String, dynamic>>? get _collection {
+    final uid = _currentUid;
+    final fs = _firestoreInstance;
+    if (uid == null || fs == null) return null;
+    return fs.collection('users').doc(uid).collection('vehicles');
+  }
 
   Stream<List<Vehicle>> watchAll() {
-    return _db
-        .select(_db.vehicles)
-        .watch()
-        .map((rows) => rows.map((row) => Vehicle.fromDrift(row)).toList());
+    final col = _collection;
+    if (col == null) return Stream.value(const []);
+    return col
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Vehicle.fromJson(doc.data())).toList());
   }
 
   Future<Vehicle?> getById(String id) async {
-    final query = _db.select(_db.vehicles)..where((t) => t.id.equals(id));
-    final row = await query.getSingleOrNull();
-    return row != null ? Vehicle.fromDrift(row) : null;
+    final col = _collection;
+    if (col == null) return null;
+    final doc = await col.doc(id).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return Vehicle.fromJson(doc.data()!);
   }
 
   Future<void> insert(Vehicle vehicle, {bool syncToFirebase = true}) async {
+    final col = _collection;
+    if (col == null) return;
+    
     final now = DateTime.now().toUtc();
     final updatedVehicle = vehicle.lastUpdated == null
         ? vehicle.copyWith(lastUpdated: now, createdAt: vehicle.createdAt.toUtc())
         : vehicle.copyWith(createdAt: vehicle.createdAt.toUtc(), lastUpdated: vehicle.lastUpdated?.toUtc());
 
-    await _db.transaction(() async {
-      await _db
-          .into(_db.vehicles)
-          .insert(
-            VehiclesCompanion.insert(
-              id: updatedVehicle.id,
-              name: updatedVehicle.name,
-              type: updatedVehicle.type.name,
-              fuelType: updatedVehicle.fuelType.name,
-              tankCapacity: Value(updatedVehicle.tankCapacity),
-              initialOdometer: Value(updatedVehicle.initialOdometer),
-              createdAt: updatedVehicle.createdAt.toIso8601String(),
-              lastUpdated: Value(updatedVehicle.lastUpdated),
-            ),
-            mode: InsertMode.insertOrReplace,
-          );
-
-      if (syncToFirebase) {
-        await _db.queueSync(
-          action: 'INSERT',
-          entityType: 'vehicles',
-          entityId: updatedVehicle.id,
-          payload: jsonEncode(updatedVehicle.toJson()),
+    await col.doc(updatedVehicle.id).set(
+          updatedVehicle.toJson(),
+          SetOptions(merge: true),
         );
-      }
-    });
   }
 
   Future<void> update(Vehicle vehicle, {bool syncToFirebase = true}) async {
+    final col = _collection;
+    if (col == null) return;
+
     final now = DateTime.now().toUtc();
     final updatedVehicle = vehicle.copyWith(
       lastUpdated: now,
       createdAt: vehicle.createdAt.toUtc(),
     );
 
-    await _db.transaction(() async {
-      await (_db.update(
-        _db.vehicles,
-      )..where((t) => t.id.equals(updatedVehicle.id))).write(
-        VehiclesCompanion(
-          name: Value(updatedVehicle.name),
-          type: Value(updatedVehicle.type.name),
-          fuelType: Value(updatedVehicle.fuelType.name),
-          tankCapacity: Value(updatedVehicle.tankCapacity),
-          initialOdometer: Value(updatedVehicle.initialOdometer),
-          lastUpdated: Value(updatedVehicle.lastUpdated),
-        ),
-      );
-
-      if (syncToFirebase) {
-        await _db.queueSync(
-          action: 'UPDATE',
-          entityType: 'vehicles',
-          entityId: updatedVehicle.id,
-          payload: jsonEncode(updatedVehicle.toJson()),
+    await col.doc(updatedVehicle.id).set(
+          updatedVehicle.toJson(),
+          SetOptions(merge: true),
         );
-      }
-    });
   }
 
   Future<void> delete(String id, {bool syncToFirebase = true}) async {
-    await _db.transaction(() async {
-      await (_db.delete(_db.vehicles)..where((t) => t.id.equals(id))).go();
+    final col = _collection;
+    if (col == null) return;
+    await col.doc(id).delete();
+  }
 
-      if (syncToFirebase) {
-        await _db.queueSync(
-          action: 'DELETE',
-          entityType: 'vehicles',
-          entityId: id,
-        );
-      }
-    });
+  Future<void> clearAllData() async {
+    final uid = _currentUid;
+    final fs = _firestoreInstance;
+    if (uid == null || fs == null) return;
+    
+    final vehicles = await fs.collection('users').doc(uid).collection('vehicles').get();
+    for (final doc in vehicles.docs) {
+      await doc.reference.delete();
+    }
+    
+    final fuel = await fs.collection('users').doc(uid).collection('fuel_entries').get();
+    for (final doc in fuel.docs) {
+      await doc.reference.delete();
+    }
+    
+    final trips = await fs.collection('users').doc(uid).collection('trips').get();
+    for (final doc in trips.docs) {
+      await doc.reference.delete();
+    }
   }
 }
 
 @Riverpod(keepAlive: true)
 VehicleRepository vehicleRepository(Ref ref) {
-  final db = ref.watch(appDatabaseProvider);
-  return VehicleRepository(db);
+  return VehicleRepository();
 }

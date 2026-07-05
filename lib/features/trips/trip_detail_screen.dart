@@ -10,9 +10,9 @@ import 'package:quantane/features/trips/trip_formatters.dart';
 import 'package:quantane/features/trips/widgets/trip_route_map.dart';
 
 class TripDetailScreen extends ConsumerWidget {
-  final String tripId;
 
   const TripDetailScreen({super.key, required this.tripId});
+  final String tripId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,9 +46,9 @@ class TripDetailScreen extends ConsumerWidget {
 }
 
 class _TripDetailBody extends StatelessWidget {
-  final Trip trip;
 
   const _TripDetailBody({required this.trip});
+  final Trip trip;
 
   @override
   Widget build(BuildContext context) {
@@ -137,10 +137,6 @@ class _TripDetailBody extends StatelessWidget {
 }
 
 class _LocationRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
 
   const _LocationRow({
     required this.label,
@@ -148,6 +144,10 @@ class _LocationRow extends StatelessWidget {
     required this.icon,
     required this.iconColor,
   });
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -191,10 +191,10 @@ class _LocationRow extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  final String label;
-  final String value;
 
   const _StatRow({required this.label, required this.value});
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {

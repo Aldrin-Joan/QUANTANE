@@ -1,8 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/features/home/insight_providers.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
-import 'package:quantane/core/theme/colors.dart';
 
 class InsightBanner extends ConsumerWidget {
   const InsightBanner({super.key});

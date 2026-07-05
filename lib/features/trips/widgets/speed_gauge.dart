@@ -6,9 +6,6 @@ import 'package:quantane/core/theme/colors.dart';
 enum SpeedDisplayMode { digital, analog }
 
 class SpeedGauge extends StatelessWidget {
-  final double speed;
-  final double maxSpeed;
-  final SpeedDisplayMode mode;
 
   const SpeedGauge({
     super.key,
@@ -16,6 +13,9 @@ class SpeedGauge extends StatelessWidget {
     this.maxSpeed = 200,
     this.mode = SpeedDisplayMode.digital,
   });
+  final double speed;
+  final double maxSpeed;
+  final SpeedDisplayMode mode;
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +48,6 @@ class SpeedGauge extends StatelessWidget {
 }
 
 class _DigitalSpeedGauge extends StatelessWidget {
-  final double speed;
-  final Color gaugeColor;
-  final String? warning;
 
   const _DigitalSpeedGauge({
     super.key,
@@ -58,6 +55,9 @@ class _DigitalSpeedGauge extends StatelessWidget {
     required this.gaugeColor,
     required this.warning,
   });
+  final double speed;
+  final Color gaugeColor;
+  final String? warning;
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +107,6 @@ class _DigitalSpeedGauge extends StatelessWidget {
 }
 
 class _AnalogSpeedGauge extends StatelessWidget {
-  final double speed;
-  final double maxSpeed;
-  final Color gaugeColor;
-  final String? warning;
 
   const _AnalogSpeedGauge({
     super.key,
@@ -119,6 +115,10 @@ class _AnalogSpeedGauge extends StatelessWidget {
     required this.gaugeColor,
     required this.warning,
   });
+  final double speed;
+  final double maxSpeed;
+  final Color gaugeColor;
+  final String? warning;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +126,7 @@ class _AnalogSpeedGauge extends StatelessWidget {
       builder: (context, constraints) {
         final size = min(
           constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0,
-          320.0,
+          320,
         );
 
         return Column(
@@ -169,10 +169,10 @@ class _AnalogSpeedGauge extends StatelessWidget {
 }
 
 class _SpeedWarningBanner extends StatelessWidget {
-  final String message;
-  final Color color;
 
   const _SpeedWarningBanner({required this.message, required this.color});
+  final String message;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -216,15 +216,15 @@ String? _speedWarning(double speed) {
 }
 
 class _SpeedGaugePainter extends CustomPainter {
-  final double speed;
-  final double maxSpeed;
-  final Color activeColor;
 
   _SpeedGaugePainter({
     required this.speed,
     required this.maxSpeed,
     required this.activeColor,
   });
+  final double speed;
+  final double maxSpeed;
+  final Color activeColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -270,15 +270,15 @@ class _SpeedGaugePainter extends CustomPainter {
 }
 
 class _AnalogSpeedGaugePainter extends CustomPainter {
-  final double speed;
-  final double maxSpeed;
-  final Color activeColor;
 
   _AnalogSpeedGaugePainter({
     required this.speed,
     required this.maxSpeed,
     required this.activeColor,
   });
+  final double speed;
+  final double maxSpeed;
+  final Color activeColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -294,7 +294,7 @@ class _AnalogSpeedGaugePainter extends CustomPainter {
       dialRect,
       startAngle,
       sweepAngle,
-      0.0,
+      0,
       50 / maxSpeed,
       AppColors.accentColor,
     );
@@ -313,7 +313,7 @@ class _AnalogSpeedGaugePainter extends CustomPainter {
       startAngle,
       sweepAngle,
       80 / maxSpeed,
-      1.0,
+      1,
       AppColors.dangerColor,
     );
     _drawTicks(canvas, center, radius - 26, startAngle, sweepAngle);

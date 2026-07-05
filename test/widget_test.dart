@@ -141,7 +141,7 @@ void main() {
         vehicleId: 'vehicle-1',
         date: DateTime(2026, 6, 8),
         fuelCost: 200,
-        fuelLiters: 2.0,
+        fuelLiters: 2,
         odometer: 60,
         mileage: 30,
         costPerKm: 3.33,
@@ -237,8 +237,8 @@ void main() {
     final trip = Trip(
       id: 'trip-1',
       vehicleId: 'vehicle-1',
-      startTime: DateTime(2026, 6, 8, 10, 0, 0),
-      endTime: DateTime(2026, 6, 8, 10, 11, 0),
+      startTime: DateTime(2026, 6, 8, 10, 0),
+      endTime: DateTime(2026, 6, 8, 10, 11),
       distance: 11.2,
       avgSpeed: 60,
       maxSpeed: 72,
@@ -252,12 +252,12 @@ void main() {
             (ref) => HomeSummary(
               totalSpendMonth: 0,
               totalDistanceMonth: trip.distance,
-              avgMileageMonth: 25.0,
+              avgMileageMonth: 25,
             ),
           ),
           quickStatsProvider.overrideWith(
             (ref) => QuickStats(
-              avgMileage: 25.0,
+              avgMileage: 25,
               totalDistance: trip.distance,
               avgSpeed: trip.avgSpeed!,
               costPerKm: 40,
@@ -278,7 +278,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final repo = _FakeTripRepository();
-    final now = DateTime(2026, 6, 8, 7, 0, 0);
+    final now = DateTime(2026, 6, 8, 7, 0);
     final tracking = _FakeTripTracking(
       TripState(
         sessionId: 'session-1',
@@ -326,7 +326,7 @@ void main() {
     expect(repo.insertedTrip!.distance, 18);
     expect(repo.insertedTrip!.maxSpeed, 65);
     expect(repo.insertedTrip!.avgSpeed, isNotNull);
-    expect(repo.insertedTrip!.avgSpeed!, greaterThanOrEqualTo(0));
+    expect(repo.insertedTrip!.avgSpeed, greaterThanOrEqualTo(0));
     expect(tracking.stopCalled, isTrue);
   });
 
@@ -340,8 +340,8 @@ void main() {
         currentSpeed: 0,
         maxSpeed: 0,
         distance: 0,
-        startTime: DateTime(2026, 6, 8, 7, 0, 0),
-        updatedAt: DateTime(2026, 6, 8, 7, 1, 0),
+        startTime: DateTime(2026, 6, 8, 7, 0),
+        updatedAt: DateTime(2026, 6, 8, 7, 1),
         positions: const [],
       ),
     );
@@ -366,13 +366,13 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
             child: Column(
               children: [
-                SpeedGauge(speed: 102, mode: SpeedDisplayMode.digital),
-                const SizedBox(height: 24),
+                SpeedGauge(speed: 102),
+                SizedBox(height: 24),
                 SpeedGauge(speed: 102, mode: SpeedDisplayMode.analog),
               ],
             ),
@@ -401,8 +401,8 @@ void main() {
         currentSpeed: 42,
         maxSpeed: 65,
         distance: 18,
-        startTime: DateTime(2026, 6, 8, 7, 0, 0),
-        updatedAt: DateTime(2026, 6, 8, 7, 11, 0),
+        startTime: DateTime(2026, 6, 8, 7, 0),
+        updatedAt: DateTime(2026, 6, 8, 7, 11),
         positions: const [],
       ),
     );
@@ -433,8 +433,8 @@ void main() {
     final state = TripState(
       sessionId: 'session-3',
       vehicleId: 'vehicle-1',
-      startTime: DateTime(2026, 6, 8, 7, 0, 0),
-      updatedAt: DateTime(2026, 6, 8, 7, 12, 0),
+      startTime: DateTime(2026, 6, 8, 7, 0),
+      updatedAt: DateTime(2026, 6, 8, 7, 12),
       currentSpeed: 45,
       maxSpeed: 65,
       distance: 18,

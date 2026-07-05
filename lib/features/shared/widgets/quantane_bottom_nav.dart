@@ -15,12 +15,12 @@ class QuantaneBottomNav extends StatelessWidget {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(
-            top: BorderSide(color: AppColors.dividerColor, width: 1),
+            top: BorderSide(color: AppColors.dividerColor),
           ),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
-          onTap: (index) => navigationShell.goBranch(index),
+          onTap: navigationShell.goBranch,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(LucideIcons.house),

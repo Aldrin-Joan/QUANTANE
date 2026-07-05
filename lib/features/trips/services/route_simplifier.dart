@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:quantane/features/trips/trip_session_models.dart';
 
 class RouteSimplifier {
-  static const double defaultEpsilonMeters = 8.0;
+  static const double defaultEpsilonMeters = 8;
 
   Future<List<TripPoint>> simplify(
     List<TripPoint> points, {
@@ -29,10 +29,10 @@ class RouteSimplifier {
 }
 
 class _SimplifyRequest {
-  final List<TripPoint> points;
-  final double epsilonMeters;
 
   const _SimplifyRequest(this.points, this.epsilonMeters);
+  final List<TripPoint> points;
+  final double epsilonMeters;
 }
 
 List<TripPoint> _simplifyInIsolate(_SimplifyRequest request) {

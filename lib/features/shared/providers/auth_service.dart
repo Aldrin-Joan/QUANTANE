@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,17 +8,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'auth_service.g.dart';
 
 class AuthState {
+
+  AuthState({
+    this.user,
+    this.isSyncEnabled = true,
+    this.errorMessage,
+    this.isLoading = false,
+  });
   final User? user;
   final bool isSyncEnabled;
   final String? errorMessage;
   final bool isLoading;
-
-  AuthState({
-    this.user,
-    this.isSyncEnabled = false,
-    this.errorMessage,
-    this.isLoading = false,
-  });
 
   AuthState copyWith({
     User? user,
@@ -54,19 +53,14 @@ class AuthService extends _$AuthService {
   }
 
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isSyncEnabled = prefs.getBool(_syncKey) ?? false;
-
     _authSubscription?.cancel();
     _authSubscription = _auth.authStateChanges().listen((User? user) async {
       state = AuthState(
         user: user,
-        isSyncEnabled: isSyncEnabled,
-        isLoading: false,
       );
 
-      // Auto sign-in anonymously if sync is enabled but no current user is authenticated
-      if (isSyncEnabled && user == null) {
+      // Enforce guest anonymous login if no user is signed in
+      if (user == null) {
         await enableSync();
       }
     });
@@ -78,7 +72,7 @@ class AuthService extends _$AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_syncKey, true);
 
-      User? currentUser = _auth.currentUser;
+      var currentUser = _auth.currentUser;
       if (currentUser == null) {
         final credential = await _auth.signInAnonymously();
         currentUser = credential.user;
@@ -86,34 +80,19 @@ class AuthService extends _$AuthService {
 
       state = AuthState(
         user: currentUser,
-        isSyncEnabled: true,
-        isLoading: false,
       );
-
-      // Trigger initial migration of offline data to Firestore
-      await _triggerInitialBulkUpload();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to enable sync: ${e.toString()}',
+        errorMessage: 'Failed to enable sync: ${e}',
       );
     }
   }
 
   Future<void> disableSync() async {
-    state = state.copyWith(isLoading: true, clearError: true);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_syncKey, false);
-
-      await _auth.signOut();
-      state = AuthState(user: null, isSyncEnabled: false, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to disable sync: ${e.toString()}',
-      );
-    }
+    // Going fully offline/disabled sync is deprecated in online-first.
+    // Instead, disableSync signs out of any registered account, reverting back to anonymous guest.
+    await logout();
   }
 
   Future<void> linkEmail(String email, String password) async {
@@ -133,7 +112,7 @@ class AuthService extends _$AuthService {
         state = state.copyWith(user: authResult.user, isLoading: false);
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
-          // Fallback: Sign in directly and merge guest data
+          // Fallback: Sign in directly to merge or load existing cloud data
           final authResult = await _auth.signInWithEmailAndPassword(
             email: email,
             password: password,
@@ -143,12 +122,7 @@ class AuthService extends _$AuthService {
 
           state = AuthState(
             user: authResult.user,
-            isSyncEnabled: true,
-            isLoading: false,
           );
-
-          // Trigger initial migration of guest data to the existing account
-          await _triggerInitialBulkUpload();
         } else {
           rethrow;
         }
@@ -156,7 +130,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Linking account failed: ${e.toString()}',
+        errorMessage: 'Linking account failed: ${e}',
       );
       rethrow;
     }
@@ -169,17 +143,16 @@ class AuthService extends _$AuthService {
       final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
-        // Clear local database to isolate user accounts, preventing data contamination
         await _clearLocalDatabaseAndPreferences();
       }
 
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         state = state.copyWith(isLoading: false);
         return; // User cancelled
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -192,18 +165,11 @@ class AuthService extends _$AuthService {
 
       state = AuthState(
         user: authResult.user,
-        isSyncEnabled: true,
-        isLoading: false,
       );
-
-      // Merge guest data into the newly logged in account
-      if (isGuest) {
-        await _triggerInitialBulkUpload();
-      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Google Sign-in failed: ${e.toString()}',
+        errorMessage: 'Google Sign-in failed: ${e}',
       );
       rethrow;
     }
@@ -217,13 +183,13 @@ class AuthService extends _$AuthService {
         throw Exception('No logged-in guest account found to link.');
       }
 
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         state = state.copyWith(isLoading: false);
         return; // User cancelled
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -234,18 +200,14 @@ class AuthService extends _$AuthService {
         state = state.copyWith(user: authResult.user, isLoading: false);
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use' || e.code == 'credential-already-in-use') {
-          // Fallback: Sign in directly and merge guest data
+          // Fallback: Sign in directly to load existing cloud data
           final authResult = await _auth.signInWithCredential(credential);
           final prefs = await SharedPreferences.getInstance();
           await prefs.setBool(_syncKey, true);
 
           state = AuthState(
             user: authResult.user,
-            isSyncEnabled: true,
-            isLoading: false,
           );
-
-          await _triggerInitialBulkUpload();
         } else {
           rethrow;
         }
@@ -253,7 +215,7 @@ class AuthService extends _$AuthService {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Linking Google account failed: ${e.toString()}',
+        errorMessage: 'Linking Google account failed: ${e}',
       );
       rethrow;
     }
@@ -266,7 +228,6 @@ class AuthService extends _$AuthService {
       final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
-        // Clear local database to isolate user accounts, preventing data contamination
         await _clearLocalDatabaseAndPreferences();
       }
 
@@ -280,18 +241,11 @@ class AuthService extends _$AuthService {
 
       state = AuthState(
         user: authResult.user,
-        isSyncEnabled: true,
-        isLoading: false,
       );
-
-      // Merge guest data into the newly logged in account
-      if (isGuest) {
-        await _triggerInitialBulkUpload();
-      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Sign-in failed: ${e.toString()}',
+        errorMessage: 'Sign-in failed: ${e}',
       );
       rethrow;
     }
@@ -304,11 +258,9 @@ class AuthService extends _$AuthService {
       final isGuest = currentUserBefore == null || currentUserBefore.isAnonymous;
 
       if (!isGuest) {
-        // Clear local database to isolate user accounts, preventing data contamination
         await _clearLocalDatabaseAndPreferences();
       }
 
-      // Create account
       final authResult = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -319,18 +271,11 @@ class AuthService extends _$AuthService {
 
       state = AuthState(
         user: authResult.user,
-        isSyncEnabled: true,
-        isLoading: false,
       );
-
-      // Perform initial upload if we had guest data (signed up directly)
-      if (isGuest) {
-        await _triggerInitialBulkUpload();
-      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Registration failed: ${e.toString()}',
+        errorMessage: 'Registration failed: ${e}',
       );
       rethrow;
     }
@@ -341,12 +286,11 @@ class AuthService extends _$AuthService {
     try {
       await _clearLocalDatabaseAndPreferences();
       await _auth.signOut();
-
-      state = AuthState(user: null, isSyncEnabled: false, isLoading: false);
+      state = AuthState(isSyncEnabled: true);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Logout failed: ${e.toString()}',
+        errorMessage: 'Logout failed: ${e}',
       );
     }
   }
@@ -358,54 +302,6 @@ class AuthService extends _$AuthService {
       await prefs.remove('last_sync_timestamp_$uid');
       await prefs.remove('last_sync_time_$uid');
     }
-
-    final db = ref.read(appDatabaseProvider);
-    await db.clearAllData();
     await ref.read(activeVehicleProvider.notifier).clear();
-  }
-
-  Future<void> _triggerInitialBulkUpload() async {
-    // This helper maps existing offline items to the SyncQueue for immediate sync
-    final db = ref.read(appDatabaseProvider);
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) return;
-
-    // Run in transaction to maintain database consistency
-    await db.transaction(() async {
-      // 1. Queue all local Vehicles
-      final localVehicles = await db.select(db.vehicles).get();
-      for (final vehicle in localVehicles) {
-        // Only queue if not already synced or needs syncing
-        await db.queueSync(
-          action: 'INSERT',
-          entityType: 'vehicles',
-          entityId: vehicle.id,
-          payload:
-              null, // SyncService will read the state directly from database when processing
-        );
-      }
-
-      // 2. Queue all Fuel Entries
-      final localFuel = await db.select(db.fuelEntries).get();
-      for (final fuel in localFuel) {
-        await db.queueSync(
-          action: 'INSERT',
-          entityType: 'fuel_entries',
-          entityId: fuel.id,
-          payload: null,
-        );
-      }
-
-      // 3. Queue all Trips
-      final localTrips = await db.select(db.trips).get();
-      for (final trip in localTrips) {
-        await db.queueSync(
-          action: 'INSERT',
-          entityType: 'trips',
-          entityId: trip.id,
-          payload: null,
-        );
-      }
-    });
   }
 }

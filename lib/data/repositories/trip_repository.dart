@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
-
-import 'package:drift/drift.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:quantane/data/database/app_database.dart';
-import 'package:quantane/data/database/database_provider.dart';
 import 'package:quantane/domain/models/trip.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -56,91 +53,89 @@ class TripSnapshotStorage {
 }
 
 class TripRepository {
-  final AppDatabase _db;
 
-  TripRepository(this._db);
+  TripRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore,
+        _auth = auth;
+  final FirebaseFirestore? _firestore;
+  final FirebaseAuth? _auth;
+
+  FirebaseFirestore? get _firestoreInstance {
+    if (_firestore != null) return _firestore;
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FirebaseAuth? get _authInstance {
+    if (_auth != null) return _auth;
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? get _currentUid => _authInstance?.currentUser?.uid;
+
+  CollectionReference<Map<String, dynamic>>? get _collection {
+    final uid = _currentUid;
+    final fs = _firestoreInstance;
+    if (uid == null || fs == null) return null;
+    return fs.collection('users').doc(uid).collection('trips');
+  }
 
   Stream<List<Trip>> watchAll(String vehicleId) {
-    return (_db.select(_db.trips)
-          ..where((t) => t.vehicleId.equals(vehicleId))
-          ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
-        .watch()
-        .map((rows) => rows.map((row) => Trip.fromDrift(row)).toList());
+    final col = _collection;
+    if (col == null) return Stream.value(const []);
+
+    return col
+        .where('vehicleId', isEqualTo: vehicleId)
+        .orderBy('startTime', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Trip.fromJson(doc.data())).toList());
   }
 
   Future<Trip?> getById(String id) async {
-    final row = await (_db.select(
-      _db.trips,
-    )..where((trip) => trip.id.equals(id))).getSingleOrNull();
-    return row == null ? null : Trip.fromDrift(row);
+    final col = _collection;
+    if (col == null) return null;
+    final doc = await col.doc(id).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return Trip.fromJson(doc.data()!);
   }
 
   Future<void> insert(Trip trip, {bool syncToFirebase = true}) async {
+    final col = _collection;
+    if (col == null) return;
+
     final now = DateTime.now().toUtc();
     final updatedTrip = trip.lastUpdated == null
         ? trip.copyWith(lastUpdated: now, startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc())
         : trip.copyWith(startTime: trip.startTime.toUtc(), endTime: trip.endTime?.toUtc(), lastUpdated: trip.lastUpdated?.toUtc());
 
-    await _db.transaction(() async {
-      await _db
-          .into(_db.trips)
-          .insert(
-            TripsCompanion.insert(
-              id: updatedTrip.id,
-              vehicleId: updatedTrip.vehicleId,
-              startTime: updatedTrip.startTime.toIso8601String(),
-              endTime: Value(updatedTrip.endTime?.toIso8601String()),
-              distance: Value(updatedTrip.distance),
-              avgSpeed: Value(updatedTrip.avgSpeed),
-              maxSpeed: Value(updatedTrip.maxSpeed),
-              minSpeed: Value(updatedTrip.minSpeed),
-              startAddress: Value(updatedTrip.startAddress),
-              endAddress: Value(updatedTrip.endAddress),
-              minLatitude: Value(updatedTrip.minLatitude),
-              maxLatitude: Value(updatedTrip.maxLatitude),
-              minLongitude: Value(updatedTrip.minLongitude),
-              maxLongitude: Value(updatedTrip.maxLongitude),
-              routeSnapshotPath: Value(updatedTrip.routeSnapshotPath),
-              routePointsJson: Value(
-                Trip.encodeRoutePoints(updatedTrip.routePoints),
-              ),
-              lastUpdated: Value(updatedTrip.lastUpdated),
-            ),
-            mode: InsertMode.insertOrReplace,
-          );
-
-      if (syncToFirebase) {
-        await _db.queueSync(
-          action: 'INSERT',
-          entityType: 'trips',
-          entityId: updatedTrip.id,
-          payload: jsonEncode(updatedTrip.toJson()),
+    await col.doc(updatedTrip.id).set(
+          updatedTrip.toJson(),
+          SetOptions(merge: true),
         );
-      }
-    });
   }
 
   Future<void> delete(String id, {bool syncToFirebase = true}) async {
-    await _db.transaction(() async {
-      final existing = await getById(id);
-      await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
-      await TripSnapshotStorage.deleteSnapshot(existing?.routeSnapshotPath);
+    final col = _collection;
+    if (col == null) return;
 
-      if (syncToFirebase) {
-        await _db.queueSync(
-          action: 'DELETE',
-          entityType: 'trips',
-          entityId: id,
-        );
-      }
-    });
+    final existing = await getById(id);
+    await col.doc(id).delete();
+    await TripSnapshotStorage.deleteSnapshot(existing?.routeSnapshotPath);
   }
 }
 
 @Riverpod(keepAlive: true)
 TripRepository tripRepository(Ref ref) {
-  final db = ref.watch(appDatabaseProvider);
-  return TripRepository(db);
+  return TripRepository();
 }
 
 @riverpod

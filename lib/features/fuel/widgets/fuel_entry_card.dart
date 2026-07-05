@@ -6,9 +6,6 @@ import 'package:quantane/features/shared/widgets/delta_badge.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 
 class FuelEntryCard extends StatelessWidget {
-  final FuelEntry entry;
-  final double? previousMileage;
-  final VoidCallback? onLongPress;
 
   const FuelEntryCard({
     super.key,
@@ -16,6 +13,9 @@ class FuelEntryCard extends StatelessWidget {
     this.previousMileage,
     this.onLongPress,
   });
+  final FuelEntry entry;
+  final double? previousMileage;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {

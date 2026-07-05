@@ -41,10 +41,10 @@ class TripsScreen extends ConsumerWidget {
           final docDir = await getApplicationDocumentsDirectory();
 
           for (final trip in trips) {
-            bool updated = false;
-            String? startAddress = trip.startAddress;
-            String? endAddress = trip.endAddress;
-            String? snapshotPath = trip.routeSnapshotPath;
+            var updated = false;
+            var startAddress = trip.startAddress;
+            var endAddress = trip.endAddress;
+            var snapshotPath = trip.routeSnapshotPath;
 
             if ((startAddress == null || startAddress == 'Unknown location') &&
                 trip.routePoints.isNotEmpty) {
@@ -74,7 +74,7 @@ class TripsScreen extends ConsumerWidget {
               } catch (_) {}
             }
 
-            final bool snapshotMissing =
+            final snapshotMissing =
                 snapshotPath == null ||
                 !File('${docDir.path}/$snapshotPath').existsSync();
 
@@ -108,10 +108,10 @@ class TripsScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
-            SliverAppBar(floating: true, title: const Text('Trips')),
+            const SliverAppBar(floating: true, title: Text('Trips')),
             if (permissions.isRefreshing)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
                 sliver: SliverToBoxAdapter(child: _PermissionCard.loading()),
               )
             else if (permissions.hasBlockingLocationIssue ||
@@ -159,7 +159,7 @@ class TripsScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
+            const SliverToBoxAdapter(child: SectionHeader(title: 'Recent Trips')),
             _buildTripSliver(context, ref, activeVehicleId, tripHistoryAsync),
           ],
         ),
@@ -245,7 +245,7 @@ class TripsScreen extends ConsumerWidget {
     return tripHistoryAsync.when(
       data: (trips) {
         if (activeVehicleId == null) {
-          return SliverFillRemaining(
+          return const SliverFillRemaining(
             hasScrollBody: false,
             child: _TripsEmptyState(
               icon: LucideIcons.car,
@@ -257,7 +257,7 @@ class TripsScreen extends ConsumerWidget {
         }
 
         if (trips.isEmpty) {
-          return SliverFillRemaining(
+          return const SliverFillRemaining(
             hasScrollBody: false,
             child: _TripsEmptyState(
               icon: LucideIcons.route,
@@ -303,15 +303,15 @@ class TripsScreen extends ConsumerWidget {
 }
 
 class _PermissionStack extends StatelessWidget {
-  final TripPermissionState permissions;
-  final Future<void> Function() onFixLocation;
-  final Future<void> Function() onEnableNotifications;
 
   const _PermissionStack({
     required this.permissions,
     required this.onFixLocation,
     required this.onEnableNotifications,
   });
+  final TripPermissionState permissions;
+  final Future<void> Function() onFixLocation;
+  final Future<void> Function() onEnableNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -348,13 +348,6 @@ class _PermissionStack extends StatelessWidget {
 }
 
 class _PermissionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-  final String? actionLabel;
-  final Future<void> Function()? onAction;
-  final Color accentColor;
-  final bool compact;
 
   const _PermissionCard({
     required this.icon,
@@ -375,11 +368,17 @@ class _PermissionCard extends StatelessWidget {
       onAction = null,
       accentColor = AppColors.textSecondary,
       compact = false;
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final Future<void> Function()? onAction;
+  final Color accentColor;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return QuantaneCard(
-      variant: QuantaneCardVariant.flat,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,10 +430,10 @@ class _PermissionCard extends StatelessWidget {
 }
 
 class _TripsHero extends StatelessWidget {
-  final String? activeVehicleId;
-  final AsyncValue<List<Trip>> tripsAsync;
 
   const _TripsHero({required this.activeVehicleId, required this.tripsAsync});
+  final String? activeVehicleId;
+  final AsyncValue<List<Trip>> tripsAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -575,10 +574,10 @@ class _TripsHero extends StatelessWidget {
           ),
         );
       },
-      loading: () => QuantaneCard(
+      loading: () => const QuantaneCard(
         variant: QuantaneCardVariant.colored,
-        padding: const EdgeInsets.all(20),
-        child: const SizedBox(
+        padding: EdgeInsets.all(20),
+        child: SizedBox(
           height: 108,
           child: Center(child: CircularProgressIndicator(color: Colors.white)),
         ),
@@ -623,15 +622,15 @@ class _TripsHero extends StatelessWidget {
 }
 
 class _TripsHeroStat extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
 
   const _TripsHeroStat({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -670,15 +669,15 @@ class _TripsHeroStat extends StatelessWidget {
 }
 
 class _TripsEmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
 
   const _TripsEmptyState({
     required this.icon,
     required this.title,
     required this.message,
   });
+  final IconData icon;
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {

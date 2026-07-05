@@ -6,14 +6,6 @@ import 'package:quantane/features/trips/trip_session_models.dart';
 import 'package:quantane/features/trips/widgets/trip_map_style.dart';
 
 class TripRouteMap extends StatefulWidget {
-  final List<TripPoint> routePoints;
-  final double minLatitude;
-  final double maxLatitude;
-  final double minLongitude;
-  final double maxLongitude;
-  final bool interactive;
-  final double? height;
-  final bool showTileLayer;
 
   const TripRouteMap({
     super.key,
@@ -26,6 +18,14 @@ class TripRouteMap extends StatefulWidget {
     this.height,
     this.showTileLayer = true,
   });
+  final List<TripPoint> routePoints;
+  final double minLatitude;
+  final double maxLatitude;
+  final double minLongitude;
+  final double maxLongitude;
+  final bool interactive;
+  final double? height;
+  final bool showTileLayer;
 
   @override
   State<TripRouteMap> createState() => _TripRouteMapState();
@@ -83,7 +83,6 @@ class _TripRouteMapState extends State<TripRouteMap> {
                 (widget.minLatitude + widget.maxLatitude) / 2,
                 (widget.minLongitude + widget.maxLongitude) / 2,
               ),
-              initialZoom: 13,
               interactionOptions: InteractionOptions(
                 flags: widget.interactive
                     ? InteractiveFlag.all
@@ -160,9 +159,9 @@ class _TripRouteMapState extends State<TripRouteMap> {
 }
 
 class _RouteMarker extends StatelessWidget {
-  final Color color;
 
   const _RouteMarker({required this.color});
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -201,9 +200,9 @@ class _AttributionLabel extends StatelessWidget {
 }
 
 class _RouteUnavailable extends StatelessWidget {
-  final double? height;
 
   const _RouteUnavailable({this.height});
+  final double? height;
 
   @override
   Widget build(BuildContext context) {

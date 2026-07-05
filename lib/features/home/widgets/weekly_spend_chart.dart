@@ -201,14 +201,6 @@ class _SpeedMileageCarouselState extends ConsumerState<SpeedMileageCarousel> {
 }
 
 class _MetricCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String valueLabel;
-  final List<_MetricPoint> points;
-  final Color accent;
-  final Gradient fillGradient;
-  final String emptyLabel;
-  final IconData icon;
 
   const _MetricCard({
     super.key,
@@ -221,6 +213,14 @@ class _MetricCard extends StatelessWidget {
     required this.emptyLabel,
     required this.icon,
   });
+  final String title;
+  final String subtitle;
+  final String valueLabel;
+  final List<_MetricPoint> points;
+  final Color accent;
+  final Gradient fillGradient;
+  final String emptyLabel;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -359,30 +359,22 @@ class _MetricCard extends StatelessWidget {
                                     LineChartData(
                                       minY: 0,
                                       maxY: maxY,
-                                      gridData: FlGridData(
+                                      gridData: const FlGridData(
                                         show: false,
                                         drawVerticalLine: false,
                                       ),
                                       titlesData: const FlTitlesData(
                                         rightTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
+                                          
                                         ),
                                         topTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
+                                          
                                         ),
                                         leftTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
+                                          
                                         ),
                                         bottomTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                            showTitles: false,
-                                          ),
+                                          
                                         ),
                                       ),
                                       borderData: FlBorderData(show: false),
@@ -393,7 +385,6 @@ class _MetricCard extends StatelessWidget {
                                         LineChartBarData(
                                           spots: chartPoints,
                                           isCurved: true,
-                                          curveSmoothness: 0.35,
                                           color: Colors.white,
                                           barWidth: 3,
                                           isStrokeCapRound: true,
@@ -491,27 +482,27 @@ class _MetricCard extends StatelessWidget {
   }
 
   double _averageValue(List<_MetricPoint> points) {
-    if (points.isEmpty) return 0.0;
+    if (points.isEmpty) return 0;
     final values = points.map((point) => point.value).toList(growable: false);
     return values.reduce((a, b) => a + b) / values.length;
   }
 
   double _peakValue(List<_MetricPoint> points) {
-    if (points.isEmpty) return 0.0;
+    if (points.isEmpty) return 0;
     return points.map((point) => point.value).reduce((a, b) => a > b ? a : b);
   }
 }
 
 class _EmptyMetricState extends StatelessWidget {
-  final String title;
-  final String description;
-  final Color accent;
 
   const _EmptyMetricState({
     required this.title,
     required this.description,
     required this.accent,
   });
+  final String title;
+  final String description;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
@@ -600,8 +591,6 @@ class _EmptyMetricState extends StatelessWidget {
                       accent.withValues(alpha: 0.22),
                       accent.withValues(alpha: 0.06),
                     ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
                   ),
                 ),
                 alignment: Alignment.center,
@@ -622,20 +611,20 @@ class _EmptyMetricState extends StatelessWidget {
 }
 
 class _MetricPoint {
-  final String label;
-  final double value;
 
   const _MetricPoint({required this.label, required this.value});
+  final String label;
+  final double value;
 }
 
 class _MetricSeries {
-  final List<_MetricPoint> points;
-  final double average;
-  final double latestValue;
 
   const _MetricSeries({
     required this.points,
     required this.average,
     required this.latestValue,
   });
+  final List<_MetricPoint> points;
+  final double average;
+  final double latestValue;
 }

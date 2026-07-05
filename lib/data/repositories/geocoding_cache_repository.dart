@@ -1,14 +1,40 @@
-import 'package:drift/drift.dart';
-import 'package:quantane/data/database/app_database.dart';
-import 'package:quantane/data/database/database_provider.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'geocoding_cache_repository.g.dart';
 
 class GeocodingCacheRepository {
-  final AppDatabase _db;
 
-  GeocodingCacheRepository(this._db);
+  GeocodingCacheRepository() {
+    _initFuture = _initCache();
+  }
+  final Map<String, String> _memoryCache = {};
+  File? _cacheFile;
+  bool _initialized = false;
+  Future<void>? _initFuture;
+
+  Future<void> _initCache() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      _cacheFile = File('${directory.path}/geocoding_cache.json');
+      if (await _cacheFile!.exists()) {
+        final content = await _cacheFile!.readAsString();
+        final json = jsonDecode(content) as Map<String, dynamic>;
+        json.forEach((key, value) {
+          _memoryCache[key] = value.toString();
+        });
+      }
+    } catch (_) {}
+    _initialized = true;
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (!_initialized && _initFuture != null) {
+      await _initFuture;
+    }
+  }
 
   static String cacheKeyForCoordinate({
     required double latitude,
@@ -21,14 +47,12 @@ class GeocodingCacheRepository {
     required double latitude,
     required double longitude,
   }) async {
+    await _ensureInitialized();
     final cacheKey = cacheKeyForCoordinate(
       latitude: latitude,
       longitude: longitude,
     );
-    final row = await (_db.select(
-      _db.geocodingCache,
-    )..where((entry) => entry.cacheKey.equals(cacheKey))).getSingleOrNull();
-    return row?.address;
+    return _memoryCache[cacheKey];
   }
 
   Future<void> saveAddress({
@@ -36,24 +60,21 @@ class GeocodingCacheRepository {
     required double longitude,
     required String address,
   }) async {
+    await _ensureInitialized();
     final cacheKey = cacheKeyForCoordinate(
       latitude: latitude,
       longitude: longitude,
     );
-    await _db
-        .into(_db.geocodingCache)
-        .insert(
-          GeocodingCacheCompanion.insert(
-            cacheKey: cacheKey,
-            address: address,
-            cachedAt: DateTime.now().toIso8601String(),
-          ),
-          mode: InsertMode.insertOrReplace,
-        );
+    _memoryCache[cacheKey] = address;
+    try {
+      if (_cacheFile != null) {
+        await _cacheFile!.writeAsString(jsonEncode(_memoryCache));
+      }
+    } catch (_) {}
   }
 }
 
 @Riverpod(keepAlive: true)
 GeocodingCacheRepository geocodingCacheRepository(Ref ref) {
-  return GeocodingCacheRepository(ref.watch(appDatabaseProvider));
+  return GeocodingCacheRepository();
 }

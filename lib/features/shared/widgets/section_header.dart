@@ -2,9 +2,6 @@
 import 'package:quantane/core/theme/colors.dart';
 
 class SectionHeader extends StatelessWidget {
-  final String title;
-  final String? trailingLabel;
-  final VoidCallback? onTrailingTap;
 
   const SectionHeader({
     super.key,
@@ -12,6 +9,9 @@ class SectionHeader extends StatelessWidget {
     this.trailingLabel,
     this.onTrailingTap,
   });
+  final String title;
+  final String? trailingLabel;
+  final VoidCallback? onTrailingTap;
 
   @override
   Widget build(BuildContext context) {

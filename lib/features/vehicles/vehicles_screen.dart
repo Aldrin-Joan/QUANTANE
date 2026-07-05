@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quantane/core/theme/colors.dart';
 import 'package:quantane/data/repositories/vehicle_repository.dart';
 import 'package:quantane/domain/models/vehicle.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/vehicles/widgets/add_vehicle_sheet.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:quantane/core/theme/colors.dart';
 
 class VehiclesScreen extends ConsumerWidget {
   const VehiclesScreen({super.key});
@@ -66,7 +66,7 @@ class VehiclesScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet(
+          showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
             builder: (context) => const AddVehicleSheet(),

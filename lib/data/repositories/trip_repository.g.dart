@@ -48,7 +48,7 @@ final class TripRepositoryProvider
   }
 }
 
-String _$tripRepositoryHash() => r'b7dd8b30456a41db82343a61472b858e680d7519';
+String _$tripRepositoryHash() => r'4c713bfcbbb91666f362ed7ac45989eb8aa52db4';
 
 @ProviderFor(tripById)
 final tripByIdProvider = TripByIdFamily._();

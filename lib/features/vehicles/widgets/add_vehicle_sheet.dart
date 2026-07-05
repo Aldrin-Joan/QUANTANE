@@ -28,7 +28,7 @@ class _AddVehicleSheetState extends ConsumerState<AddVehicleSheet> {
     super.dispose();
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     final vehicle = Vehicle(

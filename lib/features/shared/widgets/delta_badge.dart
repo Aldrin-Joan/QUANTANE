@@ -3,23 +3,23 @@ import 'package:quantane/core/theme/colors.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class DeltaBadge extends StatelessWidget {
-  final double value;
-  final bool isPercentage;
 
   const DeltaBadge({super.key, required this.value, this.isPercentage = true});
+  final double value;
+  final bool isPercentage;
 
   @override
   Widget build(BuildContext context) {
     final isPositive = value > 0;
     final isNeutral = value == 0;
 
-    final Color bgColor = isNeutral
+    final bgColor = isNeutral
         ? AppColors.textTertiary.withValues(alpha: 0.1)
         : isPositive
         ? AppColors.accentMuted
         : AppColors.dangerMuted;
 
-    final Color textColor = isNeutral
+    final textColor = isNeutral
         ? AppColors.textTertiary
         : isPositive
         ? AppColors.accentColor

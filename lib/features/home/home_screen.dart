@@ -19,10 +19,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
+          const SliverAppBar(
             floating: true,
-            title: const Text('Quantane'),
-            actions: const [
+            title: Text('Quantane'),
+            actions: [
               Padding(
                 padding: EdgeInsets.only(right: 16),
                 child: VehicleSelectorChip(),
@@ -32,13 +32,9 @@ class HomeScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
-              summary != null
-                  ? HeroSummaryCard(summary: summary)
-                  : const SizedBox(),
+              if (summary != null) HeroSummaryCard(summary: summary) else const SizedBox(),
               const SectionHeader(title: 'Quick Stats'),
-              stats != null
-                  ? QuickStatsGrid(stats: stats)
-                  : const _EmptySectionCard(
+              if (stats != null) QuickStatsGrid(stats: stats) else const _EmptySectionCard(
                       title: 'Quick Stats',
                       message:
                           'No stats yet. Add trips and fuel entries to see mileage, distance, speed, and cost summaries.',
@@ -57,10 +53,10 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _EmptySectionCard extends StatelessWidget {
-  final String title;
-  final String message;
 
   const _EmptySectionCard({required this.title, required this.message});
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {

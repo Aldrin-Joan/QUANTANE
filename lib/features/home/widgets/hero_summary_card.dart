@@ -3,9 +3,9 @@ import 'package:quantane/domain/models/analytics_summary.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
 
 class HeroSummaryCard extends StatelessWidget {
-  final HomeSummary summary;
 
   const HeroSummaryCard({super.key, required this.summary});
+  final HomeSummary summary;
 
   @override
   Widget build(BuildContext context) {

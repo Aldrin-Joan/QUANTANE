@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:quantane/core/theme/colors.dart';
-import 'package:quantane/data/database/database_provider.dart';
+import 'package:quantane/data/repositories/vehicle_repository.dart';
 import 'package:quantane/features/shared/providers/active_vehicle_provider.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
 import 'package:quantane/features/shared/providers/sync_service.dart';
@@ -100,26 +100,26 @@ class SettingsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!auth.isSyncEnabled) ...[
-                Row(
+                const Row(
                   children: [
-                    const Icon(
+                    Icon(
                       LucideIcons.cloud_off,
                       size: 28,
                       color: AppColors.textTertiary,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Cloud Sync Disabled',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
                             'Backup vehicle history, trips, and logs securely to the cloud.',
                             style: TextStyle(
@@ -234,7 +234,7 @@ class SettingsScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            auth.user?.isAnonymous == true
+                            auth.user?.isAnonymous ?? false
                                 ? 'Account Mode: Guest'
                                 : 'Account Mode: Secured',
                             style: const TextStyle(
@@ -244,7 +244,7 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            auth.user?.isAnonymous == true
+                            auth.user?.isAnonymous ?? false
                                 ? 'Syncing to a transient guest ID. Upgrade to save data.'
                                 : auth.user?.email ?? '',
                             style: const TextStyle(
@@ -255,7 +255,7 @@ class SettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    if (auth.user?.isAnonymous == true)
+                    if (auth.user?.isAnonymous ?? false)
                       TextButton(
                         onPressed: () => context.push('/auth?upgrade=true'),
                         child: const Text('Upgrade'),
@@ -377,7 +377,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showClearDataDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardElevated,
@@ -396,7 +396,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              await ref.read(appDatabaseProvider).clearAllData();
+              await ref.read(vehicleRepositoryProvider).clearAllData();
               await ref.read(activeVehicleProvider.notifier).clear();
               if (context.mounted) {
                 Navigator.pop(context);

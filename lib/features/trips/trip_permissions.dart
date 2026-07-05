@@ -16,9 +16,9 @@ enum TripPermissionStatus {
 }
 
 class TripLocationPermission {
-  final TripPermissionStatus status;
 
   const TripLocationPermission(this.status);
+  final TripPermissionStatus status;
 
   bool get canTrack => status == TripPermissionStatus.granted;
 
@@ -62,9 +62,9 @@ class TripLocationPermission {
 }
 
 class TripNotificationPermission {
-  final TripPermissionStatus status;
 
   const TripNotificationPermission(this.status);
+  final TripPermissionStatus status;
 
   bool get isGranted => status == TripPermissionStatus.granted;
 
@@ -106,9 +106,6 @@ class TripNotificationPermission {
 }
 
 class TripPermissionState {
-  final TripLocationPermission location;
-  final TripNotificationPermission notification;
-  final bool isRefreshing;
 
   const TripPermissionState({
     required this.location,
@@ -121,6 +118,9 @@ class TripPermissionState {
     notification: TripNotificationPermission(TripPermissionStatus.unknown),
     isRefreshing: true,
   );
+  final TripLocationPermission location;
+  final TripNotificationPermission notification;
+  final bool isRefreshing;
 
   bool get canStartTrip => !isRefreshing && location.canTrack;
 

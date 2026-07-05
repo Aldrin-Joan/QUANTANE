@@ -4,11 +4,6 @@ import 'package:quantane/core/theme/colors.dart';
 enum QuantaneCardVariant { flat, glass, colored }
 
 class QuantaneCard extends StatelessWidget {
-  final Widget child;
-  final QuantaneCardVariant variant;
-  final EdgeInsetsGeometry? padding;
-  final Gradient? gradient;
-  final double borderRadius;
 
   const QuantaneCard({
     super.key,
@@ -18,6 +13,11 @@ class QuantaneCard extends StatelessWidget {
     this.gradient,
     this.borderRadius = 24.0,
   });
+  final Widget child;
+  final QuantaneCardVariant variant;
+  final EdgeInsetsGeometry? padding;
+  final Gradient? gradient;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +30,8 @@ class QuantaneCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
           ),
         );
-        break;
       case QuantaneCardVariant.colored:
         decoration = BoxDecoration(
           gradient: gradient ?? AppColors.primaryGradient,
@@ -46,7 +44,6 @@ class QuantaneCard extends StatelessWidget {
             ),
           ],
         );
-        break;
       case QuantaneCardVariant.flat:
         decoration = BoxDecoration(
           color: AppColors.cardColor,
@@ -59,7 +56,6 @@ class QuantaneCard extends StatelessWidget {
             ),
           ],
         );
-        break;
     }
 
     return Container(
