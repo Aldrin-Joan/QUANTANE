@@ -42,7 +42,7 @@ final class LocationSharingControllerProvider
 }
 
 String _$locationSharingControllerHash() =>
-    r'81e07ec66f133fcce36636c0126ebf074b43bbac';
+    r'6741edac93d8859c8739051f1f50327500687991';
 
 abstract class _$LocationSharingController extends $Notifier<void> {
   void build();

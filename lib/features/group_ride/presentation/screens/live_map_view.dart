@@ -12,7 +12,7 @@ import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Project imports:
 import 'package:quantane/core/theme/colors.dart';
@@ -32,7 +32,6 @@ class LiveMapView extends ConsumerStatefulWidget {
 class _LiveMapViewState extends ConsumerState<LiveMapView>
     with TickerProviderStateMixin {
   late final AnimatedMapController _mapController;
-  final Map<String, RiderTelemetry> _telemetries = {};
   Position? _myPosition;
   StreamSubscription<Position>? _myPosSub;
 
@@ -41,7 +40,21 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
     super.initState();
     _mapController = AnimatedMapController(vsync: this);
 
-    // Listen to local position
+    // Fetch initial position immediately
+    Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 5),
+        )
+        .then((pos) {
+          if (mounted) {
+            setState(() {
+              _myPosition = pos;
+            });
+          }
+        })
+        .catchError((_) {});
+
+    // Listen to local position updates
     _myPosSub = Geolocator.getPositionStream().listen((pos) {
       if (mounted) {
         setState(() {
@@ -73,27 +86,43 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
   }
 
   Future<void> _navigateToRider(double lat, double lng) async {
-    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
+    final geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
+    final fallbackUrl =
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+    try {
+      final geoUri = Uri.parse(geoUrl);
+      if (await canLaunchUrl(geoUri)) {
+        await launchUrl(geoUri, mode: LaunchMode.externalApplication);
+      } else {
+        final fallbackUri = Uri.parse(fallbackUrl);
+        await launchUrl(fallbackUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching navigation: $e');
+      try {
+        await launchUrl(
+          Uri.parse(fallbackUrl),
+          mode: LaunchMode.externalApplication,
+        );
+      } catch (_) {}
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<RiderTelemetry>>(
-      groupTelemetryProvider(widget.group.id),
-      (previous, next) {
-        final telemetry = next.value;
-        if (telemetry != null && mounted) {
-          setState(() {
-            _telemetries[telemetry.riderId] = telemetry;
-          });
-        }
-      },
-    );
+    ref.listen<LatLng?>(mapNavigationTargetProvider, (previous, next) {
+      if (next != null) {
+        _mapController.animateTo(dest: next, zoom: 15.0);
+        // Clear target state once focus begins
+        ref.read(mapNavigationTargetProvider.notifier).target = null;
+      }
+    });
 
-    final activeRiders = _telemetries.values.toList();
+    final resolvedNames = ref.watch(groupMemberNamesProvider(widget.group.id));
+    final activeTelemetries = ref.watch(
+      groupTelemetriesProvider(widget.group.id),
+    );
+    final activeRiders = activeTelemetries.values.toList();
     final center = _myPosition != null
         ? LatLng(_myPosition!.latitude, _myPosition!.longitude)
         : const LatLng(12.9716, 77.5946); // default Bangalore
@@ -227,7 +256,8 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               GestureDetector(
-                onTap: () {
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
                   if (_myPosition != null) {
                     _mapController.animateTo(
                       dest: LatLng(
@@ -236,6 +266,28 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
                       ),
                       zoom: 15.0,
                     );
+                  } else {
+                    try {
+                      final pos = await Geolocator.getCurrentPosition(
+                        desiredAccuracy: LocationAccuracy.high,
+                        timeLimit: const Duration(seconds: 5),
+                      );
+                      if (mounted) {
+                        setState(() {
+                          _myPosition = pos;
+                        });
+                        _mapController.animateTo(
+                          dest: LatLng(pos.latitude, pos.longitude),
+                          zoom: 15.0,
+                        );
+                      }
+                    } catch (e) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Could not determine location: $e'),
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Container(
@@ -344,7 +396,9 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Rider ${rider.riderId.substring(0, min(4, rider.riderId.length))}',
+                                    rider.displayName ??
+                                        resolvedNames[rider.riderId] ??
+                                        'Rider ${rider.riderId.substring(0, min(4, rider.riderId.length))}',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 12,
@@ -375,6 +429,12 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
   }
 
   void _showRiderDetail(BuildContext context, RiderTelemetry rider) {
+    final resolvedNames = ref.read(groupMemberNamesProvider(widget.group.id));
+    final displayName =
+        rider.displayName ??
+        resolvedNames[rider.riderId] ??
+        'Rider ${rider.riderId.substring(0, min(6, rider.riderId.length))}';
+
     var dist = 0.0;
     if (_myPosition != null) {
       dist = _calculateDistance(
@@ -413,7 +473,7 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Rider ${rider.riderId.substring(0, min(6, rider.riderId.length))}',
+                            displayName,
                             style: const TextStyle(
                               color: AppColors.textPrimary,
                               fontSize: 18,

@@ -87,14 +87,31 @@ class GroupChatRepository {
 
     for (final msg in pending) {
       try {
+        final encodedContent = jsonEncode({
+          'text': msg.content,
+          'sender_name': msg.senderName,
+        });
+
         await _client.from('group_messages').insert({
           'group_id': msg.groupId,
           'sender_id': msg.senderId,
-          'content': msg.content,
+          'content': encodedContent,
           'message_type': msg.messageType,
           'offline_id': msg.offlineId,
           'created_at': msg.createdAt.toIso8601String(),
         });
+
+        // Broadcast the message immediately to the room channel for active users
+        try {
+          final broadcastChan = _client.channel(
+            'room:group_chat:${msg.groupId}',
+          );
+          await broadcastChan.sendBroadcastMessage(
+            event: 'new_message',
+            payload: msg.copyWith(status: 'sent').toJson(),
+          );
+        } catch (_) {}
+
         remaining.removeWhere((item) => item.offlineId == msg.offlineId);
         syncedGroupIds.add(msg.groupId);
       } catch (e) {
@@ -155,13 +172,25 @@ class GroupChatRepository {
         .order('created_at', ascending: true);
 
     return response.map((data) {
+      final rawContent = data['content'] as String;
+      var contentText = rawContent;
+      var senderName = 'Rider';
+      try {
+        if (rawContent.startsWith('{')) {
+          final decoded = jsonDecode(rawContent) as Map<String, dynamic>;
+          if (decoded.containsKey('text')) {
+            contentText = decoded['text'] as String;
+            senderName = decoded['sender_name'] as String? ?? 'Rider';
+          }
+        }
+      } catch (_) {}
+
       return GroupChatMessage(
         id: data['id'] as String,
         groupId: data['group_id'] as String,
         senderId: data['sender_id'] as String,
-        senderName:
-            'Rider', // Fallback, will show dynamic in UI or join with profile
-        content: data['content'] as String,
+        senderName: senderName,
+        content: contentText,
         messageType: data['message_type'] as String? ?? 'text',
         createdAt: DateTime.parse(data['created_at'] as String),
         status: 'sent',
@@ -173,13 +202,26 @@ class GroupChatRepository {
   Stream<List<GroupChatMessage>> watchMessages(String groupId) {
     final controller = StreamController<List<GroupChatMessage>>();
     var serverMessages = <GroupChatMessage>[];
+    final broadcastMessages = <String, GroupChatMessage>{};
 
     Future<void> emitMerged() async {
       final pending = await _loadPendingMessages();
       final pendingForGroup = pending
           .where((m) => m.groupId == groupId)
           .toList();
-      final merged = [...serverMessages, ...pendingForGroup];
+
+      final allMessages = <String, GroupChatMessage>{};
+      for (final m in serverMessages) {
+        allMessages[m.id] = m;
+      }
+      for (final m in broadcastMessages.values) {
+        allMessages[m.id] = m;
+      }
+      for (final m in pendingForGroup) {
+        allMessages[m.id] = m;
+      }
+
+      final merged = allMessages.values.toList();
       // Sort by creation time
       merged.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       if (!controller.isClosed) {
@@ -230,10 +272,27 @@ class GroupChatRepository {
         )
         .subscribe();
 
+    // Listen to Broadcast channel for instant updates
+    final chatBroadcastChannel = _client.channel('room:group_chat:$groupId');
+    chatBroadcastChannel
+        .onBroadcast(
+          event: 'new_message',
+          callback: (payload) {
+            try {
+              final msg = GroupChatMessage.fromJson(payload);
+              broadcastMessages[msg.id] = msg;
+              emitMerged();
+            } catch (_) {}
+          },
+        )
+        .subscribe();
+
     controller.onCancel = () {
       pendingSubscription.cancel();
       syncSubscription.cancel();
       supabaseSubscription.unsubscribe();
+      chatBroadcastChannel.unsubscribe();
+      _client.removeChannel(chatBroadcastChannel);
       controller.close();
     };
 

@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 // Project imports:
 import 'package:quantane/core/theme/colors.dart';
@@ -75,12 +76,19 @@ class _ChatViewState extends ConsumerState<ChatView> {
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(groupChatMessagesProvider(widget.group.id));
+    final presenceAsync = ref.watch(groupPresenceProvider(widget.group.id));
+    final resolvedNames = ref.watch(groupMemberNamesProvider(widget.group.id));
     final authState = ref.watch(authServiceProvider);
     final currentUserId =
         authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     return Column(
       children: [
+        presenceAsync.when(
+          data: (onlineIds) => _buildMembersHeader(onlineIds, resolvedNames),
+          loading: () => const SizedBox.shrink(),
+          error: (_, stackTrace) => const SizedBox.shrink(),
+        ),
         Expanded(
           child: messagesAsync.when(
             data: (messages) {
@@ -125,9 +133,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(
+            error: (error, _) => Center(
               child: Text(
-                'Failed to load messages: $err',
+                'Failed to load messages: $error',
                 style: const TextStyle(color: Colors.red),
               ),
             ),
@@ -146,75 +154,181 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMe ? AppColors.primaryColor : AppColors.cardColor,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMe ? 16 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 16),
-          ),
-          border: Border.all(
-            color: isMe
-                ? AppColors.primaryColor.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.05),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isMe)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  message.senderName,
-                  style: TextStyle(
-                    color: AppColors.accentColor.withValues(alpha: 0.8),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
+      child: GestureDetector(
+        onTap: () {
+          if (!isMe) {
+            final telemetries = ref.read(
+              groupTelemetriesProvider(widget.group.id),
+            );
+            final telemetry = telemetries[message.senderId];
+            if (telemetry != null) {
+              ref.read(mapNavigationTargetProvider.notifier).target = LatLng(
+                telemetry.latitude,
+                telemetry.longitude,
+              );
+              ref.read(groupLobbyTabProvider.notifier).tabIndex =
+                  0; // Switch to Map
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Rider location not available yet'),
                 ),
-              ),
-            Text(
-              message.content,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
+              );
+            }
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isMe ? AppColors.primaryColor : AppColors.cardColor,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(isMe ? 16 : 4),
+              bottomRight: Radius.circular(isMe ? 4 : 16),
             ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  timeStr,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
+            border: Border.all(
+              color: isMe
+                  ? AppColors.primaryColor.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.05),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isMe)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    message.senderName,
+                    style: TextStyle(
+                      color: AppColors.accentColor.withValues(alpha: 0.8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                if (isMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    message.status == 'pending'
-                        ? LucideIcons.clock
-                        : LucideIcons.check,
-                    size: 11,
-                    color: statusColor,
+              Text(
+                message.content,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    timeStr,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                    ),
                   ),
+                  if (isMe) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      message.status == 'pending'
+                          ? LucideIcons.clock
+                          : LucideIcons.check,
+                      size: 11,
+                      color: statusColor,
+                    ),
+                  ],
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMembersHeader(
+    List<String> onlineUserIds,
+    Map<String, String> resolvedNames,
+  ) {
+    final members = widget.group.members;
+    if (members.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 70,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: const BoxDecoration(
+        color: AppColors.cardColor,
+        border: Border(
+          bottom: BorderSide(color: AppColors.dividerColor),
+        ),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: members.length,
+        itemBuilder: (context, index) {
+          final member = members[index];
+          final name = resolvedNames[member.userId] ?? member.displayName;
+          final isOnline = onlineUserIds.contains(member.userId);
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              children: [
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.primaryColor.withValues(
+                        alpha: 0.1,
+                      ),
+                      child: Text(
+                        name.isNotEmpty
+                            ? name.substring(0, 1).toUpperCase()
+                            : 'R',
+                        style: const TextStyle(
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    if (isOnline)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.cardColor,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -41,7 +41,7 @@ final class VoiceControllerProvider
   }
 }
 
-String _$voiceControllerHash() => r'69b2bfb43fe8aeb2b13069e17a2bf6b73dfa9619';
+String _$voiceControllerHash() => r'f433cbd1b560418a02364c5dabbfa4d729da1b5d';
 
 abstract class _$VoiceController extends $Notifier<VoiceState> {
   VoiceState build();

@@ -2,6 +2,7 @@
 import 'dart:async';
 
 // Package imports:
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -10,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Project imports:
 import 'package:quantane/features/group_ride/data/datasources/supabase_provider.dart';
+import 'package:quantane/features/shared/providers/auth_service.dart';
 
 part 'voice_controller.g.dart';
 
@@ -20,6 +22,7 @@ class VoiceState {
     this.isConnecting = false,
     this.room,
     this.error,
+    this.participants = const [],
   });
 
   final bool isConnected;
@@ -27,6 +30,7 @@ class VoiceState {
   final bool isConnecting;
   final Room? room;
   final String? error;
+  final List<Participant> participants;
 
   VoiceState copyWith({
     bool? isConnected,
@@ -34,6 +38,7 @@ class VoiceState {
     bool? isConnecting,
     Room? room,
     String? error,
+    List<Participant>? participants,
     bool clearRoom = false,
     bool clearError = false,
   }) {
@@ -43,6 +48,7 @@ class VoiceState {
       isConnecting: isConnecting ?? this.isConnecting,
       room: clearRoom ? null : (room ?? this.room),
       error: clearError ? null : (error ?? this.error),
+      participants: participants ?? this.participants,
     );
   }
 }
@@ -72,6 +78,10 @@ class VoiceController extends _$VoiceController {
       }
 
       final supabase = ref.read(supabaseClientProvider);
+      final authState = ref.read(authServiceProvider);
+      final userId =
+          authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
+      final displayName = authState.user?.displayName ?? 'Rider';
 
       // 1. Fetch voice room token from Supabase Edge Function
       final customUrl = dotenv.get('SUPERBASE_LIVE_TOKEN', fallback: '');
@@ -82,7 +92,11 @@ class VoiceController extends _$VoiceController {
 
       final response = await supabase.functions.invoke(
         functionName,
-        body: {'groupId': groupId},
+        body: {
+          'groupId': groupId,
+          'userId': userId,
+          'displayName': displayName,
+        },
       );
 
       final token = response.data['token'] as String?;
@@ -107,12 +121,55 @@ class VoiceController extends _$VoiceController {
         isConnecting: false,
         room: room,
         isMuted: false,
+        participants: [
+          if (room.localParticipant != null) room.localParticipant!,
+          ...room.remoteParticipants.values,
+        ],
       );
 
       // Listen to room events (disconnect, track updates)
       final listener = room.createListener();
+
+      void updateParticipants() {
+        if (state.room == null) return;
+        final list = <Participant>[];
+        if (room.localParticipant != null) {
+          list.add(room.localParticipant!);
+        }
+        list.addAll(room.remoteParticipants.values);
+        state = state.copyWith(participants: list);
+      }
+
       listener.on<RoomDisconnectedEvent>((event) {
         state = VoiceState();
+      });
+
+      listener.on<ParticipantConnectedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<ParticipantDisconnectedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<TrackPublishedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<TrackUnpublishedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<ActiveSpeakersChangedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<TrackMutedEvent>((event) {
+        updateParticipants();
+      });
+
+      listener.on<TrackUnmutedEvent>((event) {
+        updateParticipants();
       });
     } on FunctionException catch (e) {
       final errorMessage = e.status == 404

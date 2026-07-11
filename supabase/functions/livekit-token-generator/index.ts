@@ -15,7 +15,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { groupId } = await req.json();
+    const { groupId, userId, displayName } = await req.json();
     if (!groupId) {
       return new Response(
         JSON.stringify({ error: "Missing groupId parameter" }),
@@ -35,11 +35,13 @@ serve(async (req: Request) => {
     }
 
     // Generate a unique participant identity for this session connection
-    const participantId = `rider-${crypto.randomUUID().substring(0, 8)}`;
+    const participantId = userId || `rider-${crypto.randomUUID().substring(0, 8)}`;
+    const participantName = displayName || "Rider";
 
     // Create the LiveKit Access Token
     const at = new AccessToken(apiKey, apiSecret, {
       identity: participantId,
+      name: participantName,
       ttl: "2h", // Token valid for 2 hours
     });
 

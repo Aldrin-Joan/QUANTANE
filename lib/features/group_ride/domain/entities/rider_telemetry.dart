@@ -9,6 +9,7 @@ class RiderTelemetry {
     required this.batteryLevel,
     required this.status, // 'moving' | 'stationary' | 'offline'
     required this.timestamp,
+    this.displayName,
   });
 
   factory RiderTelemetry.fromJson(Map<String, dynamic> json) {
@@ -22,6 +23,7 @@ class RiderTelemetry {
       batteryLevel: (json['batteryLevel'] as num).toInt(),
       status: json['status'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
+      displayName: json['displayName'] as String?,
     );
   }
 
@@ -34,6 +36,7 @@ class RiderTelemetry {
   final int batteryLevel;
   final String status;
   final int timestamp;
+  final String? displayName;
 
   Map<String, dynamic> toJson() {
     return {
@@ -46,6 +49,7 @@ class RiderTelemetry {
       'batteryLevel': batteryLevel,
       'status': status,
       'timestamp': timestamp,
+      if (displayName != null) 'displayName': displayName,
     };
   }
 
@@ -59,6 +63,7 @@ class RiderTelemetry {
     int? batteryLevel,
     String? status,
     int? timestamp,
+    String? displayName,
   }) {
     return RiderTelemetry(
       riderId: riderId ?? this.riderId,
@@ -70,6 +75,7 @@ class RiderTelemetry {
       batteryLevel: batteryLevel ?? this.batteryLevel,
       status: status ?? this.status,
       timestamp: timestamp ?? this.timestamp,
+      displayName: displayName ?? this.displayName,
     );
   }
 }

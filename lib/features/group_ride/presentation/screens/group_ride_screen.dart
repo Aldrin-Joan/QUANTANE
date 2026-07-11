@@ -1,3 +1,7 @@
+// Dart imports:
+import 'dart:convert';
+import 'dart:math';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:quantane/core/theme/colors.dart';
@@ -44,18 +50,45 @@ class _WelcomeLobby extends ConsumerStatefulWidget {
 class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
   final _groupNameController = TextEditingController();
   final _inviteCodeController = TextEditingController();
+  final _userNameController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _userNameController.text =
+        ref.read(authServiceProvider).user?.displayName ?? '';
+    if (_userNameController.text.isEmpty) {
+      SharedPreferences.getInstance().then((prefs) {
+        final savedName = prefs.getString('user_display_name');
+        if (savedName != null && mounted) {
+          setState(() {
+            _userNameController.text = savedName;
+          });
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
     _groupNameController.dispose();
     _inviteCodeController.dispose();
+    _userNameController.dispose();
     super.dispose();
   }
 
   Future<void> _createGroup() async {
-    final name = _groupNameController.text.trim();
-    if (name.isEmpty) return;
+    final groupName = _groupNameController.text.trim();
+    if (groupName.isEmpty) return;
+
+    final name = _userNameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name first.')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
     final authState = ref.read(authServiceProvider);
@@ -73,12 +106,27 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
     }
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_display_name', name);
+      try {
+        await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
+      } catch (_) {}
+
       final repo = ref.read(groupRideRepositoryProvider);
-      final group = await repo.createGroup(name, userId);
+      final group = await repo.createGroup(groupName, userId);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
       ref
           .read(locationSharingControllerProvider.notifier)
           .startSharing(group.id);
+
+      // Send the system join message
+      final chatRepo = ref.read(groupChatRepositoryProvider);
+      final content = jsonEncode({
+        'type': 'join',
+        'user_id': userId,
+        'display_name': name,
+      });
+      await chatRepo.sendMessage(group.id, userId, name, content);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,6 +142,14 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
     final code = _inviteCodeController.text.trim();
     if (code.isEmpty) return;
 
+    final name = _userNameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name first.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     final authState = ref.read(authServiceProvider);
     final userId =
@@ -108,12 +164,27 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
     }
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_display_name', name);
+      try {
+        await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
+      } catch (_) {}
+
       final repo = ref.read(groupRideRepositoryProvider);
       final group = await repo.joinGroup(code, userId);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
       ref
           .read(locationSharingControllerProvider.notifier)
           .startSharing(group.id);
+
+      // Send the system join message
+      final chatRepo = ref.read(groupChatRepositoryProvider);
+      final content = jsonEncode({
+        'type': 'join',
+        'user_id': userId,
+        'display_name': name,
+      });
+      await chatRepo.sendMessage(group.id, userId, name, content);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,6 +241,56 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
                 ),
               ),
               const SizedBox(height: 48),
+              QuantaneCard(
+                variant: QuantaneCardVariant.flat,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Your Profile Name',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Set your display name so other riders can identify you.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _userNameController,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter your name...',
+                        hintStyle: const TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.bgColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(
+                          LucideIcons.user,
+                          color: AppColors.textSecondary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
               QuantaneCard(
                 variant: QuantaneCardVariant.flat,
                 child: Column(
@@ -291,7 +412,12 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final initialTab = ref.read(groupLobbyTabProvider);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: initialTab,
+    );
   }
 
   @override
@@ -318,11 +444,20 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(groupLobbyTabProvider, (previous, next) {
+      if (next != _tabController.index) {
+        _tabController.animateTo(next);
+      }
+    });
+
     return Column(
       children: [
         _buildHeader(context),
         TabBar(
           controller: _tabController,
+          onTap: (index) {
+            ref.read(groupLobbyTabProvider.notifier).tabIndex = index;
+          },
           labelColor: AppColors.primaryColor,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primaryColor,
@@ -469,7 +604,138 @@ class _VoiceTab extends ConsumerWidget {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 48),
+            if (voiceState.isConnected) ...[
+              const SizedBox(height: 24),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Active in Voice Call:',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: voiceState.participants.length,
+                  itemBuilder: (context, index) {
+                    final participant = voiceState.participants[index];
+                    final isLocal = participant is LocalParticipant;
+                    final isSpeaking = participant.isSpeaking;
+                    final isMuted = !participant.isMicrophoneEnabled();
+
+                    final resolvedNames = ref.watch(
+                      groupMemberNamesProvider(group.id),
+                    );
+                    final displayName = participant.name.isNotEmpty
+                        ? participant.name
+                        : (resolvedNames[participant.identity] ??
+                              'Rider ${participant.identity.substring(0, min(4, participant.identity.length))}');
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSpeaking
+                              ? AppColors.accentColor
+                              : Colors.white.withValues(alpha: 0.05),
+                          width: isSpeaking ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: isSpeaking
+                                    ? AppColors.accentColor.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : AppColors.textSecondary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                child: Text(
+                                  displayName.isNotEmpty
+                                      ? displayName
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                      : 'R',
+                                  style: TextStyle(
+                                    color: isSpeaking
+                                        ? AppColors.accentColor
+                                        : AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              if (isSpeaking)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.accentColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.volume_2,
+                                      size: 10,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  displayName + (isLocal ? ' (You)' : ''),
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  isSpeaking
+                                      ? 'Speaking...'
+                                      : (isMuted ? 'Muted' : 'Connected'),
+                                  style: TextStyle(
+                                    color: isSpeaking
+                                        ? AppColors.accentColor
+                                        : AppColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            isMuted ? LucideIcons.mic_off : LucideIcons.mic,
+                            size: 18,
+                            color: isMuted
+                                ? AppColors.dangerColor
+                                : AppColors.accentColor,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
             if (!voiceState.isConnected)
               ElevatedButton.icon(
                 onPressed: voiceState.isConnecting

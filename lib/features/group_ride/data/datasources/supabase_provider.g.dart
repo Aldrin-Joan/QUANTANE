@@ -144,7 +144,7 @@ final class GroupChatRepositoryProvider
 }
 
 String _$groupChatRepositoryHash() =>
-    r'd6174b40e85fb1f1d6664085678f2332dd230754';
+    r'444a2aeaa49e9f18b00af5da4f50375af7465e99';
 
 @ProviderFor(locationSharingRepository)
 final locationSharingRepositoryProvider = LocationSharingRepositoryProvider._();
@@ -192,4 +192,4 @@ final class LocationSharingRepositoryProvider
 }
 
 String _$locationSharingRepositoryHash() =>
-    r'c0b2bf8cb6da02e8cdb037ab675b4525bdf43f00';
+    r'ba0075e3c888b8ce7a3859ca87f4c8d12d3493fd';

@@ -1,5 +1,6 @@
 // Package imports:
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,4 +90,62 @@ Stream<List<String>> groupPresence(Ref ref, String groupId) {
 Stream<RiderTelemetry> groupTelemetry(Ref ref, String groupId) {
   final repo = ref.watch(locationSharingRepositoryProvider);
   return repo.telemetryStream;
+}
+
+@riverpod
+class GroupLobbyTab extends _$GroupLobbyTab {
+  @override
+  int build() => 0;
+
+  int get tabIndex => state;
+
+  set tabIndex(int index) {
+    state = index;
+  }
+}
+
+@riverpod
+class MapNavigationTarget extends _$MapNavigationTarget {
+  @override
+  LatLng? build() => null;
+
+  LatLng? get target => state;
+
+  set target(LatLng? target) {
+    state = target;
+  }
+}
+
+@riverpod
+Map<String, String> groupMemberNames(Ref ref, String groupId) {
+  final messagesAsync = ref.watch(groupChatMessagesProvider(groupId));
+  final names = <String, String>{};
+
+  messagesAsync.whenData((messages) {
+    for (final msg in messages) {
+      if (msg.senderName != 'Rider' && msg.senderName.isNotEmpty) {
+        names[msg.senderId] = msg.senderName;
+      }
+    }
+  });
+
+  return names;
+}
+
+@Riverpod(keepAlive: true)
+class GroupTelemetries extends _$GroupTelemetries {
+  @override
+  Map<String, RiderTelemetry> build(String groupId) {
+    ref.listen<AsyncValue<RiderTelemetry>>(groupTelemetryProvider(groupId), (
+      previous,
+      next,
+    ) {
+      final telemetry = next.value;
+      if (telemetry != null) {
+        state = Map<String, RiderTelemetry>.from(state)
+          ..[telemetry.riderId] = telemetry;
+      }
+    });
+    return const {};
+  }
 }

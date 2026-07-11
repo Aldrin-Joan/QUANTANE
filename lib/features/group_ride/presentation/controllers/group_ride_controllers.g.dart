@@ -41,7 +41,7 @@ final class ActiveGroupIdProvider
   }
 }
 
-String _$activeGroupIdHash() => r'ba987a95db53963014ea0660ac3b1870222d9597';
+String _$activeGroupIdHash() => r'cc9deadafb6bb8ae0cf5ce0fa1cf3b1914c7aa9d';
 
 abstract class _$ActiveGroupId extends $Notifier<String?> {
   String? build();
@@ -100,7 +100,7 @@ final class GroupListProvider
   }
 }
 
-String _$groupListHash() => r'e571cb1f078a3ec863e697c9e43dfb1c9e27cd9b';
+String _$groupListHash() => r'5e75d866f014917e8bd100fab8ac5664b6eb8afc';
 
 @ProviderFor(activeGroup)
 final activeGroupProvider = ActiveGroupProvider._();
@@ -374,4 +374,295 @@ final class GroupTelemetryFamily extends $Family
 
   @override
   String toString() => r'groupTelemetryProvider';
+}
+
+@ProviderFor(GroupLobbyTab)
+final groupLobbyTabProvider = GroupLobbyTabProvider._();
+
+final class GroupLobbyTabProvider
+    extends $NotifierProvider<GroupLobbyTab, int> {
+  GroupLobbyTabProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'groupLobbyTabProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupLobbyTabHash();
+
+  @$internal
+  @override
+  GroupLobbyTab create() => GroupLobbyTab();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$groupLobbyTabHash() => r'15946850ee037584585beb55e83bbb5cfbdf6c33';
+
+abstract class _$GroupLobbyTab extends $Notifier<int> {
+  int build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<int, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(MapNavigationTarget)
+final mapNavigationTargetProvider = MapNavigationTargetProvider._();
+
+final class MapNavigationTargetProvider
+    extends $NotifierProvider<MapNavigationTarget, LatLng?> {
+  MapNavigationTargetProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'mapNavigationTargetProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$mapNavigationTargetHash();
+
+  @$internal
+  @override
+  MapNavigationTarget create() => MapNavigationTarget();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LatLng? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LatLng?>(value),
+    );
+  }
+}
+
+String _$mapNavigationTargetHash() =>
+    r'54ac79af423801a52de5c400b8152e4616a50581';
+
+abstract class _$MapNavigationTarget extends $Notifier<LatLng?> {
+  LatLng? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<LatLng?, LatLng?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<LatLng?, LatLng?>,
+              LatLng?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(groupMemberNames)
+final groupMemberNamesProvider = GroupMemberNamesFamily._();
+
+final class GroupMemberNamesProvider
+    extends
+        $FunctionalProvider<
+          Map<String, String>,
+          Map<String, String>,
+          Map<String, String>
+        >
+    with $Provider<Map<String, String>> {
+  GroupMemberNamesProvider._({
+    required GroupMemberNamesFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'groupMemberNamesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupMemberNamesHash();
+
+  @override
+  String toString() {
+    return r'groupMemberNamesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Map<String, String> create(Ref ref) {
+    final argument = this.argument as String;
+    return groupMemberNames(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, String>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupMemberNamesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$groupMemberNamesHash() => r'3202adbdec3b0bc5e6e6a4197fb7c68f8ba6dcdb';
+
+final class GroupMemberNamesFamily extends $Family
+    with $FunctionalFamilyOverride<Map<String, String>, String> {
+  GroupMemberNamesFamily._()
+    : super(
+        retry: null,
+        name: r'groupMemberNamesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  GroupMemberNamesProvider call(String groupId) =>
+      GroupMemberNamesProvider._(argument: groupId, from: this);
+
+  @override
+  String toString() => r'groupMemberNamesProvider';
+}
+
+@ProviderFor(GroupTelemetries)
+final groupTelemetriesProvider = GroupTelemetriesFamily._();
+
+final class GroupTelemetriesProvider
+    extends $NotifierProvider<GroupTelemetries, Map<String, RiderTelemetry>> {
+  GroupTelemetriesProvider._({
+    required GroupTelemetriesFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'groupTelemetriesProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupTelemetriesHash();
+
+  @override
+  String toString() {
+    return r'groupTelemetriesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  GroupTelemetries create() => GroupTelemetries();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, RiderTelemetry> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, RiderTelemetry>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GroupTelemetriesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$groupTelemetriesHash() => r'a63d794ea5185993e4eb821d9c9bd18e8c70f5e1';
+
+final class GroupTelemetriesFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          GroupTelemetries,
+          Map<String, RiderTelemetry>,
+          Map<String, RiderTelemetry>,
+          Map<String, RiderTelemetry>,
+          String
+        > {
+  GroupTelemetriesFamily._()
+    : super(
+        retry: null,
+        name: r'groupTelemetriesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: false,
+      );
+
+  GroupTelemetriesProvider call(String groupId) =>
+      GroupTelemetriesProvider._(argument: groupId, from: this);
+
+  @override
+  String toString() => r'groupTelemetriesProvider';
+}
+
+abstract class _$GroupTelemetries
+    extends $Notifier<Map<String, RiderTelemetry>> {
+  late final _$args = ref.$arg as String;
+  String get groupId => _$args;
+
+  Map<String, RiderTelemetry> build(String groupId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref
+            as $Ref<Map<String, RiderTelemetry>, Map<String, RiderTelemetry>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                Map<String, RiderTelemetry>,
+                Map<String, RiderTelemetry>
+              >,
+              Map<String, RiderTelemetry>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, () => build(_$args));
+  }
 }
