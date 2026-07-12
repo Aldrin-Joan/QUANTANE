@@ -555,6 +555,7 @@ class _TripsHero extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Trip history',
@@ -563,24 +564,13 @@ class _TripsHero extends StatelessWidget {
                                 color: Colors.white.withValues(alpha: 0.72),
                               ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          activeVehicleId == null
-                              ? 'Select a vehicle first'
-                              : 'Active vehicle',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
+                        const SizedBox(height: 6),
+                        const VehicleSelectorChip(
+                          variant: VehicleSelectorVariant.transparent,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const VehicleSelectorChip(),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
