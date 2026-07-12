@@ -114,7 +114,7 @@ class _LiveMapViewState extends ConsumerState<LiveMapView>
       if (next != null) {
         _mapController.animateTo(dest: next, zoom: 15.0);
         // Clear target state once focus begins
-        ref.read(mapNavigationTargetProvider.notifier).target = null;
+        ref.read(mapNavigationTargetProvider.notifier).setTarget(null);
       }
     });
 

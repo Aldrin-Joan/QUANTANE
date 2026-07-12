@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:quantane/features/group_ride/data/datasources/supabase_provider.dart';
-import 'package:quantane/features/group_ride/domain/entities/group_chat_message.dart';
 import 'package:quantane/features/group_ride/domain/entities/group_ride.dart';
 import 'package:quantane/features/group_ride/domain/entities/rider_telemetry.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
@@ -19,6 +18,8 @@ class ActiveGroupId extends _$ActiveGroupId {
 
   @override
   String? build() {
+    // Initial build returns null immediately, then we load from storage.
+    // We use a microtask or a simple future to update the state after the build is complete.
     _loadPersisted();
     return null;
   }
@@ -27,6 +28,7 @@ class ActiveGroupId extends _$ActiveGroupId {
     try {
       final prefs = await SharedPreferences.getInstance();
       final id = prefs.getString(_storageKey);
+      // Only update if the provider is still active and the value is actually different.
       if (id != null && state == null) {
         state = id;
       }
@@ -49,6 +51,24 @@ class ActiveGroupId extends _$ActiveGroupId {
 }
 
 @Riverpod(keepAlive: true)
+class TransientActiveGroup extends _$TransientActiveGroup {
+  @override
+  GroupRideSession? build() => null;
+
+  void setTransientGroup(GroupRideSession group) {
+    if (state != group) {
+      state = group;
+    }
+  }
+
+  void clearTransientGroup() {
+    if (state != null) {
+      state = null;
+    }
+  }
+}
+
+@Riverpod(keepAlive: true)
 Stream<List<GroupRideSession>> groupList(Ref ref) {
   final authState = ref.watch(authServiceProvider);
   final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
@@ -63,11 +83,28 @@ GroupRideSession? activeGroup(Ref ref) {
   final activeId = ref.watch(activeGroupIdProvider);
   if (activeId == null) return null;
 
+  // 1. Check transient state first (optimistic/immediate after creation)
+  final transient = ref.watch(transientActiveGroupProvider);
+  if (transient != null && transient.id == activeId) {
+    return transient;
+  }
+
+  // 2. Check the synced list
   final groupsAsync = ref.watch(groupListProvider);
   return groupsAsync.whenOrNull(
     data: (list) {
       for (final g in list) {
-        if (g.id == activeId) return g;
+        if (g.id == activeId) {
+          // Once found in synced list, we can clear transient if it matches
+          if (transient?.id == activeId) {
+            Future.microtask(
+              () => ref
+                  .read(transientActiveGroupProvider.notifier)
+                  .clearTransientGroup(),
+            );
+          }
+          return g;
+        }
       }
       return null;
     },
@@ -75,13 +112,10 @@ GroupRideSession? activeGroup(Ref ref) {
 }
 
 @riverpod
-Stream<List<GroupChatMessage>> groupChatMessages(Ref ref, String groupId) {
-  final repo = ref.watch(groupChatRepositoryProvider);
-  return repo.watchMessages(groupId);
-}
-
-@riverpod
-Stream<List<String>> groupPresence(Ref ref, String groupId) {
+Stream<Map<String, Map<String, dynamic>>> groupPresence(
+  Ref ref,
+  String groupId,
+) {
   final repo = ref.watch(locationSharingRepositoryProvider);
   return repo.presenceStream;
 }
@@ -99,8 +133,10 @@ class GroupLobbyTab extends _$GroupLobbyTab {
 
   int get tabIndex => state;
 
-  set tabIndex(int index) {
-    state = index;
+  void setTabIndex(int index) {
+    if (state != index) {
+      state = index;
+    }
   }
 }
 
@@ -111,23 +147,48 @@ class MapNavigationTarget extends _$MapNavigationTarget {
 
   LatLng? get target => state;
 
-  set target(LatLng? target) {
-    state = target;
+  void setTarget(LatLng? target) {
+    if (state != target) {
+      state = target;
+    }
   }
 }
 
 @riverpod
 Map<String, String> groupMemberNames(Ref ref, String groupId) {
-  final messagesAsync = ref.watch(groupChatMessagesProvider(groupId));
   final names = <String, String>{};
 
-  messagesAsync.whenData((messages) {
-    for (final msg in messages) {
-      if (msg.senderName != 'Rider' && msg.senderName.isNotEmpty) {
-        names[msg.senderId] = msg.senderName;
+  // 1. Resolve from Presence (Most accurate for live names)
+  final presenceAsync = ref.watch(groupPresenceProvider(groupId));
+  presenceAsync.whenData((presenceMap) {
+    for (final entry in presenceMap.entries) {
+      final payload = entry.value;
+      final displayName = payload['display_name'] as String?;
+      if (displayName != null && displayName.isNotEmpty) {
+        names[entry.key] = displayName;
       }
     }
   });
+
+  // 2. Resolve from Telemetry (Fallback)
+  final telemetries = ref.watch(groupTelemetriesProvider(groupId));
+  for (final telemetry in telemetries.values) {
+    if (telemetry.displayName != null && telemetry.displayName!.isNotEmpty) {
+      names[telemetry.riderId] = telemetry.displayName!;
+    }
+  }
+
+  // 3. Resolve from Static Member List (Initial/Offline fallback)
+  final group = ref.watch(activeGroupProvider);
+  if (group != null && group.id == groupId) {
+    for (final member in group.members) {
+      if (member.displayName.isNotEmpty &&
+          !names.containsKey(member.userId) &&
+          member.displayName != 'Owner') {
+        names[member.userId] = member.displayName;
+      }
+    }
+  }
 
   return names;
 }

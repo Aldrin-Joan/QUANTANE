@@ -19,7 +19,6 @@ import 'package:quantane/features/group_ride/domain/entities/group_ride.dart';
 import 'package:quantane/features/group_ride/presentation/controllers/group_ride_controllers.dart';
 import 'package:quantane/features/group_ride/presentation/controllers/location_sharing_controller.dart';
 import 'package:quantane/features/group_ride/presentation/controllers/voice_controller.dart';
-import 'package:quantane/features/group_ride/presentation/screens/chat_view.dart';
 import 'package:quantane/features/group_ride/presentation/screens/live_map_view.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
 import 'package:quantane/features/shared/widgets/quantane_card.dart';
@@ -113,23 +112,14 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
       final repo = ref.read(groupRideRepositoryProvider);
       final group = await repo.createGroup(groupName, userId);
+
+      // Set optimistic/transient state to prevent race condition flips
+      ref.read(transientActiveGroupProvider.notifier).setTransientGroup(group);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
+
       ref
           .read(locationSharingControllerProvider.notifier)
           .startSharing(group.id);
-
-      // Send the system join message
-      final chatRepo = ref.read(groupChatRepositoryProvider);
-      await chatRepo.sendSystemMessage(
-        groupId: group.id,
-        senderId: userId,
-        content: '$name joined the crew',
-        metadata: {
-          'type': 'join',
-          'user_id': userId,
-          'display_name': name,
-        },
-      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -175,23 +165,14 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
       final repo = ref.read(groupRideRepositoryProvider);
       final group = await repo.joinGroup(code, userId);
+
+      // Set optimistic/transient state to prevent race condition flips
+      ref.read(transientActiveGroupProvider.notifier).setTransientGroup(group);
       ref.read(activeGroupIdProvider.notifier).select(group.id);
+
       ref
           .read(locationSharingControllerProvider.notifier)
           .startSharing(group.id);
-
-      // Send the system join message
-      final chatRepo = ref.read(groupChatRepositoryProvider);
-      await chatRepo.sendSystemMessage(
-        groupId: group.id,
-        senderId: userId,
-        content: '$name joined the crew',
-        metadata: {
-          'type': 'join',
-          'user_id': userId,
-          'display_name': name,
-        },
-      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -421,9 +402,9 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
     super.initState();
     final initialTab = ref.read(groupLobbyTabProvider);
     _tabController = TabController(
-      length: 3,
+      length: 2,
       vsync: this,
-      initialIndex: initialTab,
+      initialIndex: initialTab.clamp(0, 1),
     );
   }
 
@@ -439,25 +420,11 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
         authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
-    final name = authState.user?.displayName ?? 'A rider';
-
     final repo = ref.read(groupRideRepositoryProvider);
     ref.read(locationSharingControllerProvider.notifier).stopSharing();
     ref.read(voiceControllerProvider.notifier).leaveVoice();
 
     try {
-      // Send the system leave message before actually leaving
-      final chatRepo = ref.read(groupChatRepositoryProvider);
-      await chatRepo.sendSystemMessage(
-        groupId: widget.group.id,
-        senderId: userId,
-        content: '$name left the crew',
-        metadata: {
-          'type': 'leave',
-          'user_id': userId,
-        },
-      );
-
       await repo.leaveGroup(widget.group.id, userId);
       ref.read(activeGroupIdProvider.notifier).select(null);
     } catch (_) {}
@@ -477,14 +444,13 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
         TabBar(
           controller: _tabController,
           onTap: (index) {
-            ref.read(groupLobbyTabProvider.notifier).tabIndex = index;
+            ref.read(groupLobbyTabProvider.notifier).setTabIndex(index);
           },
           labelColor: AppColors.primaryColor,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primaryColor,
           tabs: const [
             Tab(icon: Icon(LucideIcons.map), text: 'Map'),
-            Tab(icon: Icon(LucideIcons.message_square), text: 'Chat'),
             Tab(icon: Icon(LucideIcons.phone), text: 'Voice'),
           ],
         ),
@@ -494,7 +460,6 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
             physics: const NeverScrollableScrollPhysics(), // Map needs gestures
             children: [
               LiveMapView(group: widget.group),
-              ChatView(group: widget.group),
               _VoiceTab(group: widget.group),
             ],
           ),

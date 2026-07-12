@@ -20,10 +20,10 @@ lib/
     ├── home/                     # Analytics dashboard, Charts, Spends metrics
     ├── fuel/                     # Fuel tracking, mileage logs, math utilities
     ├── trips/                    # Live GPS tracking, speedometer, geocoding
-    └── group_ride/               # COLLABORATIVE SYSTEM (Location, Chat, Voice WebRTC)
-        ├── data/                 # Supabase realtime data providers & outbox repos
-        ├── domain/               # Session, member, message, and telemetry models
-        └── presentation/         # Animated Map, dynamic chat, voice states UI
+    └── group_ride/               # COLLABORATIVE SYSTEM (Location, Voice WebRTC)
+        ├── data/                 # Supabase realtime data providers
+        ├── domain/               # Session, member, and telemetry models
+        └── presentation/         # Animated Map, voice states UI
 ```
 
 ---
@@ -45,21 +45,6 @@ sequenceDiagram
     C2->>C2: Animate rider avatar marker on OpenStreetMap
 ```
 
-### 2. Offline-First Outbox Synchronization & Event Bus
-To prevent chat messages from vanishing when Supabase Realtime replication is disabled, we utilize an in-memory repository event bus to trigger local UI stream refreshes immediately after background uploads complete.
-
-```mermaid
-flowchart TD
-    A[User types message] --> B[Write message to local JSON queue]
-    B --> C[Render message immediately in UI as 'pending']
-    C --> D{Network online?}
-    D -- No --> E[Wait for connection recovery]
-    D -- Yes --> F[Sync message to Supabase DB]
-    F --> G[Remove message from local queue]
-    G --> H[Emit group update on messageUpdatesController]
-    H --> I[Stream reloads from DB -> Render message as 'sent']
-```
-
 ---
 
 ## ⚡ Core Features
@@ -69,7 +54,6 @@ flowchart TD
 *   📍 **Real-time GPS Tracking**: Tracks vehicle movement, aggregates trip history, and generates map snapshots.
 *   👥 **Collaborative Group Rides**:
     *   **Live Map**: Renders live rider location avatars and speeds on OpenStreetMap with smooth marker animations.
-    *   **Offline-First Text Chat**: Outbox queuing with local caching that syncs automatically when connections recover.
     *   **Low-Latency WebRTC Voice**: Full-duplex audio channels utilizing a custom [LiveKit SFU](https://livekit.io/) token generator.
 
 ---
@@ -104,11 +88,9 @@ Apply RLS permissions to your tables:
 ```sql
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE group_messages ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Enable all access for all users" ON groups FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Enable all access for all users" ON group_members FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Enable all access for all users" ON group_messages FOR ALL USING (true) WITH CHECK (true);
 ```
 
 ### 3. Deno Edge Function Deployment

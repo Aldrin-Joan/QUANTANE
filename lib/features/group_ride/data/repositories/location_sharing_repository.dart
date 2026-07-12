@@ -13,10 +13,12 @@ class LocationSharingRepository {
   final SupabaseClient _client;
   RealtimeChannel? _channel;
   final _telemetryController = StreamController<RiderTelemetry>.broadcast();
-  final _presenceController = StreamController<List<String>>.broadcast();
+  final _presenceController =
+      StreamController<Map<String, Map<String, dynamic>>>.broadcast();
 
   Stream<RiderTelemetry> get telemetryStream => _telemetryController.stream;
-  Stream<List<String>> get presenceStream => _presenceController.stream;
+  Stream<Map<String, Map<String, dynamic>>> get presenceStream =>
+      _presenceController.stream;
 
   void startSharing(
     String groupId,
@@ -44,16 +46,16 @@ class LocationSharingRepository {
     // 2. Listen to Presence state changes
     _channel!.onPresenceSync((_) {
       final state = _channel!.presenceState();
-      final onlineUserIds = <String>[];
+      final presenceData = <String, Map<String, dynamic>>{};
       for (final singleState in state) {
         for (final presence in singleState.presences) {
           final payload = presence.payload;
           if (payload['user_id'] != null) {
-            onlineUserIds.add(payload['user_id'] as String);
+            presenceData[payload['user_id'] as String] = payload;
           }
         }
       }
-      _presenceController.add(onlineUserIds);
+      _presenceController.add(presenceData);
     });
 
     // 3. Subscribe to Channel & join presence

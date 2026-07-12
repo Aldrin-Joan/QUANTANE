@@ -16,7 +16,7 @@ part 'location_sharing_controller.g.dart';
 @Riverpod(keepAlive: true)
 class LocationSharingController extends _$LocationSharingController {
   StreamSubscription<Position>? _positionSub;
-  StreamSubscription<List<String>>? _presenceSub;
+  StreamSubscription<Map<String, Map<String, dynamic>>>? _presenceSub;
   String? _activeGroupId;
   Timer? _heartbeatTimer;
   Position? _lastKnownPosition;
@@ -42,9 +42,12 @@ class LocationSharingController extends _$LocationSharingController {
         authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
+    final name = authState.user?.displayName ?? 'Rider';
+
     final repo = ref.read(locationSharingRepositoryProvider);
     repo.startSharing(groupId, userId, {
       'status': 'online',
+      'display_name': name,
     });
 
     // 2. Fetch initial position immediately

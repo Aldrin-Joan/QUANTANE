@@ -98,54 +98,6 @@ final class GroupRideRepositoryProvider
 String _$groupRideRepositoryHash() =>
     r'05db4311c4908062cf4968b0912d6c7bcc5fd4fc';
 
-@ProviderFor(groupChatRepository)
-final groupChatRepositoryProvider = GroupChatRepositoryProvider._();
-
-final class GroupChatRepositoryProvider
-    extends
-        $FunctionalProvider<
-          GroupChatRepository,
-          GroupChatRepository,
-          GroupChatRepository
-        >
-    with $Provider<GroupChatRepository> {
-  GroupChatRepositoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'groupChatRepositoryProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$groupChatRepositoryHash();
-
-  @$internal
-  @override
-  $ProviderElement<GroupChatRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  GroupChatRepository create(Ref ref) {
-    return groupChatRepository(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(GroupChatRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<GroupChatRepository>(value),
-    );
-  }
-}
-
-String _$groupChatRepositoryHash() =>
-    r'444a2aeaa49e9f18b00af5da4f50375af7465e99';
-
 @ProviderFor(locationSharingRepository)
 final locationSharingRepositoryProvider = LocationSharingRepositoryProvider._();
 

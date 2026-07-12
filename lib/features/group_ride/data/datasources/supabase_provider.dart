@@ -3,7 +3,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Project imports:
-import 'package:quantane/features/group_ride/data/repositories/group_chat_repository.dart';
 import 'package:quantane/features/group_ride/data/repositories/group_ride_repository.dart';
 import 'package:quantane/features/group_ride/data/repositories/location_sharing_repository.dart';
 
@@ -18,14 +17,6 @@ SupabaseClient supabaseClient(Ref ref) {
 GroupRideRepository groupRideRepository(Ref ref) {
   final client = ref.watch(supabaseClientProvider);
   return GroupRideRepository(client);
-}
-
-@Riverpod(keepAlive: true)
-GroupChatRepository groupChatRepository(Ref ref) {
-  final client = ref.watch(supabaseClientProvider);
-  final repo = GroupChatRepository(client);
-  ref.onDispose(repo.dispose);
-  return repo;
 }
 
 @Riverpod(keepAlive: true)

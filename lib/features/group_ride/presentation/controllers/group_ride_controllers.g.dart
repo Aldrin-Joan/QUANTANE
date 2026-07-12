@@ -20,7 +20,7 @@ final class ActiveGroupIdProvider
         argument: null,
         retry: null,
         name: r'activeGroupIdProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class ActiveGroupIdProvider
   }
 }
 
-String _$activeGroupIdHash() => r'cc9deadafb6bb8ae0cf5ce0fa1cf3b1914c7aa9d';
+String _$activeGroupIdHash() => r'9cf6feaeb02fed069ecd00b69c3a1a987fd8ddf5';
 
 abstract class _$ActiveGroupId extends $Notifier<String?> {
   String? build();
@@ -54,6 +54,59 @@ abstract class _$ActiveGroupId extends $Notifier<String?> {
             as $ClassProviderElement<
               AnyNotifier<String?, String?>,
               String?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(TransientActiveGroup)
+final transientActiveGroupProvider = TransientActiveGroupProvider._();
+
+final class TransientActiveGroupProvider
+    extends $NotifierProvider<TransientActiveGroup, GroupRideSession?> {
+  TransientActiveGroupProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transientActiveGroupProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transientActiveGroupHash();
+
+  @$internal
+  @override
+  TransientActiveGroup create() => TransientActiveGroup();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GroupRideSession? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GroupRideSession?>(value),
+    );
+  }
+}
+
+String _$transientActiveGroupHash() =>
+    r'a2bf9ff4a00cc54fba8d03dddb5e238066ec3401';
+
+abstract class _$TransientActiveGroup extends $Notifier<GroupRideSession?> {
+  GroupRideSession? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<GroupRideSession?, GroupRideSession?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<GroupRideSession?, GroupRideSession?>,
+              GroupRideSession?,
               Object?,
               Object?
             >;
@@ -80,7 +133,7 @@ final class GroupListProvider
         argument: null,
         retry: null,
         name: r'groupListProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -100,7 +153,7 @@ final class GroupListProvider
   }
 }
 
-String _$groupListHash() => r'5e75d866f014917e8bd100fab8ac5664b6eb8afc';
+String _$groupListHash() => r'a9c6fa813bc402631ee792b72bcadc949c3f4696';
 
 @ProviderFor(activeGroup)
 final activeGroupProvider = ActiveGroupProvider._();
@@ -119,7 +172,7 @@ final class ActiveGroupProvider
         argument: null,
         retry: null,
         name: r'activeGroupProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -147,84 +200,7 @@ final class ActiveGroupProvider
   }
 }
 
-String _$activeGroupHash() => r'd1a7020d7964ee6ac557af4b2e83fb481acf6ee0';
-
-@ProviderFor(groupChatMessages)
-final groupChatMessagesProvider = GroupChatMessagesFamily._();
-
-final class GroupChatMessagesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<GroupChatMessage>>,
-          List<GroupChatMessage>,
-          Stream<List<GroupChatMessage>>
-        >
-    with
-        $FutureModifier<List<GroupChatMessage>>,
-        $StreamProvider<List<GroupChatMessage>> {
-  GroupChatMessagesProvider._({
-    required GroupChatMessagesFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'groupChatMessagesProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$groupChatMessagesHash();
-
-  @override
-  String toString() {
-    return r'groupChatMessagesProvider'
-        ''
-        '($argument)';
-  }
-
-  @$internal
-  @override
-  $StreamProviderElement<List<GroupChatMessage>> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
-
-  @override
-  Stream<List<GroupChatMessage>> create(Ref ref) {
-    final argument = this.argument as String;
-    return groupChatMessages(ref, argument);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is GroupChatMessagesProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$groupChatMessagesHash() => r'5516c17c06f00a258a1e85f7d86532e1922b77c4';
-
-final class GroupChatMessagesFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<GroupChatMessage>>, String> {
-  GroupChatMessagesFamily._()
-    : super(
-        retry: null,
-        name: r'groupChatMessagesProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
-
-  GroupChatMessagesProvider call(String groupId) =>
-      GroupChatMessagesProvider._(argument: groupId, from: this);
-
-  @override
-  String toString() => r'groupChatMessagesProvider';
-}
+String _$activeGroupHash() => r'f28dd4ce08e98ef0567486e3ebb59c0bca4f5fd3';
 
 @ProviderFor(groupPresence)
 final groupPresenceProvider = GroupPresenceFamily._();
@@ -232,11 +208,13 @@ final groupPresenceProvider = GroupPresenceFamily._();
 final class GroupPresenceProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<String>>,
-          List<String>,
-          Stream<List<String>>
+          AsyncValue<Map<String, Map<String, dynamic>>>,
+          Map<String, Map<String, dynamic>>,
+          Stream<Map<String, Map<String, dynamic>>>
         >
-    with $FutureModifier<List<String>>, $StreamProvider<List<String>> {
+    with
+        $FutureModifier<Map<String, Map<String, dynamic>>>,
+        $StreamProvider<Map<String, Map<String, dynamic>>> {
   GroupPresenceProvider._({
     required GroupPresenceFamily super.from,
     required String super.argument,
@@ -260,12 +238,12 @@ final class GroupPresenceProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<String>> $createElement(
+  $StreamProviderElement<Map<String, Map<String, dynamic>>> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<List<String>> create(Ref ref) {
+  Stream<Map<String, Map<String, dynamic>>> create(Ref ref) {
     final argument = this.argument as String;
     return groupPresence(ref, argument);
   }
@@ -281,10 +259,14 @@ final class GroupPresenceProvider
   }
 }
 
-String _$groupPresenceHash() => r'0aae641f5612966c4ebb56bb554cf801aac36541';
+String _$groupPresenceHash() => r'8b908afa9ee1b362f4e696ceda23e4208ee93d70';
 
 final class GroupPresenceFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<String>>, String> {
+    with
+        $FunctionalFamilyOverride<
+          Stream<Map<String, Map<String, dynamic>>>,
+          String
+        > {
   GroupPresenceFamily._()
     : super(
         retry: null,
@@ -387,7 +369,7 @@ final class GroupLobbyTabProvider
         argument: null,
         retry: null,
         name: r'groupLobbyTabProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -408,7 +390,7 @@ final class GroupLobbyTabProvider
   }
 }
 
-String _$groupLobbyTabHash() => r'15946850ee037584585beb55e83bbb5cfbdf6c33';
+String _$groupLobbyTabHash() => r'5e4f4d6cba728dbf2a96c04d40dfe3d7e97a9422';
 
 abstract class _$GroupLobbyTab extends $Notifier<int> {
   int build();
@@ -439,7 +421,7 @@ final class MapNavigationTargetProvider
         argument: null,
         retry: null,
         name: r'mapNavigationTargetProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -461,7 +443,7 @@ final class MapNavigationTargetProvider
 }
 
 String _$mapNavigationTargetHash() =>
-    r'54ac79af423801a52de5c400b8152e4616a50581';
+    r'377dc02de72aa159c3d6756758f2611c400fb277';
 
 abstract class _$MapNavigationTarget extends $Notifier<LatLng?> {
   LatLng? build();
@@ -544,7 +526,7 @@ final class GroupMemberNamesProvider
   }
 }
 
-String _$groupMemberNamesHash() => r'3202adbdec3b0bc5e6e6a4197fb7c68f8ba6dcdb';
+String _$groupMemberNamesHash() => r'6d949a6bb52b9504f9c1797db8e71ff433bdafe0';
 
 final class GroupMemberNamesFamily extends $Family
     with $FunctionalFamilyOverride<Map<String, String>, String> {
@@ -613,7 +595,7 @@ final class GroupTelemetriesProvider
   }
 }
 
-String _$groupTelemetriesHash() => r'a63d794ea5185993e4eb821d9c9bd18e8c70f5e1';
+String _$groupTelemetriesHash() => r'b43f14d9754d64b86b086a3ad4832853aed37b82';
 
 final class GroupTelemetriesFamily extends $Family
     with
