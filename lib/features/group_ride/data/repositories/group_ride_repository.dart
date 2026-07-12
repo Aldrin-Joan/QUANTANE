@@ -26,7 +26,7 @@ class GroupRideRepository {
     final inviteCode = _generateInviteCode();
 
     // 1. Insert Group
-    final groupData = await _client
+    final response = await _client
         .from('groups')
         .insert({
           'name': name,
@@ -38,6 +38,7 @@ class GroupRideRepository {
         .select()
         .single();
 
+    final groupData = response;
     final groupId = groupData['id'] as String;
 
     // 2. Add creator as Owner in group_members
@@ -77,28 +78,29 @@ class GroupRideRepository {
 
   Future<GroupRideSession> joinGroup(String inviteCode, String userId) async {
     // 1. Find group by invite code
-    final groupData = await _client
+    final response = await _client
         .from('groups')
         .select()
         .eq('invite_code', inviteCode.toUpperCase().trim())
         .isFilter('deleted_at', null)
         .maybeSingle();
 
-    if (groupData == null) {
+    if (response == null) {
       throw Exception('Group not found or invite code invalid.');
     }
-
+    
+    final groupData = response;
     final groupId = groupData['id'] as String;
 
     // 2. Check if already member
-    final existingMember = await _client
+    final existingMemberResponse = await _client
         .from('group_members')
         .select()
         .eq('group_id', groupId)
         .eq('user_id', userId)
         .maybeSingle();
 
-    if (existingMember == null) {
+    if (existingMemberResponse == null) {
       // 3. Add to members
       await _client.from('group_members').insert({
         'group_id': groupId,
@@ -121,28 +123,45 @@ class GroupRideRepository {
   }
 
   Future<void> leaveGroup(String groupId, String userId) async {
+    // 1. Remove the member
     await _client
         .from('group_members')
         .delete()
         .eq('group_id', groupId)
         .eq('user_id', userId);
+
+    // 2. Check remaining member count
+    final countResponse = await _client
+        .from('group_members')
+        .select('user_id')
+        .eq('group_id', groupId);
+
+    final remainingCount = (countResponse as List).length;
+
+    // 3. If no one is left, soft-delete the group to keep the DB clean
+    if (remainingCount == 0) {
+      await deleteGroup(groupId);
+    }
   }
 
   Future<List<GroupMember>> getGroupMembers(String groupId) async {
-    final List<dynamic> response = await _client
+    final response = await _client
         .from('group_members')
         .select()
         .eq('group_id', groupId);
 
-    return response.map((data) {
+    final dataList = response as List<dynamic>;
+
+    return dataList.map((data) {
+      final map = data as Map<String, dynamic>;
       return GroupMember(
-        userId: data['user_id'] as String,
-        displayName: (data['user_id'] as String).substring(
+        userId: map['user_id'] as String,
+        displayName: (map['user_id'] as String).substring(
           0,
-          min(6, (data['user_id'] as String).length),
+          min(6, (map['user_id'] as String).length),
         ), // fallback identifier
-        role: data['role'] as String? ?? 'member',
-        joinedAt: DateTime.parse(data['joined_at'] as String),
+        role: map['role'] as String? ?? 'member',
+        joinedAt: DateTime.parse(map['joined_at'] as String),
         isOnline: false,
       );
     }).toList();
@@ -156,15 +175,20 @@ class GroupRideRepository {
     final controller = StreamController<List<GroupRideSession>>();
 
     Future<void> fetchAndEmit() async {
+      if (controller.isClosed) return;
+      
       try {
-        final List<dynamic> memberRelations = await _client
+        final response = await _client
             .from('group_members')
             .select('group_id, groups(*)')
             .eq('user_id', userId);
 
+        final memberRelations = response as List<dynamic>;
+
         final groups = <GroupRideSession>[];
         for (final item in memberRelations) {
-          final gMap = item['groups'] as Map<String, dynamic>?;
+          final itemMap = item as Map<String, dynamic>;
+          final gMap = itemMap['groups'] as Map<String, dynamic>?;
           if (gMap != null && gMap['deleted_at'] == null) {
             final groupId = gMap['id'] as String;
             final members = await getGroupMembers(groupId);
@@ -208,6 +232,7 @@ class GroupRideRepository {
 
     controller.onCancel = () {
       subscription.unsubscribe();
+      _client.removeChannel(subscription);
       controller.close();
     };
 

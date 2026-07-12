@@ -1,3 +1,31 @@
+enum MessageType {
+  text,
+  image,
+  file,
+  system;
+
+  static MessageType fromString(String value) {
+    return MessageType.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => MessageType.text,
+    );
+  }
+}
+
+enum MessageStatus {
+  pending,
+  sent,
+  delivered,
+  read;
+
+  static MessageStatus fromString(String value) {
+    return MessageStatus.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => MessageStatus.sent,
+    );
+  }
+}
+
 class GroupChatMessage {
   const GroupChatMessage({
     required this.id,
@@ -5,10 +33,11 @@ class GroupChatMessage {
     required this.senderId,
     required this.senderName,
     required this.content,
-    this.messageType = 'text', // 'text' | 'image' | 'file'
+    this.messageType = MessageType.text,
     required this.createdAt,
-    this.status = 'sent', // 'pending' | 'sent' | 'delivered' | 'read'
+    this.status = MessageStatus.sent,
     required this.offlineId,
+    this.metadata,
   });
 
   factory GroupChatMessage.fromJson(Map<String, dynamic> json) {
@@ -18,10 +47,11 @@ class GroupChatMessage {
       senderId: json['senderId'] as String,
       senderName: json['senderName'] as String? ?? 'Rider',
       content: json['content'] as String,
-      messageType: json['messageType'] as String? ?? 'text',
+      messageType: MessageType.fromString(json['messageType'] as String? ?? 'text'),
       createdAt: DateTime.parse(json['createdAt'] as String).toUtc(),
-      status: json['status'] as String? ?? 'sent',
+      status: MessageStatus.fromString(json['status'] as String? ?? 'sent'),
       offlineId: json['offlineId'] as String,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -30,10 +60,11 @@ class GroupChatMessage {
   final String senderId;
   final String senderName;
   final String content;
-  final String messageType;
+  final MessageType messageType;
   final DateTime createdAt;
-  final String status;
+  final MessageStatus status;
   final String offlineId;
+  final Map<String, dynamic>? metadata;
 
   Map<String, dynamic> toJson() {
     return {
@@ -42,10 +73,11 @@ class GroupChatMessage {
       'senderId': senderId,
       'senderName': senderName,
       'content': content,
-      'messageType': messageType,
+      'messageType': messageType.name,
       'createdAt': createdAt.toIso8601String(),
-      'status': status,
+      'status': status.name,
       'offlineId': offlineId,
+      if (metadata != null) 'metadata': metadata,
     };
   }
 
@@ -55,10 +87,11 @@ class GroupChatMessage {
     String? senderId,
     String? senderName,
     String? content,
-    String? messageType,
+    MessageType? messageType,
     DateTime? createdAt,
-    String? status,
+    MessageStatus? status,
     String? offlineId,
+    Map<String, dynamic>? metadata,
   }) {
     return GroupChatMessage(
       id: id ?? this.id,
@@ -70,6 +103,7 @@ class GroupChatMessage {
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
       offlineId: offlineId ?? this.offlineId,
+      metadata: metadata ?? this.metadata,
     );
   }
 }

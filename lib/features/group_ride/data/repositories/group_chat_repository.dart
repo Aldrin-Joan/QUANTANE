@@ -14,15 +14,24 @@ import 'package:quantane/features/group_ride/domain/entities/group_chat_message.
 
 class GroupChatRepository {
   GroupChatRepository(this._client) {
-    _initConnectivityListener();
+    _init();
   }
 
   final SupabaseClient _client;
   final _uuid = const Uuid();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isOnline = true;
+  bool _isSyncing = false;
+  
+  // Controllers for broadcasting updates
   final _pendingMessagesController = StreamController<void>.broadcast();
   final _messageUpdatesController = StreamController<String>.broadcast();
+
+  void _init() {
+    _initConnectivityListener();
+    // Initial sync attempt
+    _syncPendingMessages();
+  }
 
   void _initConnectivityListener() {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
@@ -77,68 +86,82 @@ class GroupChatRepository {
   }
 
   Future<void> _syncPendingMessages() async {
-    if (!_isOnline) return;
+    if (!_isOnline || _isSyncing) return;
+    _isSyncing = true;
 
-    final pending = await _loadPendingMessages();
-    if (pending.isEmpty) return;
+    try {
+      final pending = await _loadPendingMessages();
+      if (pending.isEmpty) return;
 
-    final remaining = List<GroupChatMessage>.from(pending);
-    final syncedGroupIds = <String>{};
+      final remaining = List<GroupChatMessage>.from(pending);
+      final syncedGroupIds = <String>{};
 
-    for (final msg in pending) {
-      try {
-        final encodedContent = jsonEncode({
-          'text': msg.content,
-          'sender_name': msg.senderName,
-        });
-
-        await _client.from('group_messages').insert({
-          'group_id': msg.groupId,
-          'sender_id': msg.senderId,
-          'content': encodedContent,
-          'message_type': msg.messageType,
-          'offline_id': msg.offlineId,
-          'created_at': msg.createdAt.toIso8601String(),
-        });
-
-        // Broadcast the message immediately to the room channel for active users
+      for (final msg in pending) {
         try {
-          final broadcastChan = _client.channel(
-            'room:group_chat:${msg.groupId}',
-          );
-          await broadcastChan.sendBroadcastMessage(
-            event: 'new_message',
-            payload: msg.copyWith(status: 'sent').toJson(),
-          );
-        } catch (_) {}
+          final dbPayload = {
+            'group_id': msg.groupId,
+            'sender_id': msg.senderId,
+            'content': msg.content,
+            'message_type': msg.messageType.name,
+            'offline_id': msg.offlineId,
+            'created_at': msg.createdAt.toIso8601String(),
+          };
 
-        remaining.removeWhere((item) => item.offlineId == msg.offlineId);
-        syncedGroupIds.add(msg.groupId);
-      } catch (e) {
-        // If unique constraint violation, remove it from queue as it is already on server
-        if (e.toString().contains('duplicate key') ||
-            e.toString().contains('409') ||
-            e.toString().contains('23505')) {
+          if (msg.messageType == MessageType.text || msg.messageType == MessageType.system) {
+            dbPayload['content'] = jsonEncode({
+              'text': msg.content,
+              'sender_name': msg.senderName,
+              if (msg.metadata != null) 'metadata': msg.metadata,
+            });
+          }
+
+          await _client.from('group_messages').insert(dbPayload);
+
+          // Broadcast the message immediately to the room channel for active users
+          try {
+            final broadcastChan = _client.channel(
+              'room:group_chat:${msg.groupId}',
+            );
+            await broadcastChan.sendBroadcastMessage(
+              event: 'new_message',
+              payload: msg.copyWith(status: MessageStatus.sent).toJson(),
+            );
+          } catch (_) {}
+
           remaining.removeWhere((item) => item.offlineId == msg.offlineId);
           syncedGroupIds.add(msg.groupId);
-        } else {
-          // General connection failure, pause sync
-          break;
+        } catch (e) {
+          final errorStr = e.toString();
+          // If unique constraint violation, remove it from queue as it is already on server
+          if (errorStr.contains('duplicate key') ||
+              errorStr.contains('409') ||
+              errorStr.contains('23505')) {
+            remaining.removeWhere((item) => item.offlineId == msg.offlineId);
+            syncedGroupIds.add(msg.groupId);
+          } else {
+            // General connection failure or other error, stop syncing this batch
+            break;
+          }
         }
       }
-    }
-    await _savePendingMessages(remaining);
-    for (final groupId in syncedGroupIds) {
-      _messageUpdatesController.add(groupId);
+      
+      await _savePendingMessages(remaining);
+      for (final groupId in syncedGroupIds) {
+        _messageUpdatesController.add(groupId);
+      }
+    } finally {
+      _isSyncing = false;
     }
   }
 
-  Future<GroupChatMessage> sendMessage(
-    String groupId,
-    String senderId,
-    String senderName,
-    String content,
-  ) async {
+  Future<GroupChatMessage> sendMessage({
+    required String groupId,
+    required String senderId,
+    required String senderName,
+    required String content,
+    MessageType messageType = MessageType.text,
+    Map<String, dynamic>? metadata,
+  }) async {
     final offlineId = _uuid.v4();
     final message = GroupChatMessage(
       id: offlineId, // local temporary ID
@@ -146,9 +169,11 @@ class GroupChatRepository {
       senderId: senderId,
       senderName: senderName,
       content: content,
+      messageType: messageType,
       createdAt: DateTime.now().toUtc(),
-      status: 'pending',
+      status: MessageStatus.pending,
       offlineId: offlineId,
+      metadata: metadata,
     );
 
     // 1. Save to local outbox cache
@@ -164,39 +189,65 @@ class GroupChatRepository {
     return message;
   }
 
+  Future<GroupChatMessage> sendSystemMessage({
+    required String groupId,
+    required String senderId,
+    required String content,
+    Map<String, dynamic>? metadata,
+  }) async {
+    return sendMessage(
+      groupId: groupId,
+      senderId: senderId,
+      senderName: 'System',
+      content: content,
+      messageType: MessageType.system,
+      metadata: metadata,
+    );
+  }
+
   Future<List<GroupChatMessage>> getMessages(String groupId) async {
-    final List<dynamic> response = await _client
-        .from('group_messages')
-        .select()
-        .eq('group_id', groupId)
-        .order('created_at', ascending: true);
+    try {
+      final response = await _client
+          .from('group_messages')
+          .select()
+          .eq('group_id', groupId)
+          .order('created_at', ascending: true);
 
-    return response.map((data) {
-      final rawContent = data['content'] as String;
-      var contentText = rawContent;
-      var senderName = 'Rider';
-      try {
-        if (rawContent.startsWith('{')) {
-          final decoded = jsonDecode(rawContent) as Map<String, dynamic>;
-          if (decoded.containsKey('text')) {
-            contentText = decoded['text'] as String;
-            senderName = decoded['sender_name'] as String? ?? 'Rider';
+      final dataList = response as List<dynamic>;
+
+      return dataList.map((data) {
+        final rawContent = data['content'] as String;
+        var contentText = rawContent;
+        var senderName = 'Rider';
+        Map<String, dynamic>? metadata;
+        
+        try {
+          if (rawContent.startsWith('{')) {
+            final decoded = jsonDecode(rawContent) as Map<String, dynamic>;
+            if (decoded.containsKey('text')) {
+              contentText = decoded['text'] as String;
+              senderName = decoded['sender_name'] as String? ?? 'Rider';
+              metadata = decoded['metadata'] as Map<String, dynamic>?;
+            }
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
 
-      return GroupChatMessage(
-        id: data['id'] as String,
-        groupId: data['group_id'] as String,
-        senderId: data['sender_id'] as String,
-        senderName: senderName,
-        content: contentText,
-        messageType: data['message_type'] as String? ?? 'text',
-        createdAt: DateTime.parse(data['created_at'] as String),
-        status: 'sent',
-        offlineId: data['offline_id'] as String,
-      );
-    }).toList();
+        return GroupChatMessage(
+          id: data['id']?.toString() ?? data['offline_id'] as String,
+          groupId: data['group_id'] as String,
+          senderId: data['sender_id'] as String,
+          senderName: senderName,
+          content: contentText,
+          messageType: MessageType.fromString(data['message_type'] as String? ?? 'text'),
+          createdAt: DateTime.parse(data['created_at'] as String),
+          status: MessageStatus.sent,
+          offlineId: data['offline_id'] as String,
+          metadata: metadata,
+        );
+      }).toList();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Stream<List<GroupChatMessage>> watchMessages(String groupId) {
@@ -205,25 +256,33 @@ class GroupChatRepository {
     final broadcastMessages = <String, GroupChatMessage>{};
 
     Future<void> emitMerged() async {
+      if (controller.isClosed) return;
+
       final pending = await _loadPendingMessages();
       final pendingForGroup = pending
           .where((m) => m.groupId == groupId)
           .toList();
 
       final allMessages = <String, GroupChatMessage>{};
+      
+      // 1. Start with server messages
       for (final m in serverMessages) {
-        allMessages[m.id] = m;
+        allMessages[m.offlineId] = m;
       }
+      
+      // 2. Layer broadcast messages (might be more recent than last server fetch)
       for (final m in broadcastMessages.values) {
-        allMessages[m.id] = m;
+        allMessages[m.offlineId] = m;
       }
+      
+      // 3. Layer pending messages (most authoritative for local user)
       for (final m in pendingForGroup) {
-        allMessages[m.id] = m;
+        allMessages[m.offlineId] = m;
       }
 
       final merged = allMessages.values.toList();
-      // Sort by creation time
       merged.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      
       if (!controller.isClosed) {
         controller.add(merged);
       }
@@ -240,22 +299,19 @@ class GroupChatRepository {
       }
     }
 
+    // Initial fetch
     refreshServer();
 
-    // Listen to local changes (outbox queue updates)
-    final pendingSubscription = _pendingMessagesController.stream.listen((_) {
-      emitMerged();
+    // Listen to local changes
+    final pendingSub = _pendingMessagesController.stream.listen((_) => emitMerged());
+
+    // Listen to sync completions
+    final syncSub = _messageUpdatesController.stream.listen((id) {
+      if (id == groupId) refreshServer();
     });
 
-    // Listen to message updates/syncs
-    final syncSubscription = _messageUpdatesController.stream.listen((id) {
-      if (id == groupId) {
-        refreshServer();
-      }
-    });
-
-    // Listen to realtime Postgres changes in group_messages table
-    final supabaseSubscription = _client
+    // Postgres Realtime
+    final supabaseSub = _client
         .channel('public:group_messages:$groupId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -266,21 +322,19 @@ class GroupChatRepository {
             column: 'group_id',
             value: groupId,
           ),
-          callback: (payload) {
-            refreshServer();
-          },
+          callback: (payload) => refreshServer(),
         )
         .subscribe();
 
-    // Listen to Broadcast channel for instant updates
-    final chatBroadcastChannel = _client.channel('room:group_chat:$groupId');
-    chatBroadcastChannel
+    // Broadcast Realtime
+    final broadcastChan = _client.channel('room:group_chat:$groupId');
+    broadcastChan
         .onBroadcast(
           event: 'new_message',
           callback: (payload) {
             try {
               final msg = GroupChatMessage.fromJson(payload);
-              broadcastMessages[msg.id] = msg;
+              broadcastMessages[msg.offlineId] = msg;
               emitMerged();
             } catch (_) {}
           },
@@ -288,11 +342,11 @@ class GroupChatRepository {
         .subscribe();
 
     controller.onCancel = () {
-      pendingSubscription.cancel();
-      syncSubscription.cancel();
-      supabaseSubscription.unsubscribe();
-      chatBroadcastChannel.unsubscribe();
-      _client.removeChannel(chatBroadcastChannel);
+      pendingSub.cancel();
+      syncSub.cancel();
+      supabaseSub.unsubscribe();
+      broadcastChan.unsubscribe();
+      _client.removeChannel(broadcastChan);
       controller.close();
     };
 

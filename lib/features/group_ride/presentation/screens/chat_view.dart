@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 // Project imports:
@@ -17,6 +16,7 @@ import 'package:quantane/features/group_ride/data/datasources/supabase_provider.
 import 'package:quantane/features/group_ride/domain/entities/group_chat_message.dart';
 import 'package:quantane/features/group_ride/domain/entities/group_ride.dart';
 import 'package:quantane/features/group_ride/presentation/controllers/group_ride_controllers.dart';
+import 'package:quantane/features/group_ride/presentation/widgets/chat/message_widgets.dart';
 import 'package:quantane/features/shared/providers/auth_service.dart';
 
 class ChatView extends ConsumerStatefulWidget {
@@ -56,7 +56,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
         'Rider ${userId.substring(0, min(4, userId.length))}';
 
     try {
-      await chatRepo.sendMessage(widget.group.id, userId, displayName, text);
+      await chatRepo.sendMessage(
+        groupId: widget.group.id,
+        senderId: userId,
+        senderName: displayName,
+        content: text,
+      );
       _scrollToBottom();
     } catch (_) {}
   }
@@ -127,8 +132,52 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final message = messages[index];
+
+                  if (message.messageType == MessageType.system) {
+                    return SystemMessageBubble(message: message);
+                  }
+
                   final isMe = message.senderId == currentUserId;
-                  return _buildMessageBubble(message, isMe);
+
+                  // Message grouping logic
+                  var showSenderName = true;
+                  if (index > 0) {
+                    final prevMessage = messages[index - 1];
+                    if (prevMessage.messageType != MessageType.system &&
+                        prevMessage.senderId == message.senderId) {
+                      showSenderName = false;
+                    }
+                  }
+
+                  return UserMessageBubble(
+                    message: message,
+                    isMe: isMe,
+                    showSenderName: showSenderName,
+                    onTap: () {
+                      if (!isMe) {
+                        final telemetries = ref.read(
+                          groupTelemetriesProvider(widget.group.id),
+                        );
+                        final telemetry = telemetries[message.senderId];
+                        if (telemetry != null) {
+                          ref
+                              .read(mapNavigationTargetProvider.notifier)
+                              .target = LatLng(
+                            telemetry.latitude,
+                            telemetry.longitude,
+                          );
+                          ref.read(groupLobbyTabProvider.notifier).tabIndex =
+                              0; // Switch to Map
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Rider location not available yet'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  );
                 },
               );
             },
@@ -143,111 +192,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
         ),
         _buildInputRow(),
       ],
-    );
-  }
-
-  Widget _buildMessageBubble(GroupChatMessage message, bool isMe) {
-    final timeStr = DateFormat('hh:mm a').format(message.createdAt.toLocal());
-    final statusColor = message.status == 'pending'
-        ? Colors.grey
-        : AppColors.accentColor;
-
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        onTap: () {
-          if (!isMe) {
-            final telemetries = ref.read(
-              groupTelemetriesProvider(widget.group.id),
-            );
-            final telemetry = telemetries[message.senderId];
-            if (telemetry != null) {
-              ref.read(mapNavigationTargetProvider.notifier).target = LatLng(
-                telemetry.latitude,
-                telemetry.longitude,
-              );
-              ref.read(groupLobbyTabProvider.notifier).tabIndex =
-                  0; // Switch to Map
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Rider location not available yet'),
-                ),
-              );
-            }
-          }
-        },
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isMe ? AppColors.primaryColor : AppColors.cardColor,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(isMe ? 16 : 4),
-              bottomRight: Radius.circular(isMe ? 4 : 16),
-            ),
-            border: Border.all(
-              color: isMe
-                  ? AppColors.primaryColor.withValues(alpha: 0.2)
-                  : Colors.white.withValues(alpha: 0.05),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!isMe)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    message.senderName,
-                    style: TextStyle(
-                      color: AppColors.accentColor.withValues(alpha: 0.8),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              Text(
-                message.content,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    timeStr,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                    ),
-                  ),
-                  if (isMe) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      message.status == 'pending'
-                          ? LucideIcons.clock
-                          : LucideIcons.check,
-                      size: 11,
-                      color: statusColor,
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

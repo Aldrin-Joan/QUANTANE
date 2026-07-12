@@ -13,7 +13,7 @@ import 'package:quantane/features/shared/providers/auth_service.dart';
 
 part 'group_ride_controllers.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ActiveGroupId extends _$ActiveGroupId {
   static const _storageKey = 'active_group_ride_id';
 
@@ -48,7 +48,7 @@ class ActiveGroupId extends _$ActiveGroupId {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Stream<List<GroupRideSession>> groupList(Ref ref) {
   final authState = ref.watch(authServiceProvider);
   final userId = authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
@@ -58,7 +58,7 @@ Stream<List<GroupRideSession>> groupList(Ref ref) {
   return repo.watchGroups(userId);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 GroupRideSession? activeGroup(Ref ref) {
   final activeId = ref.watch(activeGroupIdProvider);
   if (activeId == null) return null;
@@ -92,7 +92,7 @@ Stream<RiderTelemetry> groupTelemetry(Ref ref, String groupId) {
   return repo.telemetryStream;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class GroupLobbyTab extends _$GroupLobbyTab {
   @override
   int build() => 0;
@@ -104,7 +104,7 @@ class GroupLobbyTab extends _$GroupLobbyTab {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class MapNavigationTarget extends _$MapNavigationTarget {
   @override
   LatLng? build() => null;

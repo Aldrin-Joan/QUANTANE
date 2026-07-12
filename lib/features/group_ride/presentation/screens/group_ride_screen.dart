@@ -1,5 +1,4 @@
 // Dart imports:
-import 'dart:convert';
 import 'dart:math';
 
 // Flutter imports:
@@ -121,12 +120,16 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
       // Send the system join message
       final chatRepo = ref.read(groupChatRepositoryProvider);
-      final content = jsonEncode({
-        'type': 'join',
-        'user_id': userId,
-        'display_name': name,
-      });
-      await chatRepo.sendMessage(group.id, userId, name, content);
+      await chatRepo.sendSystemMessage(
+        groupId: group.id,
+        senderId: userId,
+        content: '$name joined the crew',
+        metadata: {
+          'type': 'join',
+          'user_id': userId,
+          'display_name': name,
+        },
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -179,12 +182,16 @@ class _WelcomeLobbyState extends ConsumerState<_WelcomeLobby> {
 
       // Send the system join message
       final chatRepo = ref.read(groupChatRepositoryProvider);
-      final content = jsonEncode({
-        'type': 'join',
-        'user_id': userId,
-        'display_name': name,
-      });
-      await chatRepo.sendMessage(group.id, userId, name, content);
+      await chatRepo.sendSystemMessage(
+        groupId: group.id,
+        senderId: userId,
+        content: '$name joined the crew',
+        metadata: {
+          'type': 'join',
+          'user_id': userId,
+          'display_name': name,
+        },
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -432,11 +439,25 @@ class _GroupLobbyState extends ConsumerState<_GroupLobby>
         authState.user?.uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
+    final name = authState.user?.displayName ?? 'A rider';
+
     final repo = ref.read(groupRideRepositoryProvider);
     ref.read(locationSharingControllerProvider.notifier).stopSharing();
     ref.read(voiceControllerProvider.notifier).leaveVoice();
 
     try {
+      // Send the system leave message before actually leaving
+      final chatRepo = ref.read(groupChatRepositoryProvider);
+      await chatRepo.sendSystemMessage(
+        groupId: widget.group.id,
+        senderId: userId,
+        content: '$name left the crew',
+        metadata: {
+          'type': 'leave',
+          'user_id': userId,
+        },
+      );
+
       await repo.leaveGroup(widget.group.id, userId);
       ref.read(activeGroupIdProvider.notifier).select(null);
     } catch (_) {}
